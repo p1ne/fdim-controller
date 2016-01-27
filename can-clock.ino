@@ -1,3 +1,4 @@
+
 #include <SPI.h>
 
 #if defined(ESP8266)
@@ -5,18 +6,21 @@
 #else
 #include <avr/pgmspace.h>
 #endif
-#include <Wire.h>
 
-#include <Sodaq_DS3231.h>
+#include <RtcDateTime.h>
+#include <RtcDS3231.h>
+#include <RtcUtility.h>
 
 #include <mcp_can.h>
 #include <mcp_can_dfs.h>
 
-
+#include <Wire.h>
 
 #define DEBUG 0
 
-#define DS3231_I2C_ADDRESS 0x68
+#define PAD_LEFT 0
+#define PAD_RIGHT 1
+#define PAD_CENTER 2
 
 #define TIMER_STEP 50
 
@@ -27,8 +31,12 @@
 #define HOUR_BUTTON 3
 #define MINUTE_BUTTON 4
 
+RtcDS3231 Rtc;
 
 int timer;
+
+byte second, minute, hour;
+String fl, fr, rr, rl, rpm, speed, temperature;
 
 uint32_t start_headers[8][3] = \
 {{ 100, 0x50c, 3},
@@ -124,41 +132,24 @@ byte bcdToDec(byte val)
   return( (val/16*10) + (val%16) );
 }
 
-void setDS3231time(byte second, byte minute, byte hour, byte dayOfWeek, byte
-dayOfMonth, byte month, byte year)
+void setDS3231time(uint8_t second, uint8_t minute, uint8_t hour)
 {
-  // sets time and date data to DS3231
-  Wire.beginTransmission(DS3231_I2C_ADDRESS);
-  Wire.write(0); // set next input to start at the seconds register
-  Wire.write(decToBcd(second)); // set seconds
-  Wire.write(decToBcd(minute)); // set minutes
-  Wire.write(decToBcd(hour)); // set hours
-  Wire.write(decToBcd(dayOfWeek)); // set day of week (1=Sunday, 7=Saturday)
-  Wire.write(decToBcd(dayOfMonth)); // set date (1 to 31)
-  Wire.write(decToBcd(month)); // set month
-  Wire.write(decToBcd(year)); // set year (0 to 99)
-  Wire.endTransmission();
+  char strTime[8];
+  String time = String(hour) + ":" + String(minute) + ":" + String(second);
+  time.toCharArray(strTime, 8);
+  RtcDateTime dt = RtcDateTime(__DATE__, strTime);
+  Rtc.SetDateTime(dt);
 }
-void readDS3231time(byte *second,
-byte *minute,
-byte *hour,
-byte *dayOfWeek,
-byte *dayOfMonth,
-byte *month,
-byte *year)
+
+void readDS3231time(uint8_t *second,
+uint8_t *minute,
+uint8_t *hour
+)
 {
-  Wire.beginTransmission(DS3231_I2C_ADDRESS);
-  Wire.write(0); // set DS3231 register pointer to 00h
-  Wire.endTransmission();
-  Wire.requestFrom(DS3231_I2C_ADDRESS, 7);
-  // request seven bytes of data from DS3231 starting from register 00h
-  *second = bcdToDec(Wire.read() & 0x7f);
-  *minute = bcdToDec(Wire.read());
-  *hour = bcdToDec(Wire.read() & 0x3f);
-  *dayOfWeek = bcdToDec(Wire.read());
-  *dayOfMonth = bcdToDec(Wire.read());
-  *month = bcdToDec(Wire.read());
-  *year = bcdToDec(Wire.read());
+  RtcDateTime now = Rtc.GetDateTime();
+  *second = now.Second();
+  *minute = now.Minute();
+  *hour = now.Hour();
 }
 
 void printDebug(int timer, uint32_t headers[], byte data[])
@@ -179,7 +170,25 @@ void printDebug(int timer, uint32_t headers[], byte data[])
 
 void displayText(int strNo, String str)
 {
+  if (strNo == 0) {
+    displayTextFormatted(strNo, 0, PAD_LEFT, 3, str);
+  } else {
+    displayTextFormatted(strNo, 0, PAD_LEFT, 20, str);
+  }
+}
+
+void displayTextFormatted(int strNo, int charNo, int padding, int len, String str)
+{
   byte curLine, curChar, numChars;
+  String outStr = str;
+  switch (padding) {
+    case PAD_LEFT:
+      for (int i=str.length();i<len;i++) outStr = outStr + " ";
+      break;
+    case PAD_RIGHT:
+      for (int i=str.length();i<len;i++) outStr = " " + outStr;
+      break;
+  }
 
   switch (strNo) {
     case 0:
@@ -199,7 +208,7 @@ void displayText(int strNo, String str)
       break;
   }
 
-  for (byte i=0;i<numChars;i++) {
+  for (byte i=charNo;i<numChars;i++) {
     if (
           ( curLine == 2 && curChar == 3 ) ||
           ( curLine == 2 && curChar == 5 ) ||
@@ -211,7 +220,7 @@ void displayText(int strNo, String str)
       curChar++;
     }
 
-    text_data[curLine][curChar] = i<str.length() ? str[i]:' ';
+    text_data[curLine][curChar] = outStr[i];
 
     curChar++;
 
@@ -222,11 +231,21 @@ void displayText(int strNo, String str)
   }
 }
 
+void clearDisplay()
+{
+  displayText(0, "   ");
+  displayText(1, "                    ");
+  displayText(2, "                    ");
+}
 
 void setup() {           
 
   Serial.begin(115200);
-  Wire.begin();
+
+  Rtc.Begin();
+#if defined(ESP8266)
+  Wire.begin(0, 2);
+#endif
   
   pinMode(HOUR_BUTTON, INPUT); 
   pinMode(MINUTE_BUTTON, INPUT); 
@@ -249,16 +268,15 @@ if(CAN_OK == CAN.begin(CAN_125KBPS, MCP_8MHz))
     }
 
   attachInterrupt(0, MCP2515_ISR, FALLING); // start interrupt
-  //CAN.init_Mask(0, 0, 0x1FFC0000);                         // there are 2 mask in mcp2515, you need to set both of them
-  //CAN.init_Mask(1, 0, 0x1FFC0000);
-  //CAN.init_Filt(0, 0, 0xED40000);   // TPMS data
-  // CAN.init_Filt(1, 0, 0x423);   // speed data
+
 
 
   CAN.init_Mask(0, 0, 0x7FF << 18);                         // there are 2 mask in mcp2515, you need to set both of them
   CAN.init_Mask(1, 0, 0x7FF << 18);
   CAN.init_Filt(0, 0, 0x3B5 << 18);   // TPMS data
-  CAN.init_Filt(0, 0, 0x423 << 18);   // Speed data
+  CAN.init_Filt(1, 0, 0x423 << 18);   // Speed data
+  //CAN.init_Filt(0, 0, 0x2db << 18);   // SYNC buttons
+  //CAN.init_Filt(1, 0, 0x398 << 18);   // HVAC
 
   delay(5000);
   timer = 0; 
@@ -274,10 +292,10 @@ if(CAN_OK == CAN.begin(CAN_125KBPS, MCP_8MHz))
   Serial.println("****");
   timer = 0;
   delay(1000);
+  clearDisplay();
 }
 
 void loop() {
-  byte second, minute, hour, dayOfWeek, dayOfMonth, month, year;
 
   int hourButtonState = 0;
   int minButtonState = 0;
@@ -290,13 +308,19 @@ void loop() {
 
       CAN.readMsgBuf(&rcvLen, rcvBuf);
       rcvCanId = CAN.getCanId();
+                 
       switch (rcvCanId) {
         case 0x3b5: {
             String fl = String(rcvBuf[0]);
             String fr = String(rcvBuf[1]);
             String rr = String(rcvBuf[2]);
             String rl = String(rcvBuf[3]);
-            displayText(1, "L:" + fl + " R:" + fr + " L:" + rl + " R:" + rr);
+
+            displayTextFormatted(1, 0, PAD_LEFT, 2, fl);
+            displayTextFormatted(2, 0, PAD_LEFT, 2, rl);
+            displayTextFormatted(1, 19, PAD_RIGHT, 2, fr);
+            displayTextFormatted(2, 19, PAD_RIGHT, 2, rr);
+
         }
           break;
         case 0x423: {
@@ -307,14 +331,31 @@ void loop() {
           byte speed1 = rcvBuf[0];
           byte speed2 = rcvBuf[1];
           String speed = String(round((( speed1 << 8) + speed2)/100) - 100);
-          if (speed.length() == 1) {
-            speed = "  "+speed;
-          } else if (speed.length() == 2) {
-            speed = " "+speed;
-          }
+          byte t = rcvBuf[4];
+          String temperature = String(t-40);
+
           displayText(0,speed);
-          displayText(2,"RPM:" + rpm);
-          
+          displayTextFormatted(2, 3, PAD_LEFT, 4, "RPM:");
+          displayTextFormatted(2, 12, PAD_LEFT, 2, "T:");
+          displayTextFormatted(2, 7, PAD_RIGHT, 4, rpm);
+          displayTextFormatted(2, 14, PAD_RIGHT, 3, temperature);
+        }
+          break;
+        case 0x2db: {
+          String b0 = String(rcvBuf[0], HEX);
+          String b1 = String(rcvBuf[1], HEX);
+
+          displayText(1, "SYNC but:" + b0 + " " + b1);
+        }
+          break;
+        case 0x398: {
+          String b0 = String(rcvBuf[0], HEX);
+          String b1 = String(rcvBuf[1], HEX);
+          String b2 = String(rcvBuf[2], HEX);
+          String b3 = String(rcvBuf[3], HEX);
+          String b4 = String(rcvBuf[4], HEX);
+
+          displayText(2, "HVAC " + b0 + " " + b1 + " " + b2 + " " + b3 + " " + b4);
         }
           break;
       }
@@ -325,30 +366,30 @@ void loop() {
     hourButtonState = digitalRead(HOUR_BUTTON);
 
     if (hourButtonState != HIGH) {
-      readDS3231time(&second, &minute, &hour, &dayOfWeek, &dayOfMonth, &month, &year);
+      readDS3231time(&second, &minute, &hour);
       hour = (hour+1) % 24;
       if (DEBUG) {
         Serial.print("New hour: ");
         Serial.println(decToBcd(hour), HEX);
       }
-      setDS3231time(second, minute, hour, dayOfWeek, dayOfMonth, month, year);
+      setDS3231time(second, minute, hour);
     }
 
     if (minButtonState != HIGH) {
-      readDS3231time(&second, &minute, &hour, &dayOfWeek, &dayOfMonth, &month, &year);
+      readDS3231time(&second, &minute, &hour);
       minute = (minute+1) % 60;
       if (DEBUG) {
         Serial.print("New minute: ");
         Serial.println(decToBcd(minute), HEX);
       }
-      setDS3231time(second, minute, hour, dayOfWeek, dayOfMonth, month, year);
+      setDS3231time(second, minute, hour);
     }
   }
   
   for (int i=0;i<MSG_COUNT;i++) {
     if ( ((timer % msg_headers[i][1]) - msg_headers[i][0]) == 0) {
       if (msg_headers[i][2] == 0x3f2) {
-        readDS3231time(&second, &minute, &hour, &dayOfWeek, &dayOfMonth, &month, &year);
+        readDS3231time(&second, &minute, &hour);
         msg_data[i][0] = decToBcd(hour);
         msg_data[i][1] = decToBcd(minute);
       }
