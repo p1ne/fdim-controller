@@ -1,4 +1,3 @@
-
 #include <SPI.h>
 
 #if defined(ESP8266)
@@ -18,10 +17,6 @@
 
 #define DEBUG 0
 
-#define PAD_LEFT 0
-#define PAD_RIGHT 1
-#define PAD_CENTER 2
-
 #define TIMER_STEP 50
 
 #define START_COUNT 8
@@ -34,9 +29,6 @@
 RtcDS3231 Rtc;
 
 int timer;
-
-byte second, minute, hour;
-String fl, fr, rr, rl, rpm, speed, temperature;
 
 uint32_t start_headers[8][3] = \
 {{ 100, 0x50c, 3},
@@ -170,25 +162,7 @@ void printDebug(int timer, uint32_t headers[], byte data[])
 
 void displayText(int strNo, String str)
 {
-  if (strNo == 0) {
-    displayTextFormatted(strNo, 0, PAD_LEFT, 3, str);
-  } else {
-    displayTextFormatted(strNo, 0, PAD_LEFT, 20, str);
-  }
-}
-
-void displayTextFormatted(int strNo, int charNo, int padding, int len, String str)
-{
   byte curLine, curChar, numChars;
-  String outStr = str;
-  switch (padding) {
-    case PAD_LEFT:
-      for (int i=str.length();i<len;i++) outStr = outStr + " ";
-      break;
-    case PAD_RIGHT:
-      for (int i=str.length();i<len;i++) outStr = " " + outStr;
-      break;
-  }
 
   switch (strNo) {
     case 0:
@@ -208,7 +182,7 @@ void displayTextFormatted(int strNo, int charNo, int padding, int len, String st
       break;
   }
 
-  for (byte i=charNo;i<numChars;i++) {
+  for (byte i=0;i<numChars;i++) {
     if (
           ( curLine == 2 && curChar == 3 ) ||
           ( curLine == 2 && curChar == 5 ) ||
@@ -220,7 +194,7 @@ void displayTextFormatted(int strNo, int charNo, int padding, int len, String st
       curChar++;
     }
 
-    text_data[curLine][curChar] = outStr[i];
+    text_data[curLine][curChar] = i<str.length() ? str[i]:' ';
 
     curChar++;
 
@@ -231,22 +205,15 @@ void displayTextFormatted(int strNo, int charNo, int padding, int len, String st
   }
 }
 
-void clearDisplay()
-{
-  displayText(0, "   ");
-  displayText(1, "                    ");
-  displayText(2, "                    ");
-}
 
 void setup() {           
 
   Serial.begin(115200);
-
   Rtc.Begin();
 #if defined(ESP8266)
   Wire.begin(0, 2);
 #endif
-  
+
   pinMode(HOUR_BUTTON, INPUT); 
   pinMode(MINUTE_BUTTON, INPUT); 
   pinMode(HOUR_BUTTON, INPUT); 
@@ -292,10 +259,10 @@ if(CAN_OK == CAN.begin(CAN_125KBPS, MCP_8MHz))
   Serial.println("****");
   timer = 0;
   delay(1000);
-  clearDisplay();
 }
 
 void loop() {
+  byte second, minute, hour, dayOfWeek, dayOfMonth, month, year;
 
   int hourButtonState = 0;
   int minButtonState = 0;
@@ -308,19 +275,13 @@ void loop() {
 
       CAN.readMsgBuf(&rcvLen, rcvBuf);
       rcvCanId = CAN.getCanId();
-                 
       switch (rcvCanId) {
         case 0x3b5: {
             String fl = String(rcvBuf[0]);
             String fr = String(rcvBuf[1]);
             String rr = String(rcvBuf[2]);
             String rl = String(rcvBuf[3]);
-
-            displayTextFormatted(1, 0, PAD_LEFT, 2, fl);
-            displayTextFormatted(2, 0, PAD_LEFT, 2, rl);
-            displayTextFormatted(1, 19, PAD_RIGHT, 2, fr);
-            displayTextFormatted(2, 19, PAD_RIGHT, 2, rr);
-
+            displayText(1, "L:" + fl + " R:" + fr + " L:" + rl + " R:" + rr);
         }
           break;
         case 0x423: {
@@ -331,21 +292,14 @@ void loop() {
           byte speed1 = rcvBuf[0];
           byte speed2 = rcvBuf[1];
           String speed = String(round((( speed1 << 8) + speed2)/100) - 100);
-          byte t = rcvBuf[4];
-          String temperature = String(t-40);
-
+          if (speed.length() == 1) {
+            speed = "  "+speed;
+          } else if (speed.length() == 2) {
+            speed = " "+speed;
+          }
           displayText(0,speed);
-          displayTextFormatted(2, 3, PAD_LEFT, 4, "RPM:");
-          displayTextFormatted(2, 12, PAD_LEFT, 2, "T:");
-          displayTextFormatted(2, 7, PAD_RIGHT, 4, rpm);
-          displayTextFormatted(2, 14, PAD_RIGHT, 3, temperature);
-        }
-          break;
-        case 0x2db: {
-          String b0 = String(rcvBuf[0], HEX);
-          String b1 = String(rcvBuf[1], HEX);
-
-          displayText(1, "SYNC but:" + b0 + " " + b1);
+          displayText(2,"RPM:" + rpm);
+          
         }
           break;
         case 0x398: {
