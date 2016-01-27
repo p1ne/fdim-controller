@@ -292,7 +292,6 @@ if(CAN_OK == CAN.begin(CAN_125KBPS, MCP_8MHz))
   Serial.println("****");
   timer = 0;
   delay(1000);
-  clearDisplay();
 }
 
 void loop() {
