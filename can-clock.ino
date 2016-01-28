@@ -15,7 +15,7 @@
 
 #include <Wire.h>
 
-#define DEBUG 0
+#define DEBUG 1
 
 #define TIMER_STEP 50
 
@@ -149,9 +149,9 @@ void printDebug(int timer, uint32_t headers[], byte data[])
   if (DEBUG) {
     Serial.print("Time: ");
     Serial.print(timer);
-    Serial.print("\t");
-    Serial.print(headers[2], HEX);
     Serial.print(" ");
+    Serial.print(headers[2], HEX);
+    Serial.print(": ");
     for (int j=0;j<headers[3];j++) {
       Serial.print(data[j], HEX);
       Serial.print(" ");
@@ -251,7 +251,7 @@ if(CAN_OK == CAN.begin(CAN_125KBPS, MCP_8MHz))
   for (int i=0;i<START_COUNT;i++) {
     CAN.sendMsgBuf(start_headers[i][1], 0, start_headers[i][2], start_data[i]);  
 
-    printDebug(timer, start_headers[i], start_data[i]);
+    //printDebug(timer, start_headers[i], start_data[i]);
 
     delay(start_headers[i][0]);
     timer = timer + start_headers[i][0];
@@ -262,13 +262,12 @@ if(CAN_OK == CAN.begin(CAN_125KBPS, MCP_8MHz))
 }
 
 void loop() {
-  byte second, minute, hour, dayOfWeek, dayOfMonth, month, year;
+  byte second, minute, hour;
 
   int hourButtonState = 0;
   int minButtonState = 0;
 
   String inSerialData;
-
   if (rcvFlag == 1) {
     rcvFlag = 0;
     while (CAN_MSGAVAIL == CAN.checkReceive()) {
