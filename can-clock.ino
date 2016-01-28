@@ -30,76 +30,96 @@ RtcDS3231 Rtc;
 
 int timer;
 
-uint32_t start_headers[8][3] = \
-{{ 100, 0x50c, 3},
- { 250, 0x3e8, 8},
- {  50, 0x3ef, 8},  
- {  50, 0x3f2, 8},
- { 100, 0x50c, 3},
- {  50, 0x3f2, 8},
- {  50, 0x3f1, 8},
- { 100, 0x50c, 3}
+class CANMessage {
+
+public:
+  uint32_t started;
+  uint32_t delayed;
+  uint32_t header;
+  byte len;
+  byte data[8];
+
+  CANMessage()
+  {
+  }
+
+  CANMessage(uint32_t _started, uint32_t _delayed, uint32_t _header, byte _len, byte _d0, byte _d1, byte _d2, byte _d3, byte _d4, byte _d5, byte _d6, byte _d7)
+  {
+    started = _started;
+    delayed = _delayed;
+    header = _header;
+    len = _len;
+    data[0] = _d0;
+    data[1] = _d1;
+    data[2] = _d2;
+    data[3] = _d3;
+    data[4] = _d4;
+    data[5] = _d5;
+    data[6] = _d6;
+    data[7] = _d7;
+  }
+
+  void set(uint32_t _started, uint32_t _delayed, uint32_t _header, byte _len, byte _d0, byte _d1, byte _d2, byte _d3, byte _d4, byte _d5, byte _d6, byte _d7)
+  {
+    started = _started;
+    delayed = _delayed;
+    header = _header;
+    len = _len;
+    data[0] = _d0;
+    data[1] = _d1;
+    data[2] = _d2;
+    data[3] = _d3;
+    data[4] = _d4;
+    data[5] = _d5;
+    data[6] = _d6;
+    data[7] = _d7;
+  }
+
 };
 
-byte start_data[8][8] = \
-{{ 0x0C, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},  // 0x50c
- { 0x00, 0x00, 0x29, 0x00, 0x00, 0x00, 0x00, 0x00},  // 0x3e8
- { 0x32, 0x32, 0x32, 0x32, 0x03, 0x00, 0x00, 0x00},  // 0x3ef
- { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x60, 0x00, 0x00},  // 0x3f2
- { 0x01, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},  // 0x50c
- { 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xF0, 0x00, 0x00},  // 0x3f2
- { 0xF5, 0x90, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},  // 0x3f1
- { 0x01, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}   // 0x50c: 1st byte 11 or 01
-};
+CANMessage start[8];
+CANMessage cycle[4];
+CANMessage text[12];
 
-uint32_t msg_headers[4][4] = \
-{{   0,  500, 0x50c, 3},  
- { 400, 1000, 0x3e8, 8},
- { 450, 1000, 0x3ef, 8},
- { 500, 1000, 0x3f2, 8},
-};
-
-byte msg_data[4][8] = \
-{{ 0x11, 0x02, 0x00, 0xBE, 0xBE, 0xBE, 0xBE, 0xBE},   // 0x50c
- { 0x0F, 0x00, 0x29, 0x04, 0x00, 0x00, 0x00, 0x00},   // 0x3e8: 1st byte 01 or 00, 4th byte 04 or 00; 
- //1st byte 01 - AM 02 - FM1 03 - FM2 04 - PHON 05 - SYNC 06 - DVD 07 - AUX 08 - CD 09 - EMPTY 0A - SAT1 0B - SAT2 0C - SAT3 0D - PHON OE - LINE 0F - 2 clocks
- //3th byte volume
- //4th byte - clock length?
- { 0x32, 0x32, 0x32, 0x32, 0x03, 0x00, 0x00, 0x20},   // 0x3ef
- { 0x12, 0x01, 0xFF, 0xFF, 0xFF, 0xF0, 0x00, 0x00},   // 0x3f2
-};
-
-uint32_t text_headers[12][4] = \
+void initStartMessages()
 {
- {   0, 0xDE, 0x336, 8},
- {  60, 0xDE, 0x324, 8},
- {  60, 0xDE, 0x337, 8},
- { 100, 0xDE, 0x336, 8},
- {  20, 0xDE, 0x324, 8},
- {  20, 0xDE, 0x337, 8},
- {  20, 0xDE, 0x337, 8},
- {  20, 0xDE, 0x337, 8},
- {  20, 0xDE, 0x337, 8},
- {  20, 0xDE, 0x337, 8},
- {  20, 0xDE, 0x337, 8},
- {  20, 0xDE, 0x337, 8}
-};
+  start[0].set( 0, 100, 0x50c, 3, 0x0C, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 );
+  start[1].set( 0, 250, 0x3e8, 8, 0x00, 0x00, 0x29, 0x00, 0x00, 0x00, 0x00, 0x00 );
+  start[2].set( 0,  50, 0x3ef, 8, 0x32, 0x32, 0x32, 0x32, 0x03, 0x00, 0x00, 0x00 );  
+  start[3].set( 0,  50, 0x3f2, 8, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x60, 0x00, 0x00 );
+  start[4].set( 0, 100, 0x50c, 3, 0x01, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 );
+  start[5].set( 0,  50, 0x3f2, 8, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xF0, 0x00, 0x00 );
+  start[6].set( 0,  50, 0x3f1, 8, 0xF5, 0x90, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 );
+  start[7].set( 0, 100, 0x50c, 3, 0x01, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 );
+}
 
-byte text_data[12][8] = \
+void initCycleMessages()
 {
-  { 0x03, 0x01, 0x0A, 0x01, 0xFE, 0x00, 0x00, 0x00 },
-  { 0x01, 0x01, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00 },
-  { 0x06, 0x20, 0x20, 0x40, 0x20, 0x40, 0x20, 0x00 },
-  { 0x03, 0x01, 0x05, 0x03, 0x03, 0x00, 0x00, 0x00 },
-  { 0x03, 0x01, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00 },
-  { 0x10, 0x2B, 0x20, 0x20, 0x20, 0x40, 0x20, 0x20 },
-  { 0x21, 0x20, 0x4D, 0x65, 0x72, 0x63, 0x40, 0x75 },
-  { 0x22, 0x72, 0x79, 0x20, 0x20, 0x20, 0x20, 0x20 },
-  { 0x23, 0x20, 0x20, 0x20, 0x20, 0x20, 0x40, 0x20 },
-  { 0x24, 0x20, 0x20, 0x4d, 0x61, 0x72, 0x69, 0x6e },
-  { 0x25, 0x65, 0x72, 0x20, 0x20, 0x20, 0x20, 0x20 },
-  { 0x26, 0x20, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00 }
-};
+  cycle[0].set(   0,  500, 0x50c, 3, 0x11, 0x02, 0x00, 0xBE, 0xBE, 0xBE, 0xBE, 0xBE );  
+  // 0x3e8: 1st byte 01 or 00, 4th byte 04 or 00; 
+  //1st byte 01 - AM 02 - FM1 03 - FM2 04 - PHON 05 - SYNC 06 - DVD 07 - AUX 08 - CD 09 - EMPTY 0A - SAT1 0B - SAT2 0C - SAT3 0D - PHON OE - LINE 0F - 2 clocks
+  //3th byte volume
+  //4th byte - clock length?
+  cycle[1].set( 400, 1000, 0x3e8, 8, 0x0F, 0x00, 0x29, 0x04, 0x00, 0x00, 0x00, 0x00 );
+  cycle[2].set( 450, 1000, 0x3ef, 8, 0x32, 0x32, 0x32, 0x32, 0x03, 0x00, 0x00, 0x20 );
+  cycle[3].set( 500, 1000, 0x3f2, 8, 0x12, 0x01, 0xFF, 0xFF, 0xFF, 0xF0, 0x00, 0x00 );
+}
+
+void initTextMessages()
+{
+  cycle[ 0].set(   0, 0xDE, 0x336, 8, 0x03, 0x01, 0x0A, 0x01, 0xFE, 0x00, 0x00, 0x00 );
+  cycle[ 1].set(  60, 0xDE, 0x324, 8, 0x01, 0x01, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00 );
+  cycle[ 2].set(  60, 0xDE, 0x337, 8, 0x06, 0x20, 0x20, 0x40, 0x20, 0x40, 0x20, 0x00 );
+  cycle[ 3].set( 100, 0xDE, 0x336, 8, 0x03, 0x01, 0x05, 0x03, 0x03, 0x00, 0x00, 0x00 );
+  cycle[ 4].set(  20, 0xDE, 0x324, 8, 0x03, 0x01, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00 );
+  cycle[ 5].set(  20, 0xDE, 0x337, 8, 0x10, 0x2B, 0x20, 0x20, 0x20, 0x40, 0x20, 0x20 );
+  cycle[ 6].set(  20, 0xDE, 0x337, 8, 0x21, 0x20, 0x4D, 0x65, 0x72, 0x63, 0x40, 0x75 );
+  cycle[ 7].set(  20, 0xDE, 0x337, 8, 0x22, 0x72, 0x79, 0x20, 0x20, 0x20, 0x20, 0x20 );
+  cycle[ 8].set(  20, 0xDE, 0x337, 8, 0x23, 0x20, 0x20, 0x20, 0x20, 0x20, 0x40, 0x20 );
+  cycle[ 9].set(  20, 0xDE, 0x337, 8, 0x24, 0x20, 0x20, 0x4d, 0x61, 0x72, 0x69, 0x6e );
+  cycle[10].set(  20, 0xDE, 0x337, 8, 0x25, 0x65, 0x72, 0x20, 0x20, 0x20, 0x20, 0x20 );
+  cycle[11].set(  20, 0xDE, 0x337, 8, 0x26, 0x20, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00 );
+}
 
 const int SPI_CS_PIN = 10;
 
@@ -144,16 +164,16 @@ uint8_t *hour
   *hour = now.Hour();
 }
 
-void printDebug(int timer, uint32_t headers[], byte data[])
+void printDebug(int timer, CANMessage msg)
 {
   if (DEBUG) {
     Serial.print("Time: ");
     Serial.print(timer);
     Serial.print(" ");
-    Serial.print(headers[2], HEX);
+    Serial.print(msg.header, HEX);
     Serial.print(": ");
-    for (int j=0;j<headers[3];j++) {
-      Serial.print(data[j], HEX);
+    for (int j=0;j<msg.len;j++) {
+      Serial.print(msg.data[j], HEX);
       Serial.print(" ");
     }
     Serial.println("");
@@ -190,11 +210,11 @@ void displayText(int strNo, String str)
           ( curLine == 6 && curChar == 6 ) ||
           ( curLine == 8 && curChar == 6 )
        ) {
-      text_data[curLine][curChar] = '@';
+      text[curLine].data[curChar] = '@';
       curChar++;
     }
 
-    text_data[curLine][curChar] = i<str.length() ? str[i]:' ';
+    text[curLine].data[curChar] = i<str.length() ? str[i]:' ';
 
     curChar++;
 
@@ -207,7 +227,9 @@ void displayText(int strNo, String str)
 
 
 void setup() {           
-
+  initStartMessages();
+  initCycleMessages();
+  initTextMessages();
   Serial.begin(115200);
   Rtc.Begin();
 #if defined(ESP8266)
@@ -236,8 +258,6 @@ if(CAN_OK == CAN.begin(CAN_125KBPS, MCP_8MHz))
 
   attachInterrupt(0, MCP2515_ISR, FALLING); // start interrupt
 
-
-
   CAN.init_Mask(0, 0, 0x7FF << 18);                         // there are 2 mask in mcp2515, you need to set both of them
   CAN.init_Mask(1, 0, 0x7FF << 18);
   CAN.init_Filt(0, 0, 0x3B5 << 18);   // TPMS data
@@ -249,12 +269,10 @@ if(CAN_OK == CAN.begin(CAN_125KBPS, MCP_8MHz))
   timer = 0; 
 
   for (int i=0;i<START_COUNT;i++) {
-    CAN.sendMsgBuf(start_headers[i][1], 0, start_headers[i][2], start_data[i]);  
-
-    //printDebug(timer, start_headers[i], start_data[i]);
-
-    delay(start_headers[i][0]);
-    timer = timer + start_headers[i][0];
+    CAN.sendMsgBuf(start[i].header, 0, start[i].len, start[i].data);  
+    printDebug(timer, start[i]);
+    delay(start[i].delayed);
+    timer = timer + start[i].header;
   }
   Serial.println("****");
   timer = 0;
@@ -321,35 +339,26 @@ void loop() {
     if (hourButtonState != HIGH) {
       readDS3231time(&second, &minute, &hour);
       hour = (hour+1) % 24;
-      if (DEBUG) {
-        Serial.print("New hour: ");
-        Serial.println(decToBcd(hour), HEX);
-      }
       setDS3231time(second, minute, hour);
     }
 
     if (minButtonState != HIGH) {
       readDS3231time(&second, &minute, &hour);
       minute = (minute+1) % 60;
-      if (DEBUG) {
-        Serial.print("New minute: ");
-        Serial.println(decToBcd(minute), HEX);
-      }
       setDS3231time(second, minute, hour);
     }
   }
   
   for (int i=0;i<MSG_COUNT;i++) {
-    if ( ((timer % msg_headers[i][1]) - msg_headers[i][0]) == 0) {
-      if (msg_headers[i][2] == 0x3f2) {
+    if ( ((timer % cycle[i].delayed) - cycle[i].started) == 0) {
+      if (cycle[i].header == 0x3f2) {
         readDS3231time(&second, &minute, &hour);
-        msg_data[i][0] = decToBcd(hour);
-        msg_data[i][1] = decToBcd(minute);
+        cycle[i].data[0] = decToBcd(hour);
+        cycle[i].data[1] = decToBcd(minute);
       }
 
-      CAN.sendMsgBuf(msg_headers[i][2], 0, msg_headers[i][3], msg_data[i]);  
-
-      printDebug(timer, msg_headers[i], msg_data[i]);
+      CAN.sendMsgBuf(cycle[i].header, 0, cycle[i].len, cycle[i].data);  
+      printDebug(timer, cycle[i]);
     }
   }
 
@@ -368,11 +377,9 @@ void loop() {
 
   if ( (timer % 500) == 0) {
     for (int i=0;i<TEXT_COUNT;i++) {
-      CAN.sendMsgBuf(text_headers[i][2], 0, text_headers[i][3], text_data[i]);
-
-      printDebug(timer, text_headers[i], text_data[i]);
-
-      delay(text_headers[i][0]);
+      CAN.sendMsgBuf(text[i].header, 0, text[i].len, text[i].data);
+      printDebug(timer, text[i]);
+      delay(text[i].delayed);
     }
   }
 
