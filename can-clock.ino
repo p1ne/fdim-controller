@@ -15,7 +15,7 @@
 
 #include <Wire.h>
 
-#define DEBUG 1
+#define DEBUG 0
 
 #define TIMER_STEP 50
 
