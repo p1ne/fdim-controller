@@ -309,13 +309,18 @@ void loop() {
           byte speed1 = rcvBuf[0];
           byte speed2 = rcvBuf[1];
           String speed = String(round((( speed1 << 8) + speed2)/100) - 100);
+
           if (speed.length() == 1) {
             speed = "  "+speed;
           } else if (speed.length() == 2) {
             speed = " "+speed;
           }
+
+          byte t = rcvBuf[4];
+          String temperature = String(t-40);
+
           displayText(0,speed);
-          displayText(2,"RPM:" + rpm);
+          displayText(2,"RPM:" + rpm + " " + "T:" + temperature);
           
         }
           break;
