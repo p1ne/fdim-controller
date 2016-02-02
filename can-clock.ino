@@ -15,7 +15,7 @@
 
 #include <Wire.h>
 
-#define DEBUG 1
+#define DEBUG 0
 
 #define TIMER_STEP 50
 
@@ -318,9 +318,13 @@ void loop() {
 
           byte t = rcvBuf[4];
           String temperature = String(t-40);
-
-          displayText(0,speed);
-          displayText(2,"RPM:" + rpm + " " + "T:" + temperature);
+          if (rpm != "0") {
+            displayText(0,speed);
+            displayText(2,"RPM:" + rpm + " " + "T:" + temperature);
+          } else {
+            displayText(0,"   ");
+            displayText(2,"                    ");
+          }
           
         }
           break;
