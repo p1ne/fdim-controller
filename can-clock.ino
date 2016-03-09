@@ -14,6 +14,7 @@
 #include <mcp_can_dfs.h>
 
 #include <Wire.h>
+#include <SoftwareSerial.h>
 
 #define DEBUG 0
 
@@ -26,49 +27,10 @@
 #define HOUR_BUTTON 3
 #define MINUTE_BUTTON 4
 
-#define UNDER_0 0x80
-#define UNDER_1 0x81
-#define UNDER_2 0x82
-#define UNDER_3 0x83
-#define UNDER_4 0x84
-#define UNDER_5 0x85
-#define UNDER_6 0x86
-#define UNDER_7 0x87
-#define UNDER_8 0x88
-#define UNDER_9 0x89
-#define OVER_0 0x8A
-#define OVER_1 0x8B
-#define OVER_2 0x8C
-#define OVER_3 0x8D
-#define OVER_4 0x8E
-#define OVER_5 0x8F
-#define OVER_6 0x90
-#define OVER_7 0x91
-#define OVER_8 0x92
-#define OVER_9 0x93
-#define BLANK 0x94
-#define BOX 0x95
-#define LEFT_QUOTE 0x96
-#define RIGHT_QUOTE 0x97
-#define LEFT_DBL_QUOTE 0x9a
-#define RIGHT_DBL_QUOTE 0x9b
-#define BOX_EMPTY 0x9c
-#define ARROW_RIGHT 0x9d
-#define ARROW_LEFT 0x9e
-#define ARROW_UP 0x9f
-#define ARROW_DOWN 0xa0
-#define TICK 0xa1
-#define ARROW_UPRIGHT 0xa2
-#define ARROW_DOWNRIGHT 0xa3
-#define ARROW_UPLEFT 0xa4
-#define ARROW_DOWNLEFT 0xa5
-#define BOX_QUARTER 0xa6
-#define BOX_HALF 0xa7
-
-
-
 
 RtcDS3231 Rtc;
+
+SoftwareSerial mySerial(8, 9); // RX, TX
 
 int timer;
 
@@ -274,6 +236,7 @@ void setup() {
   initCycleMessages();
   initTextMessages();
   Serial.begin(115200);
+  mySerial.begin(9600);
   Rtc.Begin();
 #if defined(ESP8266)
   Wire.begin(0, 2);
@@ -289,12 +252,11 @@ void setup() {
 START_INIT:
 if(CAN_OK == CAN.begin(CAN_125KBPS, MCP_8MHz))
     {
-        Serial.println("CAN BUS Shield init ok!");
+        Serial.println("CAN ok!");
     }
     else
     {
-        Serial.println("CAN BUS Shield init fail");
-        Serial.println("Init CAN BUS Shield again");
+        Serial.println("CAN fail");
         delay(100);
         goto START_INIT;
     }
@@ -416,8 +378,8 @@ void loop() {
 
   inSerialData = "";
 
-  while (Serial.available() > 0) {
-      char recieved = Serial.read();
+  while (mySerial.available() > 0) {
+      char recieved = mySerial.read();
       inSerialData += recieved; 
 
       if (recieved == '\n')
