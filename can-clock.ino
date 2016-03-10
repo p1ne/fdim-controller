@@ -32,6 +32,8 @@ RtcDS3231 Rtc;
 
 SoftwareSerial mySerial(8, 9); // RX, TX
 
+String fl, fr, rl, rr, speed, rpm, temperature, message;
+
 int timer;
 
 class CANMessage {
@@ -230,6 +232,29 @@ void displayText(int strNo, String str)
   }
 }
 
+String padRight(String str, byte length)
+{
+  str = str.substring(0,length);
+  byte strLen = str.length();
+  for (int i=0;i<length-strLen;i++) {
+    str = " " + str;
+  }
+  return str;
+}
+
+
+String padCenter(String str, byte length)
+{
+  str = str.substring(0,length);
+  byte strLen = str.length();
+  for (int i=0;i<(length-strLen)/2;i++) {
+    str = " " + str + " ";
+  }
+  if (str.length() > length) {
+    str = str.substring(1);
+  }
+  return str;
+}
 
 void setup() {           
   initStartMessages();
@@ -299,38 +324,29 @@ void loop() {
       rcvCanId = CAN.getCanId();
       switch (rcvCanId) {
         case 0x3b5: {
-            String fl = String(rcvBuf[0]);
-            String fr = String(rcvBuf[1]);
-            String rr = String(rcvBuf[2]);
-            String rl = String(rcvBuf[3]);
-            displayText(1, "L:" + fl + " R:" + fr + " L:" + rl + " R:" + rr);
+            fl = String(rcvBuf[0]);
+            fr = String(rcvBuf[1]);
+            rr = String(rcvBuf[2]);
+            rl = String(rcvBuf[3]);
         }
           break;
         case 0x423: {
           byte rpm1 = rcvBuf[2];
           byte rpm2 = rcvBuf[3];
-          String rpm = String(( ( rpm1 << 8 ) + rpm2 ) / 4);
-          
+          rpm = String(( ( rpm1 << 8 ) + rpm2 ) / 4);
+                  
           byte speed1 = rcvBuf[0];
           byte speed2 = rcvBuf[1];
-          String speed = String(round((( speed1 << 8) + speed2)/100) - 100);
-
-          if (speed.length() == 1) {
-            speed = "  "+speed;
-          } else if (speed.length() == 2) {
-            speed = " "+speed;
-          }
-
-          byte t = rcvBuf[4];
-          String temperature = String(t-40);
-          if (rpm != "0") {
-            displayText(0,speed);
-            displayText(2,"RPM:" + rpm + " " + "T:" + temperature);
-          } else {
-            displayText(0,"   ");
-            displayText(2,"                    ");
-          }
+          speed = String(round((( speed1 << 8) + speed2)/100) - 100);
           
+          byte t = rcvBuf[4];
+          temperature = String(t-40);
+
+          if (rpm == "0") {
+            speed = "";
+            rpm = "";
+            temperature = "";
+          }
         }
           break;
         case 0x398: {
@@ -384,12 +400,16 @@ void loop() {
 
       if (recieved == '\n')
       {
-        displayText(inSerialData.substring(0,1).toInt(), inSerialData.substring(1));
+        message = inSerialData;
         inSerialData = "";
       }
   }
 
-  if ( (timer % 500) == 0) {
+  if ( (timer % 250) == 0) {
+    displayText(0, padRight(speed, 3));
+    displayText(1, padRight(fl, 2) + padCenter(message, 16) + padRight(fr, 2));
+    displayText(2, padRight(rl, 2) + " RPM:" + padRight(rpm, 4) + " T:" + padRight(temperature, 3) + " " + padRight(rr, 2));
+    
     for (int i=0;i<TEXT_COUNT;i++) {
       CAN.sendMsgBuf(text[i].header, 0, text[i].len, text[i].data);
       printDebug(timer, text[i]);
