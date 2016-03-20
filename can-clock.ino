@@ -18,7 +18,7 @@
 
 #define DEBUG 0
 
-#define TIMER_STEP 50
+#define TIMER_STEP 25
 
 #define START_COUNT 8
 #define MSG_COUNT 4
@@ -32,7 +32,7 @@ RtcDS3231 Rtc;
 
 SoftwareSerial mySerial(8, 9); // RX, TX
 
-String fl, fr, rl, rr, speed, rpm, temperature, message;
+String fl, fr, rl, rr, carSpeed, rpm, temperature, message;
 
 int timer;
 
@@ -81,6 +81,34 @@ public:
     data[6] = _d6;
     data[7] = _d7;
   }
+  void print()
+  {
+    Serial.println("****");
+    Serial.print(started);
+    Serial.print(" ");
+    Serial.print(delayed);
+    Serial.print(" ");
+    Serial.print(header);
+    Serial.print(" ");
+    Serial.print(len);
+    Serial.print(" ");
+    Serial.print(data[0]);
+    Serial.print(" ");
+    Serial.print(data[1]);
+    Serial.print(" ");
+    Serial.print(data[2]);
+    Serial.print(" ");
+    Serial.print(data[3]);
+    Serial.print(" ");
+    Serial.print(data[4]);
+    Serial.print(" ");
+    Serial.print(data[5]);
+    Serial.print(" ");
+    Serial.print(data[6]);
+    Serial.print(" ");
+    Serial.print(data[7]);
+    Serial.println(" ");
+  }
 
 };
 
@@ -115,17 +143,17 @@ void initCycleMessages()
 void initTextMessages()
 {
   text[ 0].set( 0,   0, 0x336, 8, 0x03, 0x01, 0x0A, 0x01, 0xFE, 0x00, 0x00, 0x00 );
-  text[ 1].set( 0,  60, 0x324, 8, 0x01, 0x01, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00 );
-  text[ 2].set( 0,  60, 0x337, 8, 0x06, 0x20,  ' ',  '@',  ' ',  '@',  ' ', 0x00 );
+  text[ 1].set( 0,  50, 0x324, 8, 0x01, 0x01, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00 );
+  text[ 2].set( 0,  50, 0x337, 8, 0x06, 0x20,  ' ',  '@',  ' ',  '@',  ' ', 0x00 );
   text[ 3].set( 0, 100, 0x336, 8, 0x03, 0x01, 0x05, 0x03, 0x03, 0x00, 0x00, 0x00 );
-  text[ 4].set( 0,  20, 0x324, 8, 0x03, 0x01, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00 );
-  text[ 5].set( 0,  20, 0x337, 8, 0x10, 0x2B,  ' ',  ' ',  ' ',  '@',  ' ',  ' ' );
-  text[ 6].set( 0,  20, 0x337, 8, 0x21,  ' ',  'M',  'e',  'r',  'c',  '@',  'u' );
-  text[ 7].set( 0,  20, 0x337, 8, 0x22,  'r',  'y',  ' ',  ' ',  ' ',  ' ',  ' ' );
-  text[ 8].set( 0,  20, 0x337, 8, 0x23,  ' ',  ' ',  ' ',  ' ',  ' ',  '@',  ' ' );
-  text[ 9].set( 0,  20, 0x337, 8, 0x24,  ' ',  ' ',  'M',  'a',  'r',  'i',  'n' );
-  text[10].set( 0,  20, 0x337, 8, 0x25,  'e',  'r',  ' ',  ' ',  ' ',  ' ',  ' ' );
-  text[11].set( 0,  20, 0x337, 8, 0x26,  ' ',  ' ', 0x00, 0x00, 0x00, 0x00, 0x00 );
+  text[ 4].set( 0,  25, 0x324, 8, 0x03, 0x01, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00 );
+  text[ 5].set( 0,  25, 0x337, 8, 0x10, 0x2B,  ' ',  ' ',  ' ',  '@',  ' ',  ' ' );
+  text[ 6].set( 0,  25, 0x337, 8, 0x21,  ' ',  'M',  'e',  'r',  'c',  '@',  'u' );
+  text[ 7].set( 0,  25, 0x337, 8, 0x22,  'r',  'y',  ' ',  ' ',  ' ',  ' ',  ' ' );
+  text[ 8].set( 0,  25, 0x337, 8, 0x23,  ' ',  ' ',  ' ',  ' ',  ' ',  '@',  ' ' );
+  text[ 9].set( 0,  25, 0x337, 8, 0x24,  ' ',  ' ',  'M',  'a',  'r',  'i',  'n' );
+  text[10].set( 0,  25, 0x337, 8, 0x25,  'e',  'r',  ' ',  ' ',  ' ',  ' ',  ' ' );
+  text[11].set( 0,  25, 0x337, 8, 0x26,  ' ',  ' ', 0x00, 0x00, 0x00, 0x00, 0x00 );
 }
 
 const int SPI_CS_PIN = 10;
@@ -232,26 +260,36 @@ void displayText(int strNo, String str)
   }
 }
 
-String padRight(String str, byte length)
+String padLeft(String inStr, byte length)
 {
-  str = str.substring(0,length);
+  String str = inStr.substring(0,length);
   byte strLen = str.length();
-  for (int i=0;i<length-strLen;i++) {
+  for (int i=strLen;i<length;i++) {
+    str = str + " ";
+  }
+  return str;
+}
+
+String padRight(String inStr, byte length)
+{
+  String str = inStr.substring(0,length);
+  byte strLen = str.length();
+  for (int i=strLen;i<length;i++) {
     str = " " + str;
   }
   return str;
 }
 
 
-String padCenter(String str, byte length)
+String padCenter(String inStr, byte length)
 {
-  str = str.substring(0,length);
+  String str = inStr.substring(0,length);
   byte strLen = str.length();
-  for (int i=0;i<(length-strLen)/2;i++) {
+  for (int i=0;i<round((length-strLen)/2);i++) {
     str = " " + str + " ";
   }
   if (str.length() > length) {
-    str = str.substring(1);
+    str = str.substring(0, length);
   }
   return str;
 }
@@ -293,9 +331,9 @@ if(CAN_OK == CAN.begin(CAN_125KBPS, MCP_8MHz))
   CAN.init_Filt(0, 0, 0x3B5 << 18);   // TPMS data
   CAN.init_Filt(1, 0, 0x423 << 18);   // Speed data
   //CAN.init_Filt(0, 0, 0x2db << 18);   // SYNC buttons
-  //CAN.init_Filt(1, 0, 0x398 << 18);   // HVAC
+  //CAN.init_Filt(2, 0, 0x398 << 18);   // HVAC
 
-  delay(5000);
+  delay(1000);
   timer = 0; 
 
   for (int i=0;i<START_COUNT;i++) {
@@ -306,7 +344,7 @@ if(CAN_OK == CAN.begin(CAN_125KBPS, MCP_8MHz))
   }
   Serial.println("****");
   timer = 0;
-  delay(1000);
+  delay(500);
 }
 
 void loop() {
@@ -337,13 +375,13 @@ void loop() {
                   
           byte speed1 = rcvBuf[0];
           byte speed2 = rcvBuf[1];
-          speed = String(round((( speed1 << 8) + speed2)/100) - 100);
-          
+          carSpeed = String(round((( speed1 << 8) + speed2)/100) - 100, 0);       
+
           byte t = rcvBuf[4];
           temperature = String(t-40);
 
           if (rpm == "0") {
-            speed = "";
+            carSpeed = "";
             rpm = "";
             temperature = "";
           }
@@ -356,7 +394,7 @@ void loop() {
           String b3 = String(rcvBuf[3], HEX);
           String b4 = String(rcvBuf[4], HEX);
 
-          displayText(2, "HVAC " + b0 + " " + b1 + " " + b2 + " " + b3 + " " + b4);
+          message=b0 + " " + b1 + " " + b2 + " " + b3 + " " + b4;
         }
           break;
       }
@@ -405,11 +443,11 @@ void loop() {
       }
   }
 
-  if ( (timer % 250) == 0) {
-    displayText(0, padRight(speed, 3));
-    displayText(1, padRight(fl, 2) + padCenter(message, 16) + padRight(fr, 2));
+  if ( (timer % 150) == 0) {
+    displayText(0, padRight(carSpeed,3));
+    displayText(1, padRight(fl, 2) + " " + padCenter(message, 14) + " " + padRight(fr, 2));
     displayText(2, padRight(rl, 2) + " RPM:" + padRight(rpm, 4) + " T:" + padRight(temperature, 3) + " " + padRight(rr, 2));
-    
+
     for (int i=0;i<TEXT_COUNT;i++) {
       CAN.sendMsgBuf(text[i].header, 0, text[i].len, text[i].data);
       printDebug(timer, text[i]);
