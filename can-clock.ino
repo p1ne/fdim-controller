@@ -16,6 +16,9 @@
 #include <Wire.h>
 #include <SoftwareSerial.h>
 
+#include <ELClient.h>
+#include <ELClientMqtt.h>
+
 #define DEBUG 0
 
 #define TIMER_STEP 25
@@ -31,6 +34,10 @@
 RtcDS3231 Rtc;
 
 SoftwareSerial mySerial(8, 9); // RX, TX
+
+ELClient esp(&mySerial, &mySerial);
+ELClientMqtt mqtt(&esp);
+bool connected;
 
 String fl, fr, rl, rr, carSpeed, rpm, temperature, message;
 
@@ -294,6 +301,30 @@ String padCenter(String inStr, byte length)
   return str;
 }
 
+void mqttConnected(void* response) {
+  Serial.println("MQTT connected!");
+  mqtt.subscribe("Message");
+  connected = true;
+}
+
+void mqttDisconnected(void* response) {
+  Serial.println("MQTT disconnected");
+  connected = false;
+}
+
+void mqttData(void* response) {
+  ELClientResponse *res = (ELClientResponse *)response;
+
+  Serial.print("Received: topic=");
+  String topic = res->popString();
+  Serial.println(topic);
+
+  Serial.print("data=");
+  String data = res->popString();
+  message = data;
+  Serial.println(data);
+}
+
 void setup() {           
   initStartMessages();
   initCycleMessages();
@@ -336,6 +367,17 @@ if(CAN_OK == CAN.begin(CAN_125KBPS, MCP_8MHz))
   delay(1000);
   timer = 0; 
 
+  bool ok;
+  //do {
+    ok = esp.Sync();      // sync up with esp-link, blocks for up to 2 seconds
+    //if (!ok) Serial.println(String(ok) + " EL-Client sync failed!");
+  //} while(!ok);
+  Serial.println("EL-Client synced!");
+  mqtt.connectedCb.attach(mqttConnected);
+  mqtt.disconnectedCb.attach(mqttDisconnected);
+  mqtt.dataCb.attach(mqttData);
+  mqtt.setup();
+  
   for (int i=0;i<START_COUNT;i++) {
     CAN.sendMsgBuf(start[i].header, 0, start[i].len, start[i].data);  
     printDebug(timer, start[i]);
@@ -430,6 +472,7 @@ void loop() {
     }
   }
 
+/*
   inSerialData = "";
 
   while (mySerial.available() > 0) {
@@ -442,6 +485,7 @@ void loop() {
         inSerialData = "";
       }
   }
+*/
 
   if ( (timer % 150) == 0) {
     displayText(0, padRight(carSpeed,3));
@@ -454,6 +498,8 @@ void loop() {
       delay(text[i].delayed);
     }
   }
+
+  esp.Process();
 
   delay(TIMER_STEP);
   timer = timer + TIMER_STEP;
