@@ -6,10 +6,6 @@
 #include <avr/pgmspace.h>
 #endif
 
-#include <RtcDateTime.h>
-#include <RtcDS3231.h>
-#include <RtcUtility.h>
-
 #include <mcp_can.h>
 #include <mcp_can_dfs.h>
 
@@ -24,11 +20,8 @@
 #define MSG_COUNT 4
 #define TEXT_COUNT 12
 
-#define HOUR_BUTTON 3
-#define MINUTE_BUTTON 4
-
-
-RtcDS3231 Rtc;
+#define TZ 3
+byte second, minute, hour;
 
 SoftwareSerial mySerial(8, 9); // RX, TX
 
@@ -179,26 +172,6 @@ byte bcdToDec(byte val)
   return( (val/16*10) + (val%16) );
 }
 
-void setDS3231time(uint8_t second, uint8_t minute, uint8_t hour)
-{
-  char strTime[8];
-  String time = String(hour) + ":" + String(minute) + ":" + String(second);
-  time.toCharArray(strTime, 8);
-  RtcDateTime dt = RtcDateTime(__DATE__, strTime);
-  Rtc.SetDateTime(dt);
-}
-
-void readDS3231time(uint8_t *second,
-uint8_t *minute,
-uint8_t *hour
-)
-{
-  RtcDateTime now = Rtc.GetDateTime();
-  *second = now.Second();
-  *minute = now.Minute();
-  *hour = now.Hour();
-}
-
 void printDebug(int timer, CANMessage msg)
 {
   if (DEBUG) {
@@ -262,20 +235,23 @@ void displayText(int strNo, String str)
 
 String padLeft(String inStr, byte length)
 {
-  String str = inStr.substring(0,length);
-  byte strLen = str.length();
-  for (int i=strLen;i<length;i++) {
-    str = str + " ";
+  String str = inStr;
+  inStr.trim();
+  inStr = inStr.substring(0,length);
+  while ( str.length() < length) {
+    str = str + " ";   
   }
+
   return str;
 }
 
 String padRight(String inStr, byte length)
 {
-  String str = inStr.substring(0,length);
-  byte strLen = str.length();
-  for (int i=strLen;i<length;i++) {
-    str = " " + str;
+  String str = inStr;
+  inStr.trim();
+  inStr = inStr.substring(0,length);
+  while ( str.length() < length) {
+    str = " " + str;   
   }
   return str;
 }
@@ -283,16 +259,15 @@ String padRight(String inStr, byte length)
 
 String padCenter(String inStr, byte length)
 {
-  String str = inStr.substring(0,length);
-  byte strLen = str.length();
-  for (int i=0;i<round((length-strLen)/2);i++) {
-    str = " " + str + " ";
-  }
-  if (str.length() > length) {
-    str = str.substring(0, length);
+  String str = inStr;
+  inStr.trim();
+  inStr = inStr.substring(0,length);
+  while ( str.length() < length) {
+    str = (str.length() % 2) ? str + " " : " " +str;   
   }
   return str;
 }
+
 
 void setup() {           
   initStartMessages();
@@ -300,17 +275,9 @@ void setup() {
   initTextMessages();
   Serial.begin(115200);
   mySerial.begin(9600);
-  Rtc.Begin();
 #if defined(ESP8266)
   Wire.begin(0, 2);
 #endif
-
-  pinMode(HOUR_BUTTON, INPUT); 
-  pinMode(MINUTE_BUTTON, INPUT); 
-  pinMode(HOUR_BUTTON, INPUT); 
-  pinMode(MINUTE_BUTTON, INPUT); 
-  digitalWrite(HOUR_BUTTON, HIGH); 
-  digitalWrite(MINUTE_BUTTON, HIGH); 
 
 START_INIT:
 if(CAN_OK == CAN.begin(CAN_125KBPS, MCP_8MHz))
@@ -330,6 +297,7 @@ if(CAN_OK == CAN.begin(CAN_125KBPS, MCP_8MHz))
   CAN.init_Mask(1, 0, 0x7FF << 18);
   CAN.init_Filt(0, 0, 0x3B5 << 18);   // TPMS data
   CAN.init_Filt(1, 0, 0x423 << 18);   // Speed data
+  CAN.init_Filt(2, 0, 0x466 << 18);   // GPS
   //CAN.init_Filt(0, 0, 0x2db << 18);   // SYNC buttons
   //CAN.init_Filt(2, 0, 0x398 << 18);   // HVAC
 
@@ -348,12 +316,8 @@ if(CAN_OK == CAN.begin(CAN_125KBPS, MCP_8MHz))
 }
 
 void loop() {
-  byte second, minute, hour;
-
-  int hourButtonState = 0;
-  int minButtonState = 0;
-
   String inSerialData;
+
   if (rcvFlag == 1) {
     rcvFlag = 0;
     while (CAN_MSGAVAIL == CAN.checkReceive()) {
@@ -384,6 +348,7 @@ void loop() {
             carSpeed = "";
             rpm = "";
             temperature = "";
+            message = "";
           }
         }
           break;
@@ -397,30 +362,19 @@ void loop() {
           message=b0 + " " + b1 + " " + b2 + " " + b3 + " " + b4;
         }
           break;
+        case 0x466: {
+            hour = (((rcvBuf[0] & 0xF8) >> 3) + TZ ) % 24;
+            minute = (rcvBuf[1] & 0xFC) >> 2;
+            second = (rcvBuf[2] & 0xFC) >> 2;
+            //message=String(hour, DEC) + " " + String(minute, DEC) + " " + String(second, DEC);
+        }
+          break;
       }
     }
   }
-  if (timer % 250 == 0) {
-    minButtonState = digitalRead(MINUTE_BUTTON);
-    hourButtonState = digitalRead(HOUR_BUTTON);
-
-    if (hourButtonState != HIGH) {
-      readDS3231time(&second, &minute, &hour);
-      hour = (hour+1) % 24;
-      setDS3231time(second, minute, hour);
-    }
-
-    if (minButtonState != HIGH) {
-      readDS3231time(&second, &minute, &hour);
-      minute = (minute+1) % 60;
-      setDS3231time(second, minute, hour);
-    }
-  }
-  
   for (int i=0;i<MSG_COUNT;i++) {
     if ( ((timer % cycle[i].delayed) - cycle[i].started) == 0) {
       if (cycle[i].header == 0x3f2) {
-        readDS3231time(&second, &minute, &hour);
         cycle[i].data[0] = decToBcd(hour);
         cycle[i].data[1] = decToBcd(minute);
       }
@@ -444,6 +398,11 @@ void loop() {
   }
 
   if ( (timer % 150) == 0) {
+
+    int sensorValue = analogRead(4);
+    Serial.println(sensorValue);
+    message = String(sensorValue, DEC);
+    
     displayText(0, padRight(carSpeed,3));
     displayText(1, padRight(fl, 2) + " " + padCenter(message, 14) + " " + padRight(fr, 2));
     displayText(2, padRight(rl, 2) + " RPM:" + padRight(rpm, 4) + " T:" + padRight(temperature, 3) + " " + padRight(rr, 2));
