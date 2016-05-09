@@ -1,3 +1,5 @@
+#include <Arduino.h>
+
 #include <SPI.h>
 
 #if defined(ESP8266)
@@ -20,12 +22,16 @@
 #define MSG_COUNT 4
 #define TEXT_COUNT 12
 
+#define TEXT_MSG_LENGTH 14
+
 #define TZ 3
 byte second, minute, hour;
 
 SoftwareSerial mySerial(8, 9); // RX, TX
 
 String fl, fr, rl, rr, carSpeed, rpm, temperature, message;
+
+String dump[8];
 
 int timer;
 
@@ -236,8 +242,8 @@ void displayText(int strNo, String str)
 String padLeft(String inStr, byte length)
 {
   String str = inStr;
-  inStr.trim();
-  inStr = inStr.substring(0,length);
+  str.trim();
+  str = str.substring(0,length);
   while ( str.length() < length) {
     str = str + " ";   
   }
@@ -248,8 +254,8 @@ String padLeft(String inStr, byte length)
 String padRight(String inStr, byte length)
 {
   String str = inStr;
-  inStr.trim();
-  inStr = inStr.substring(0,length);
+  str.trim();
+  str = str.substring(0,length);
   while ( str.length() < length) {
     str = " " + str;   
   }
@@ -260,8 +266,8 @@ String padRight(String inStr, byte length)
 String padCenter(String inStr, byte length)
 {
   String str = inStr;
-  inStr.trim();
-  inStr = inStr.substring(0,length);
+  str.trim();
+  inStr = str.substring(0,length);
   while ( str.length() < length) {
     str = (str.length() % 2) ? str + " " : " " +str;   
   }
@@ -278,6 +284,7 @@ void setup() {
 #if defined(ESP8266)
   Wire.begin(0, 2);
 #endif
+  pinMode(A4, INPUT);
 
 START_INIT:
 if(CAN_OK == CAN.begin(CAN_125KBPS, MCP_8MHz))
@@ -298,6 +305,11 @@ if(CAN_OK == CAN.begin(CAN_125KBPS, MCP_8MHz))
   CAN.init_Filt(0, 0, 0x3B5 << 18);   // TPMS data
   CAN.init_Filt(1, 0, 0x423 << 18);   // Speed data
   CAN.init_Filt(2, 0, 0x466 << 18);   // GPS
+
+//  CAN.init_Filt(3, 0, 0x43a << 18);   // ???
+//  CAN.init_Filt(3, 0, 0x3a1 << 18);   // HVAC?
+//  CAN.init_Filt(4, 0, 0x3a4 << 18);   // HVAC?
+  
   //CAN.init_Filt(0, 0, 0x2db << 18);   // SYNC buttons
   //CAN.init_Filt(2, 0, 0x398 << 18);   // HVAC
 
@@ -325,14 +337,34 @@ void loop() {
       CAN.readMsgBuf(&rcvLen, rcvBuf);
       rcvCanId = CAN.getCanId();
       switch (rcvCanId) {
-        case 0x3b5: {
+//        case 0x43a: { // ???
+//          for (int i=0;i<8;i++) {
+//            dump[i] = String(rcvBuf[i], HEX);
+//          }
+//          message = "";
+//          for (int i=0;i<8;i++) {
+//            message = message + dump[i];
+//          }
+//        }
+//          break;
+//        case 0x398: { // HVAC ?
+//          String b0 = String(rcvBuf[0], HEX);
+//          String b1 = String(rcvBuf[1], HEX);
+//          String b2 = String(rcvBuf[2], HEX);
+//          String b3 = String(rcvBuf[3], HEX);
+//          String b4 = String(rcvBuf[4], HEX);
+//
+//          message=b0 + " " + b1 + " " + b2 + " " + b3 + " " + b4;
+//        }
+//          break;
+        case 0x3b5: { // TPMS
             fl = String(rcvBuf[0]);
             fr = String(rcvBuf[1]);
             rr = String(rcvBuf[2]);
             rl = String(rcvBuf[3]);
         }
           break;
-        case 0x423: {
+        case 0x423: { // Speed, RPM
           byte rpm1 = rcvBuf[2];
           byte rpm2 = rcvBuf[3];
           rpm = String(( ( rpm1 << 8 ) + rpm2 ) / 4);
@@ -352,17 +384,7 @@ void loop() {
           }
         }
           break;
-        case 0x398: {
-          String b0 = String(rcvBuf[0], HEX);
-          String b1 = String(rcvBuf[1], HEX);
-          String b2 = String(rcvBuf[2], HEX);
-          String b3 = String(rcvBuf[3], HEX);
-          String b4 = String(rcvBuf[4], HEX);
-
-          message=b0 + " " + b1 + " " + b2 + " " + b3 + " " + b4;
-        }
-          break;
-        case 0x466: {
+        case 0x466: {  // GPS clock
             hour = (((rcvBuf[0] & 0xF8) >> 3) + TZ ) % 24;
             minute = (rcvBuf[1] & 0xFC) >> 2;
             second = (rcvBuf[2] & 0xFC) >> 2;
@@ -399,14 +421,16 @@ void loop() {
 
   if ( (timer % 150) == 0) {
 
-    int sensorValue = analogRead(4);
+    // For MQ135
+    /*int sensorValue = analogRead(4);
     Serial.println(sensorValue);
-    message = String(sensorValue, DEC);
+    message = String(sensorValue, DEC);*/
+    if (message == "%MTRACK") message = "";
     
     displayText(0, padRight(carSpeed,3));
-    displayText(1, padRight(fl, 2) + " " + padCenter(message, 14) + " " + padRight(fr, 2));
+    displayText(1, padRight(fl, 2) + " " + padCenter(message, TEXT_MSG_LENGTH) + " " + padRight(fr, 2));
     displayText(2, padRight(rl, 2) + " RPM:" + padRight(rpm, 4) + " T:" + padRight(temperature, 3) + " " + padRight(rr, 2));
-
+    Serial.println(message);
     for (int i=0;i<TEXT_COUNT;i++) {
       CAN.sendMsgBuf(text[i].header, 0, text[i].len, text[i].data);
       printDebug(timer, text[i]);
