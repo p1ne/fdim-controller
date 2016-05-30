@@ -30,8 +30,11 @@ byte second, minute, hour;
 SoftwareSerial mySerial(8, 9); // RX, TX
 
 String fl, fr, rl, rr, carSpeed, rpm, temperature, message;
+<<<<<<< HEAD
 
 String dump[8];
+=======
+>>>>>>> 1334c8b... Numerous fixes, clean-up of timing constants
 
 int timer;
 
@@ -241,16 +244,34 @@ void displayText(int strNo, String str)
 
 String padLeft(String inStr, byte length)
 {
+<<<<<<< HEAD
   String str = inStr;
   str.trim();
   str = str.substring(0,length);
   while ( str.length() < length) {
     str = str + " ";   
+=======
+  String str = inStr.substring(0,length);
+  byte strLen = str.length();
+  for (int i=strLen;i<length;i++) {
+    str = str + " ";
+  }
+  return str;
+}
+
+String padRight(String inStr, byte length)
+{
+  String str = inStr.substring(0,length);
+  byte strLen = str.length();
+  for (int i=strLen;i<length;i++) {
+    str = " " + str;
+>>>>>>> 1334c8b... Numerous fixes, clean-up of timing constants
   }
 
   return str;
 }
 
+<<<<<<< HEAD
 String padRight(String inStr, byte length)
 {
   String str = inStr;
@@ -270,6 +291,18 @@ String padCenter(String inStr, byte length)
   inStr = str.substring(0,length);
   while ( str.length() < length) {
     str = (str.length() % 2) ? str + " " : " " +str;   
+=======
+
+String padCenter(String inStr, byte length)
+{
+  String str = inStr.substring(0,length);
+  byte strLen = str.length();
+  for (int i=0;i<round((length-strLen)/2);i++) {
+    str = " " + str + " ";
+  }
+  if (str.length() > length) {
+    str = str.substring(0, length);
+>>>>>>> 1334c8b... Numerous fixes, clean-up of timing constants
   }
   return str;
 }
@@ -384,11 +417,22 @@ void loop() {
           }
         }
           break;
+<<<<<<< HEAD
         case 0x466: {  // GPS clock
             hour = (((rcvBuf[0] & 0xF8) >> 3) + TZ ) % 24;
             minute = (rcvBuf[1] & 0xFC) >> 2;
             second = (rcvBuf[2] & 0xFC) >> 2;
             //message=String(hour, DEC) + " " + String(minute, DEC) + " " + String(second, DEC);
+=======
+        case 0x398: {
+          String b0 = String(rcvBuf[0], HEX);
+          String b1 = String(rcvBuf[1], HEX);
+          String b2 = String(rcvBuf[2], HEX);
+          String b3 = String(rcvBuf[3], HEX);
+          String b4 = String(rcvBuf[4], HEX);
+
+          message=b0 + " " + b1 + " " + b2 + " " + b3 + " " + b4;
+>>>>>>> 1334c8b... Numerous fixes, clean-up of timing constants
         }
           break;
       }
@@ -420,6 +464,7 @@ void loop() {
   }
 
   if ( (timer % 150) == 0) {
+<<<<<<< HEAD
 
     // For MQ135
     /*int sensorValue = analogRead(4);
@@ -431,6 +476,12 @@ void loop() {
     displayText(1, padRight(fl, 2) + " " + padCenter(message, TEXT_MSG_LENGTH) + " " + padRight(fr, 2));
     displayText(2, padRight(rl, 2) + " RPM:" + padRight(rpm, 4) + " T:" + padRight(temperature, 3) + " " + padRight(rr, 2));
     Serial.println(message);
+=======
+    displayText(0, padRight(carSpeed,3));
+    displayText(1, padRight(fl, 2) + " " + padCenter(message, 14) + " " + padRight(fr, 2));
+    displayText(2, padRight(rl, 2) + " RPM:" + padRight(rpm, 4) + " T:" + padRight(temperature, 3) + " " + padRight(rr, 2));
+
+>>>>>>> 1334c8b... Numerous fixes, clean-up of timing constants
     for (int i=0;i<TEXT_COUNT;i++) {
       CAN.sendMsgBuf(text[i].header, 0, text[i].len, text[i].data);
       printDebug(timer, text[i]);
