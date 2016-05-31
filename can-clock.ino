@@ -30,11 +30,8 @@ byte second, minute, hour;
 SoftwareSerial mySerial(8, 9); // RX, TX
 
 String fl, fr, rl, rr, carSpeed, rpm, temperature, message;
-<<<<<<< HEAD
 
 String dump[8];
-=======
->>>>>>> 1334c8b... Numerous fixes, clean-up of timing constants
 
 int timer;
 
@@ -144,18 +141,18 @@ void initCycleMessages()
 
 void initTextMessages()
 {
-  text[ 0].set( 0,   0, 0x336, 8, 0x03, 0x01, 0x0A, 0x01, 0xFE, 0x00, 0x00, 0x00 );
-  text[ 1].set( 0,  50, 0x324, 8, 0x01, 0x01, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00 );
-  text[ 2].set( 0,  50, 0x337, 8, 0x06, 0x20,  ' ',  '@',  ' ',  '@',  ' ', 0x00 );
-  text[ 3].set( 0, 100, 0x336, 8, 0x03, 0x01, 0x05, 0x03, 0x03, 0x00, 0x00, 0x00 );
-  text[ 4].set( 0,  25, 0x324, 8, 0x03, 0x01, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00 );
-  text[ 5].set( 0,  25, 0x337, 8, 0x10, 0x2B,  ' ',  ' ',  ' ',  '@',  ' ',  ' ' );
-  text[ 6].set( 0,  25, 0x337, 8, 0x21,  ' ',  'M',  'e',  'r',  'c',  '@',  'u' );
-  text[ 7].set( 0,  25, 0x337, 8, 0x22,  'r',  'y',  ' ',  ' ',  ' ',  ' ',  ' ' );
-  text[ 8].set( 0,  25, 0x337, 8, 0x23,  ' ',  ' ',  ' ',  ' ',  ' ',  '@',  ' ' );
-  text[ 9].set( 0,  25, 0x337, 8, 0x24,  ' ',  ' ',  'M',  'a',  'r',  'i',  'n' );
-  text[10].set( 0,  25, 0x337, 8, 0x25,  'e',  'r',  ' ',  ' ',  ' ',  ' ',  ' ' );
-  text[11].set( 0,  25, 0x337, 8, 0x26,  ' ',  ' ', 0x00, 0x00, 0x00, 0x00, 0x00 );
+  text[ 0].set( 550,   0, 0x336, 8, 0x03, 0x01, 0x0A, 0x01, 0xFE, 0x00, 0x00, 0x00 );
+  text[ 1].set( 550,  50, 0x324, 8, 0x01, 0x01, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00 );
+  text[ 2].set( 550,  50, 0x337, 8, 0x06, 0x20,  ' ',  '@',  ' ',  '@',  ' ', 0x00 );
+  text[ 3].set( 550, 100, 0x336, 8, 0x03, 0x01, 0x05, 0x03, 0x03, 0x00, 0x00, 0x00 );
+  text[ 4].set( 550,  25, 0x324, 8, 0x03, 0x01, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00 );
+  text[ 5].set( 550,  25, 0x337, 8, 0x10, 0x2B,  ' ',  ' ',  ' ',  '@',  ' ',  ' ' );
+  text[ 6].set( 550,  25, 0x337, 8, 0x21,  ' ',  'M',  'e',  'r',  'c',  '@',  'u' );
+  text[ 7].set( 550,  25, 0x337, 8, 0x22,  'r',  'y',  ' ',  ' ',  ' ',  ' ',  ' ' );
+  text[ 8].set( 550,  25, 0x337, 8, 0x23,  ' ',  ' ',  ' ',  ' ',  ' ',  '@',  ' ' );
+  text[ 9].set( 550,  25, 0x337, 8, 0x24,  ' ',  ' ',  'M',  'a',  'r',  'i',  'n' );
+  text[10].set( 550,  25, 0x337, 8, 0x25,  'e',  'r',  ' ',  ' ',  ' ',  ' ',  ' ' );
+  text[11].set( 550,  25, 0x337, 8, 0x26,  ' ',  ' ', 0x00, 0x00, 0x00, 0x00, 0x00 );
 }
 
 const int SPI_CS_PIN = 10;
@@ -164,6 +161,7 @@ unsigned char rcvFlag = 0;
 unsigned char rcvLen = 0;
 unsigned long rcvCanId = 0x0;
 unsigned char rcvBuf[8];
+unsigned char sendingNow = 0;
 
 MCP_CAN CAN(SPI_CS_PIN); 
 
@@ -183,7 +181,6 @@ byte bcdToDec(byte val)
 
 void printDebug(int timer, CANMessage msg)
 {
-  if (DEBUG) {
     Serial.print("Time: ");
     Serial.print(timer);
     Serial.print(" ");
@@ -194,7 +191,6 @@ void printDebug(int timer, CANMessage msg)
       Serial.print(" ");
     }
     Serial.println("");
-  }
 }
 
 void displayText(int strNo, String str)
@@ -244,34 +240,16 @@ void displayText(int strNo, String str)
 
 String padLeft(String inStr, byte length)
 {
-<<<<<<< HEAD
   String str = inStr;
   str.trim();
   str = str.substring(0,length);
   while ( str.length() < length) {
     str = str + " ";   
-=======
-  String str = inStr.substring(0,length);
-  byte strLen = str.length();
-  for (int i=strLen;i<length;i++) {
-    str = str + " ";
-  }
-  return str;
-}
-
-String padRight(String inStr, byte length)
-{
-  String str = inStr.substring(0,length);
-  byte strLen = str.length();
-  for (int i=strLen;i<length;i++) {
-    str = " " + str;
->>>>>>> 1334c8b... Numerous fixes, clean-up of timing constants
   }
 
   return str;
 }
 
-<<<<<<< HEAD
 String padRight(String inStr, byte length)
 {
   String str = inStr;
@@ -291,22 +269,31 @@ String padCenter(String inStr, byte length)
   inStr = str.substring(0,length);
   while ( str.length() < length) {
     str = (str.length() % 2) ? str + " " : " " +str;   
-=======
-
-String padCenter(String inStr, byte length)
-{
-  String str = inStr.substring(0,length);
-  byte strLen = str.length();
-  for (int i=0;i<round((length-strLen)/2);i++) {
-    str = " " + str + " ";
-  }
-  if (str.length() > length) {
-    str = str.substring(0, length);
->>>>>>> 1334c8b... Numerous fixes, clean-up of timing constants
   }
   return str;
 }
 
+void sendStartSequence()
+{
+  delay(1000);
+  timer = 0; 
+  for (int i=0;i<START_COUNT;i++) {
+    sendCAN(&timer, start[i]);
+  }
+  Serial.println("****");
+  timer = 0;
+  delay(500);
+}
+
+void sendCAN(int *timer, CANMessage msg)
+{
+  CAN.sendMsgBuf(msg.header, 0, msg.len, msg.data);
+  if (DEBUG) {
+    printDebug(*timer, msg);
+  }
+//  *timer = *timer + msg.delayed;
+  delay(msg.delayed);
+}
 
 void setup() {           
   initStartMessages();
@@ -314,6 +301,7 @@ void setup() {
   initTextMessages();
   Serial.begin(115200);
   mySerial.begin(9600);
+
 #if defined(ESP8266)
   Wire.begin(0, 2);
 #endif
@@ -335,29 +323,20 @@ if(CAN_OK == CAN.begin(CAN_125KBPS, MCP_8MHz))
 
   CAN.init_Mask(0, 0, 0x7FF << 18);                         // there are 2 mask in mcp2515, you need to set both of them
   CAN.init_Mask(1, 0, 0x7FF << 18);
-  CAN.init_Filt(0, 0, 0x3B5 << 18);   // TPMS data
-  CAN.init_Filt(1, 0, 0x423 << 18);   // Speed data
+  CAN.init_Filt(0, 0, 0x423 << 18);   // Speed data
+  CAN.init_Filt(1, 0, 0x3B5 << 18);   // TPMS data
   CAN.init_Filt(2, 0, 0x466 << 18);   // GPS
 
 //  CAN.init_Filt(3, 0, 0x43a << 18);   // ???
 //  CAN.init_Filt(3, 0, 0x3a1 << 18);   // HVAC?
 //  CAN.init_Filt(4, 0, 0x3a4 << 18);   // HVAC?
   
-  //CAN.init_Filt(0, 0, 0x2db << 18);   // SYNC buttons
-  //CAN.init_Filt(2, 0, 0x398 << 18);   // HVAC
+//  CAN.init_Filt(0, 0, 0x2db << 18);   // SYNC buttons
+//  CAN.init_Filt(2, 0, 0x398 << 18);   // HVAC
 
-  delay(1000);
-  timer = 0; 
-
-  for (int i=0;i<START_COUNT;i++) {
-    CAN.sendMsgBuf(start[i].header, 0, start[i].len, start[i].data);  
-    printDebug(timer, start[i]);
-    delay(start[i].delayed);
-    timer = timer + start[i].header;
-  }
-  Serial.println("****");
   timer = 0;
   delay(500);
+
 }
 
 void loop() {
@@ -370,26 +349,6 @@ void loop() {
       CAN.readMsgBuf(&rcvLen, rcvBuf);
       rcvCanId = CAN.getCanId();
       switch (rcvCanId) {
-//        case 0x43a: { // ???
-//          for (int i=0;i<8;i++) {
-//            dump[i] = String(rcvBuf[i], HEX);
-//          }
-//          message = "";
-//          for (int i=0;i<8;i++) {
-//            message = message + dump[i];
-//          }
-//        }
-//          break;
-//        case 0x398: { // HVAC ?
-//          String b0 = String(rcvBuf[0], HEX);
-//          String b1 = String(rcvBuf[1], HEX);
-//          String b2 = String(rcvBuf[2], HEX);
-//          String b3 = String(rcvBuf[3], HEX);
-//          String b4 = String(rcvBuf[4], HEX);
-//
-//          message=b0 + " " + b1 + " " + b2 + " " + b3 + " " + b4;
-//        }
-//          break;
         case 0x3b5: { // TPMS
             fl = String(rcvBuf[0]);
             fr = String(rcvBuf[1]);
@@ -408,91 +367,79 @@ void loop() {
 
           byte t = rcvBuf[4];
           temperature = String(t-40);
-
-          if (rpm == "0") {
+          
+          if ( ((rpm == "0") || (rpm == "")) && (sendingNow == 1)) {
             carSpeed = "";
             rpm = "";
             temperature = "";
             message = "";
+            sendingNow = 0;
+          }
+
+          if ((rpm != "0") && (rpm != "") && (sendingNow == 0)) {
+            sendingNow = 1;
+            sendStartSequence();
           }
         }
           break;
-<<<<<<< HEAD
         case 0x466: {  // GPS clock
             hour = (((rcvBuf[0] & 0xF8) >> 3) + TZ ) % 24;
             minute = (rcvBuf[1] & 0xFC) >> 2;
             second = (rcvBuf[2] & 0xFC) >> 2;
             //message=String(hour, DEC) + " " + String(minute, DEC) + " " + String(second, DEC);
-=======
-        case 0x398: {
-          String b0 = String(rcvBuf[0], HEX);
-          String b1 = String(rcvBuf[1], HEX);
-          String b2 = String(rcvBuf[2], HEX);
-          String b3 = String(rcvBuf[3], HEX);
-          String b4 = String(rcvBuf[4], HEX);
-
-          message=b0 + " " + b1 + " " + b2 + " " + b3 + " " + b4;
->>>>>>> 1334c8b... Numerous fixes, clean-up of timing constants
         }
           break;
       }
     }
   }
-  for (int i=0;i<MSG_COUNT;i++) {
-    if ( ((timer % cycle[i].delayed) - cycle[i].started) == 0) {
-      if (cycle[i].header == 0x3f2) {
-        cycle[i].data[0] = decToBcd(hour);
-        cycle[i].data[1] = decToBcd(minute);
+  
+  if ((sendingNow == 1) || (DEBUG)) {
+    for (int i=0;i<MSG_COUNT;i++) {
+      if ( ((timer % cycle[i].delayed) - cycle[i].started) == 0) {
+        if (cycle[i].header == 0x3f2) {
+          cycle[i].data[0] = decToBcd(hour);
+          cycle[i].data[1] = decToBcd(minute);
+        }
+        sendCAN(&timer, cycle[i]);
       }
-
-      CAN.sendMsgBuf(cycle[i].header, 0, cycle[i].len, cycle[i].data);  
-      printDebug(timer, cycle[i]);
     }
-  }
 
-  inSerialData = "";
+    inSerialData = "";
 
-  while (mySerial.available() > 0) {
-      char recieved = mySerial.read();
-      inSerialData += recieved; 
-
-      if (recieved == '\n')
-      {
-        message = inSerialData;
-        inSerialData = "";
+    while (mySerial.available() > 0) {
+        char recieved = mySerial.read();
+        inSerialData += recieved; 
+  
+        if (recieved == '\n')
+        {
+          message = inSerialData;
+          inSerialData = "";
+        }
+    }
+  
+    if ( (timer % 150) == 0) {
+  
+      // For MQ135
+      /*int sensorValue = analogRead(4);
+      Serial.println(sensorValue);
+      message = String(sensorValue, DEC);*/
+      if (message == "%MTRACK") message = "";
+      
+      displayText(0, padRight(carSpeed,3));
+      displayText(1, padRight(fl, 2) + " RPM:" + padRight(rpm, 4) + " T:" + padRight(temperature, 3) + " " + padRight(fr, 2));
+      displayText(2, padRight(rl, 2) + " " + padCenter(message, TEXT_MSG_LENGTH) + " " + padRight(rr, 2));
+      for (int i=0;i<TEXT_COUNT;i++) {
+            sendCAN(&timer, text[i]);
+            delay(text[i].delayed);
       }
-  }
-
-  if ( (timer % 150) == 0) {
-<<<<<<< HEAD
-
-    // For MQ135
-    /*int sensorValue = analogRead(4);
-    Serial.println(sensorValue);
-    message = String(sensorValue, DEC);*/
-    if (message == "%MTRACK") message = "";
-    
-    displayText(0, padRight(carSpeed,3));
-    displayText(1, padRight(fl, 2) + " " + padCenter(message, TEXT_MSG_LENGTH) + " " + padRight(fr, 2));
-    displayText(2, padRight(rl, 2) + " RPM:" + padRight(rpm, 4) + " T:" + padRight(temperature, 3) + " " + padRight(rr, 2));
-    Serial.println(message);
-=======
-    displayText(0, padRight(carSpeed,3));
-    displayText(1, padRight(fl, 2) + " " + padCenter(message, 14) + " " + padRight(fr, 2));
-    displayText(2, padRight(rl, 2) + " RPM:" + padRight(rpm, 4) + " T:" + padRight(temperature, 3) + " " + padRight(rr, 2));
-
->>>>>>> 1334c8b... Numerous fixes, clean-up of timing constants
-    for (int i=0;i<TEXT_COUNT;i++) {
-      CAN.sendMsgBuf(text[i].header, 0, text[i].len, text[i].data);
-      printDebug(timer, text[i]);
-      delay(text[i].delayed);
     }
+  
+    delay(TIMER_STEP);
+    timer += TIMER_STEP;
+    if (timer >= 32000) timer = 0;
   }
-
-  delay(TIMER_STEP);
-  timer = timer + TIMER_STEP;
-  if (timer == 32000) timer = 0;
 }
+
 
 
 
