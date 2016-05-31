@@ -141,18 +141,18 @@ void initCycleMessages()
 
 void initTextMessages()
 {
-  text[ 0].set( 550,   0, 0x336, 8, 0x03, 0x01, 0x0A, 0x01, 0xFE, 0x00, 0x00, 0x00 );
-  text[ 1].set( 550,  50, 0x324, 8, 0x01, 0x01, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00 );
-  text[ 2].set( 550,  50, 0x337, 8, 0x06, 0x20,  ' ',  '@',  ' ',  '@',  ' ', 0x00 );
-  text[ 3].set( 550, 100, 0x336, 8, 0x03, 0x01, 0x05, 0x03, 0x03, 0x00, 0x00, 0x00 );
-  text[ 4].set( 550,  25, 0x324, 8, 0x03, 0x01, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00 );
-  text[ 5].set( 550,  25, 0x337, 8, 0x10, 0x2B,  ' ',  ' ',  ' ',  '@',  ' ',  ' ' );
-  text[ 6].set( 550,  25, 0x337, 8, 0x21,  ' ',  'M',  'e',  'r',  'c',  '@',  'u' );
-  text[ 7].set( 550,  25, 0x337, 8, 0x22,  'r',  'y',  ' ',  ' ',  ' ',  ' ',  ' ' );
-  text[ 8].set( 550,  25, 0x337, 8, 0x23,  ' ',  ' ',  ' ',  ' ',  ' ',  '@',  ' ' );
-  text[ 9].set( 550,  25, 0x337, 8, 0x24,  ' ',  ' ',  'M',  'a',  'r',  'i',  'n' );
-  text[10].set( 550,  25, 0x337, 8, 0x25,  'e',  'r',  ' ',  ' ',  ' ',  ' ',  ' ' );
-  text[11].set( 550,  25, 0x337, 8, 0x26,  ' ',  ' ', 0x00, 0x00, 0x00, 0x00, 0x00 );
+  text[ 0].set( 0,   0, 0x336, 8, 0x03, 0x01, 0x0A, 0x01, 0xFE, 0x00, 0x00, 0x00 );
+  text[ 1].set( 0,  50, 0x324, 8, 0x01, 0x01, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00 );
+  text[ 2].set( 0,  50, 0x337, 8, 0x06, 0x20,  ' ',  '@',  ' ',  '@',  ' ', 0x00 );
+  text[ 3].set( 0, 100, 0x336, 8, 0x03, 0x01, 0x05, 0x03, 0x03, 0x00, 0x00, 0x00 );
+  text[ 4].set( 0,  25, 0x324, 8, 0x03, 0x01, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00 );
+  text[ 5].set( 0,  25, 0x337, 8, 0x10, 0x2B,  ' ',  ' ',  ' ',  '@',  ' ',  ' ' );
+  text[ 6].set( 0,  25, 0x337, 8, 0x21,  ' ',  'M',  'e',  'r',  'c',  '@',  'u' );
+  text[ 7].set( 0,  25, 0x337, 8, 0x22,  'r',  'y',  ' ',  ' ',  ' ',  ' ',  ' ' );
+  text[ 8].set( 0,  25, 0x337, 8, 0x23,  ' ',  ' ',  ' ',  ' ',  ' ',  '@',  ' ' );
+  text[ 9].set( 0,  25, 0x337, 8, 0x24,  ' ',  ' ',  'M',  'a',  'r',  'i',  'n' );
+  text[10].set( 0,  25, 0x337, 8, 0x25,  'e',  'r',  ' ',  ' ',  ' ',  ' ',  ' ' );
+  text[11].set( 0,  25, 0x337, 8, 0x26,  ' ',  ' ', 0x00, 0x00, 0x00, 0x00, 0x00 );
 }
 
 const int SPI_CS_PIN = 10;
@@ -277,22 +277,16 @@ void sendStartSequence()
 {
   delay(1000);
   timer = 0; 
+
   for (int i=0;i<START_COUNT;i++) {
-    sendCAN(&timer, start[i]);
+    CAN.sendMsgBuf(start[i].header, 0, start[i].len, start[i].data);  
+    printDebug(timer, start[i]);
+    delay(start[i].delayed);
+    timer = timer + start[i].header;
   }
   Serial.println("****");
   timer = 0;
   delay(500);
-}
-
-void sendCAN(int *timer, CANMessage msg)
-{
-  CAN.sendMsgBuf(msg.header, 0, msg.len, msg.data);
-  if (DEBUG) {
-    printDebug(*timer, msg);
-  }
-//  *timer = *timer + msg.delayed;
-  delay(msg.delayed);
 }
 
 void setup() {           
@@ -400,7 +394,8 @@ void loop() {
           cycle[i].data[0] = decToBcd(hour);
           cycle[i].data[1] = decToBcd(minute);
         }
-        sendCAN(&timer, cycle[i]);
+        CAN.sendMsgBuf(cycle[i].header, 0, cycle[i].len, cycle[i].data);  
+        printDebug(timer, cycle[i]);
       }
     }
 
@@ -429,8 +424,9 @@ void loop() {
       displayText(1, padRight(fl, 2) + " RPM:" + padRight(rpm, 4) + " T:" + padRight(temperature, 3) + " " + padRight(fr, 2));
       displayText(2, padRight(rl, 2) + " " + padCenter(message, TEXT_MSG_LENGTH) + " " + padRight(rr, 2));
       for (int i=0;i<TEXT_COUNT;i++) {
-            sendCAN(&timer, text[i]);
-            delay(text[i].delayed);
+        CAN.sendMsgBuf(text[i].header, 0, text[i].len, text[i].data);
+        printDebug(timer, text[i]);
+        delay(text[i].delayed);
       }
     }
   
