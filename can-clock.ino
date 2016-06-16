@@ -29,7 +29,7 @@ byte second, minute, hour;
 
 SoftwareSerial mySerial(8, 9); // RX, TX
 
-String fl, fr, rl, rr, carSpeed, rpm, temperature, message;
+String fl, fr, rl, rr, carSpeed, rpm, temperature, message, driveWheel, driveWheelSplined, throttle;
 
 String dump[8];
 
@@ -337,8 +337,8 @@ if(CAN_OK == CAN.begin(CAN_125KBPS, MCP_8MHz))
   CAN.init_Filt(0, 0, 0x423 << 18);   // Speed data
   CAN.init_Filt(1, 0, 0x3B5 << 18);   // TPMS data
   CAN.init_Filt(2, 0, 0x466 << 18);   // GPS
+  CAN.init_Filt(3, 0, 0x43a << 18);   // ???
 
-//  CAN.init_Filt(3, 0, 0x43a << 18);   // ???
 //  CAN.init_Filt(3, 0, 0x3a1 << 18);   // HVAC?
 //  CAN.init_Filt(4, 0, 0x3a4 << 18);   // HVAC?
   
@@ -361,10 +361,10 @@ void loop() {
       rcvCanId = CAN.getCanId();
       switch (rcvCanId) {
         case 0x3b5: { // TPMS
-            fl = String(rcvBuf[0]);
-            fr = String(rcvBuf[1]);
-            rr = String(rcvBuf[2]);
-            rl = String(rcvBuf[3]);
+            fl = rcvBuf[0] > 25 ? String(rcvBuf[0]) : "XX";
+            fr = rcvBuf[1] > 25 ? String(rcvBuf[1]) : "XX";
+            rr = rcvBuf[2] > 25 ? String(rcvBuf[2]) : "XX";
+            rl = rcvBuf[3] > 25 ? String(rcvBuf[3]) : "XX";
         }
           break;
         case 0x423: { // Speed, RPM
@@ -400,6 +400,12 @@ void loop() {
             second = (rcvBuf[2] & 0xFC) >> 2;
             gotClock = true;
             //message=String(hour, DEC) + " " + String(minute, DEC) + " " + String(second, DEC);
+        }
+          break;
+        case 0x43a: {  // ???
+            //driveWheel = String((rcvBuf[2]-23)*256 + rcvBuf[3] - 107);
+            driveWheelSplined = String((rcvBuf[0]-28)*256 + rcvBuf[1] - 11);
+            throttle = String((rcvBuf[4]-23)*256 + rcvBuf[5]);
         }
           break;
       }
@@ -441,16 +447,22 @@ void loop() {
     /*int sensorValue = analogRead(4);
     Serial.println(sensorValue);
     message = String(sensorValue, DEC);*/
-    if (message == "%MTRACK") message = "";
+    //if (message == "%MTRACK") message = "";
     
     //Serial.println(">>>>>> " + String(timer) + " " + String(i) + " " + String(timer % text[i].repeated) + " " + String(firstCycle ? text[i].started : 0) + " " + String(text[i].delayed)) + " " + String(((timer % text[i].repeated) - (firstCycle ? text[i].started : 0 ) - text[i].delayed));
     if ( ( (timer >= text[currentText].started ) || (!firstCycle) ) && ((timer % text[currentText].repeated) - text[currentText].delayed) == 0) {
       if (currentText == 0) {
+        message = padLeft(driveWheelSplined, TEXT_MSG_LENGTH);
         displayText(0, padRight(carSpeed,3));
         displayText(1, padRight(fl, 2) + " RPM:" + padRight(rpm, 4) + " T:" + padRight(temperature, 3) + " " + padRight(fr, 2));
         displayText(2, padRight(rl, 2) + " " + padCenter(message, TEXT_MSG_LENGTH) + " " + padRight(rr, 2));
       }
-      if (sentOnTick == timer) delay(TIMER_STEP/2);
+      if (sentOnTick == timer) {
+        delay(TIMER_STEP/2);
+        //message = String(timer) + " " + gear + " D";
+      } else {
+        //message = String(timer) + " " + gear;
+      }
       CAN.sendMsgBuf(text[currentText].header, 0, text[currentText].len, text[currentText].data);
       printDebug(timer, text[currentText]);
       //delay(text[currentText].delayed);
