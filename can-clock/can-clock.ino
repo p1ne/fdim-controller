@@ -2,17 +2,15 @@
 
 #include <SPI.h>
 
-#if defined(ESP8266)
-#include <pgmspace.h>
-#else
 #include <avr/pgmspace.h>
-#endif
+
+#include <Wire.h>
+#include <SoftwareSerial.h>
 
 #include <mcp_can.h>
 #include <mcp_can_dfs.h>
 
-#include <Wire.h>
-#include <SoftwareSerial.h>
+#include <LowPower.h>
 
 #define DEBUG 0
 
@@ -42,7 +40,7 @@ public:
   uint32_t delayed;
   uint32_t repeated;
   uint32_t header;
-  
+
   byte len;
   byte data[8];
 
@@ -119,12 +117,13 @@ public:
 CANMessage start[START_COUNT];
 CANMessage cycle[MSG_COUNT];
 CANMessage text[TEXT_COUNT];
+CANMessage metric;
 
 void initStartMessages()
 {
   start[0].set( 0, 100, 0, 0x50c, 3, 0x0C, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 );
   start[1].set( 0, 250, 0, 0x3e8, 8, 0x00, 0x00, 0x29, 0x00, 0x00, 0x00, 0x00, 0x00 );
-  start[2].set( 0,  50, 0, 0x3ef, 8, 0x32, 0x32, 0x32, 0x32, 0x03, 0x00, 0x00, 0x00 );  
+  start[2].set( 0,  50, 0, 0x3ef, 8, 0x32, 0x32, 0x32, 0x32, 0x03, 0x00, 0x00, 0x00 );
   start[3].set( 0,  50, 0, 0x3f2, 8, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x60, 0x00, 0x00 );
   start[4].set( 0, 100, 0, 0x50c, 3, 0x01, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 );
   start[5].set( 0,  50, 0, 0x3f2, 8, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xF0, 0x00, 0x00 );
@@ -134,8 +133,8 @@ void initStartMessages()
 
 void initCycleMessages()
 {
-  cycle[0].set( 0,   0, 500, 0x50c, 3, 0x11, 0x02, 0x00, 0xBE, 0xBE, 0xBE, 0xBE, 0xBE );  
-  // 0x3e8: 1st byte 01 or 00, 4th byte 04 or 00; 
+  cycle[0].set( 0,   0, 500, 0x50c, 3, 0x11, 0x02, 0x00, 0xBE, 0xBE, 0xBE, 0xBE, 0xBE );
+  // 0x3e8: 1st byte 01 or 00, 4th byte 04 or 00;
   //1st byte 01 - AM 02 - FM1 03 - FM2 04 - PHON 05 - SYNC 06 - DVD 07 - AUX 08 - CD 09 - EMPTY 0A - SAT1 0B - SAT2 0C - SAT3 0D - PHON OE - LINE 0F - 2 clocks
   //3th byte volume
   //4th byte - clock length?
@@ -160,6 +159,10 @@ void initTextMessages()
   text[11].set( 1000, 400, 500, 0x337, 8, 0x26,  ' ',  ' ', 0x00, 0x00, 0x00, 0x00, 0x00 );
 }
 
+void initMetricMessage()
+{
+  metric.set( 0, 0, 0, 0x129, 8, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00);
+}
 const int SPI_CS_PIN = 10;
 
 unsigned char rcvFlag = 0;
@@ -175,7 +178,7 @@ bool gotClock = false;
 
 int currentText = 0;
 
-MCP_CAN CAN(SPI_CS_PIN); 
+MCP_CAN CAN(SPI_CS_PIN);
 
 void MCP2515_ISR()
 {
@@ -259,7 +262,7 @@ String padLeft(String inStr, byte length)
   str.trim();
   str = str.substring(0,length);
   while ( str.length() < length) {
-    str = str + " ";   
+    str = str + " ";
   }
 
   return str;
@@ -271,7 +274,7 @@ String padRight(String inStr, byte length)
   str.trim();
   str = str.substring(0,length);
   while ( str.length() < length) {
-    str = " " + str;   
+    str = " " + str;
   }
   return str;
 }
@@ -283,7 +286,7 @@ String padCenter(String inStr, byte length)
   str.trim();
   inStr = str.substring(0,length);
   while ( str.length() < length) {
-    str = (str.length() % 2) ? str + " " : " " +str;   
+    str = (str.length() % 2) ? str + " " : " " +str;
   }
   return str;
 }
@@ -291,10 +294,10 @@ String padCenter(String inStr, byte length)
 void sendStartSequence()
 {
   delay(1000);
-  timer = 0; 
+  timer = 0;
 
   for (int i=0;i<START_COUNT;i++) {
-    CAN.sendMsgBuf(start[i].header, 0, start[i].len, start[i].data);  
+    CAN.sendMsgBuf(start[i].header, 0, start[i].len, start[i].data);
     printDebug(timer, start[i]);
     delay(start[i].delayed);
     timer = timer + start[i].header;
@@ -306,17 +309,16 @@ void sendStartSequence()
   delay(500);
 }
 
-void setup() {           
+void setup() {
   initStartMessages();
   initCycleMessages();
   initTextMessages();
+  initMetricMessage();
   Serial.begin(115200);
   mySerial.begin(9600);
 
-#if defined(ESP8266)
-  Wire.begin(0, 2);
-#endif
   pinMode(A4, INPUT);
+  pinMode(2, INPUT);
 
 START_INIT:
 if(CAN_OK == CAN.begin(CAN_125KBPS, MCP_8MHz))
@@ -330,7 +332,7 @@ if(CAN_OK == CAN.begin(CAN_125KBPS, MCP_8MHz))
         goto START_INIT;
     }
 
-  attachInterrupt(0, MCP2515_ISR, FALLING); // start interrupt
+  attachInterrupt(digitalPinToInterrupt(2), MCP2515_ISR, FALLING); // start interrupt
 
   CAN.init_Mask(0, 0, 0x7FF << 18);                         // there are 2 mask in mcp2515, you need to set both of them
   CAN.init_Mask(1, 0, 0x7FF << 18);
@@ -341,22 +343,24 @@ if(CAN_OK == CAN.begin(CAN_125KBPS, MCP_8MHz))
 //  CAN.init_Filt(3, 0, 0x43a << 18);   // ???
 //  CAN.init_Filt(3, 0, 0x3a1 << 18);   // HVAC?
 //  CAN.init_Filt(4, 0, 0x3a4 << 18);   // HVAC?
-  
+
 //  CAN.init_Filt(0, 0, 0x2db << 18);   // SYNC buttons
 //  CAN.init_Filt(2, 0, 0x398 << 18);   // HVAC
+
 
   timer = 0;
   delay(500);
 
+  CAN.sendMsgBuf(metric.header, 0, metric.len, metric.data);
+
+//  LowPower.powerDown(SLEEP_FOREVER, ADC_OFF, BOD_OFF);
 }
 
 void loop() {
   String inSerialData;
-
   if (rcvFlag == 1) {
     rcvFlag = 0;
     while (CAN_MSGAVAIL == CAN.checkReceive()) {
-
       CAN.readMsgBuf(&rcvLen, rcvBuf);
       rcvCanId = CAN.getCanId();
       switch (rcvCanId) {
@@ -365,20 +369,24 @@ void loop() {
             fr = String(rcvBuf[1]);
             rr = String(rcvBuf[2]);
             rl = String(rcvBuf[3]);
+            fl = rcvBuf[0] > 25 ? String(rcvBuf[0]) : "LO";
+            fr = rcvBuf[1] > 25 ? String(rcvBuf[1]) : "LO";
+            rr = rcvBuf[2] > 25 ? String(rcvBuf[2]) : "LO";
+            rl = rcvBuf[3] > 25 ? String(rcvBuf[3]) : "LO";             
         }
           break;
         case 0x423: { // Speed, RPM
           byte rpm1 = rcvBuf[2];
           byte rpm2 = rcvBuf[3];
           rpm = String(( ( rpm1 << 8 ) + rpm2 ) / 4);
-                  
+
           byte speed1 = rcvBuf[0];
           byte speed2 = rcvBuf[1];
-          carSpeed = String(round((( speed1 << 8) + speed2)/100) - 100, 0);       
+          carSpeed = String(round((( speed1 << 8) + speed2)/100) - 100, 0);
 
           byte t = rcvBuf[4];
           temperature = String(t-40);
-          
+
           if ( ((rpm == "0") || (rpm == "")) && (sendingNow == 1)) {
             carSpeed = "";
             rpm = "";
@@ -386,6 +394,7 @@ void loop() {
             message = "";
             sendingNow = 0;
             gotClock = false;
+            LowPower.powerDown(SLEEP_FOREVER, ADC_OFF, BOD_OFF);
           }
 
           if ((rpm != "0") && (rpm != "") && (sendingNow == 0)) {
@@ -414,35 +423,35 @@ void loop() {
           cycle[currentCycle].data[1] = decToBcd(minute);
           if (gotClock) {
             CAN.sendMsgBuf(cycle[currentCycle].header, 0, cycle[currentCycle].len, cycle[currentCycle].data);
-            sentOnTick = timer;  
+            sentOnTick = timer;
             printDebug(timer, cycle[currentCycle]);
           }
         } else {
           CAN.sendMsgBuf(cycle[currentCycle].header, 0, cycle[currentCycle].len, cycle[currentCycle].data);
-          sentOnTick = timer;  
+          sentOnTick = timer;
           printDebug(timer, cycle[currentCycle]);
         }
       }
-    }    
+    }
     inSerialData = "";
 
     while (mySerial.available() > 0) {
         char recieved = mySerial.read();
-        inSerialData += recieved; 
-  
+        inSerialData += recieved;
+
         if (recieved == '\n')
         {
           message = inSerialData;
           inSerialData = "";
         }
     }
-    
+
     // For MQ135
     /*int sensorValue = analogRead(4);
     Serial.println(sensorValue);
     message = String(sensorValue, DEC);*/
     if (message == "%MTRACK") message = "";
-    
+
     //Serial.println(">>>>>> " + String(timer) + " " + String(i) + " " + String(timer % text[i].repeated) + " " + String(firstCycle ? text[i].started : 0) + " " + String(text[i].delayed)) + " " + String(((timer % text[i].repeated) - (firstCycle ? text[i].started : 0 ) - text[i].delayed));
     if ( ( (timer >= text[currentText].started ) || (!firstCycle) ) && ((timer % text[currentText].repeated) - text[currentText].delayed) == 0) {
       if (currentText == 0) {
@@ -465,7 +474,3 @@ void loop() {
     }
   }
 }
-
-
-
-
