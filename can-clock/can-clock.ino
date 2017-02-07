@@ -48,7 +48,20 @@ public:
   {
   }
 
-  CANMessage(uint32_t _started, uint32_t _delayed, uint32_t _repeated, uint32_t _header, byte _len, byte _d0, byte _d1, byte _d2, byte _d3, byte _d4, byte _d5, byte _d6, byte _d7)
+  CANMessage( uint32_t _started,
+              uint32_t _delayed,
+              uint32_t _repeated,
+              uint32_t _header,
+              byte _len,
+              byte _d0,
+              byte _d1,
+              byte _d2,
+              byte _d3,
+              byte _d4,
+              byte _d5,
+              byte _d6,
+              byte _d7
+            )
   {
     started = _started;
     delayed = _delayed;
@@ -65,7 +78,20 @@ public:
     data[7] = _d7;
   }
 
-  void set(uint32_t _started, uint32_t _delayed, uint32_t _repeated, uint32_t _header, byte _len, byte _d0, byte _d1, byte _d2, byte _d3, byte _d4, byte _d5, byte _d6, byte _d7)
+  void set(
+            uint32_t _started,
+            uint32_t _delayed,
+            uint32_t _repeated,
+            uint32_t _header,
+            byte _len,
+            byte _d0,
+            byte _d1,
+            byte _d2,
+            byte _d3,
+            byte _d4,
+            byte _d5,
+            byte _d6,
+            byte _d7)
   {
     started = _started;
     delayed = _delayed;
@@ -135,7 +161,8 @@ void initCycleMessages()
 {
   cycle[0].set( 0,   0, 500, 0x50c, 3, 0x11, 0x02, 0x00, 0xBE, 0xBE, 0xBE, 0xBE, 0xBE );
   // 0x3e8: 1st byte 01 or 00, 4th byte 04 or 00;
-  //1st byte 01 - AM 02 - FM1 03 - FM2 04 - PHON 05 - SYNC 06 - DVD 07 - AUX 08 - CD 09 - EMPTY 0A - SAT1 0B - SAT2 0C - SAT3 0D - PHON OE - LINE 0F - 2 clocks
+  //1st byte 01 - AM 02 - FM1 03 - FM2 04 - PHON 05 - SYNC 06 - DVD 07 - AUX 08 - CD
+  //09 - EMPTY 0A - SAT1 0B - SAT2 0C - SAT3 0D - PHON OE - LINE 0F - 2 clocks
   //3th byte volume
   //4th byte - clock length?
   cycle[1].set( 0, 400, 1000, 0x3e8, 8, 0x0F, 0x00, 0x29, 0x04, 0x00, 0x00, 0x00, 0x00 );
@@ -334,7 +361,7 @@ if(CAN_OK == CAN.begin(CAN_125KBPS, MCP_8MHz))
 
   attachInterrupt(digitalPinToInterrupt(2), MCP2515_ISR, FALLING); // start interrupt
 
-  CAN.init_Mask(0, 0, 0x7FF << 18);                         // there are 2 mask in mcp2515, you need to set both of them
+  CAN.init_Mask(0, 0, 0x7FF << 18);   // there are 2 mask in mcp2515, you need to set both of them
   CAN.init_Mask(1, 0, 0x7FF << 18);
   CAN.init_Filt(0, 0, 0x423 << 18);   // Speed data
   CAN.init_Filt(1, 0, 0x3B5 << 18);   // TPMS data
@@ -372,7 +399,7 @@ void loop() {
             fl = rcvBuf[0] > 25 ? String(rcvBuf[0]) : "LO";
             fr = rcvBuf[1] > 25 ? String(rcvBuf[1]) : "LO";
             rr = rcvBuf[2] > 25 ? String(rcvBuf[2]) : "LO";
-            rl = rcvBuf[3] > 25 ? String(rcvBuf[3]) : "LO";             
+            rl = rcvBuf[3] > 25 ? String(rcvBuf[3]) : "LO";
         }
           break;
         case 0x423: { // Speed, RPM
