@@ -1,16 +1,11 @@
 #include <Arduino.h>
-
 #include <SPI.h>
-
 #include <avr/pgmspace.h>
-
 #include <Wire.h>
 #include <SoftwareSerial.h>
-
 #include <mcp_can.h>
 #include <mcp_can_dfs.h>
-
-#include <LowPower.h>
+#include "CANMessage.h"
 
 #define DEBUG 0
 
@@ -31,114 +26,7 @@ String fl, fr, rl, rr, carSpeed, rpm, temperature, message;
 
 String dump[8];
 
-int timer;
-
-class CANMessage {
-
-public:
-  uint32_t started;
-  uint32_t delayed;
-  uint32_t repeated;
-  uint32_t header;
-
-  byte len;
-  byte data[8];
-
-  CANMessage()
-  {
-  }
-
-  CANMessage( uint32_t _started,
-              uint32_t _delayed,
-              uint32_t _repeated,
-              uint32_t _header,
-              byte _len,
-              byte _d0,
-              byte _d1,
-              byte _d2,
-              byte _d3,
-              byte _d4,
-              byte _d5,
-              byte _d6,
-              byte _d7
-            )
-  {
-    started = _started;
-    delayed = _delayed;
-    repeated = _repeated;
-    header = _header;
-    len = _len;
-    data[0] = _d0;
-    data[1] = _d1;
-    data[2] = _d2;
-    data[3] = _d3;
-    data[4] = _d4;
-    data[5] = _d5;
-    data[6] = _d6;
-    data[7] = _d7;
-  }
-
-  void set(
-            uint32_t _started,
-            uint32_t _delayed,
-            uint32_t _repeated,
-            uint32_t _header,
-            byte _len,
-            byte _d0,
-            byte _d1,
-            byte _d2,
-            byte _d3,
-            byte _d4,
-            byte _d5,
-            byte _d6,
-            byte _d7)
-  {
-    started = _started;
-    delayed = _delayed;
-    repeated = _repeated;
-    header = _header;
-    len = _len;
-    data[0] = _d0;
-    data[1] = _d1;
-    data[2] = _d2;
-    data[3] = _d3;
-    data[4] = _d4;
-    data[5] = _d5;
-    data[6] = _d6;
-    data[7] = _d7;
-  }
-  void print()
-  {
-    Serial.println("****");
-    Serial.print(started);
-    Serial.print(" ");
-    Serial.print(delayed);
-    Serial.print(" ");
-    Serial.print(repeated);
-    Serial.print(" ");
-    Serial.print(header);
-    Serial.print(" ");
-    Serial.print(len);
-    Serial.print(" ");
-    Serial.print(data[0]);
-    Serial.print(" ");
-    Serial.print(data[1]);
-    Serial.print(" ");
-    Serial.print(data[2]);
-    Serial.print(" ");
-    Serial.print(data[3]);
-    Serial.print(" ");
-    Serial.print(data[4]);
-    Serial.print(" ");
-    Serial.print(data[5]);
-    Serial.print(" ");
-    Serial.print(data[6]);
-    Serial.print(" ");
-    Serial.print(data[7]);
-    Serial.println(" ");
-  }
-
-};
+unsigned int timer;
 
 CANMessage start[START_COUNT];
 CANMessage cycle[MSG_COUNT];
@@ -159,12 +47,7 @@ void initStartMessages()
 
 void initCycleMessages()
 {
-  cycle[0].set( 0,   0, 500, 0x50c, 3, 0x11, 0x02, 0x00, 0xBE, 0xBE, 0xBE, 0xBE, 0xBE );
-  // 0x3e8: 1st byte 01 or 00, 4th byte 04 or 00;
-  //1st byte 01 - AM 02 - FM1 03 - FM2 04 - PHON 05 - SYNC 06 - DVD 07 - AUX 08 - CD
-  //09 - EMPTY 0A - SAT1 0B - SAT2 0C - SAT3 0D - PHON OE - LINE 0F - 2 clocks
-  //3th byte volume
-  //4th byte - clock length?
+  cycle[0].set( 0,   0,  500, 0x50c, 3, 0x11, 0x02, 0x00, 0xBE, 0xBE, 0xBE, 0xBE, 0xBE );
   cycle[1].set( 0, 400, 1000, 0x3e8, 8, 0x0F, 0x00, 0x29, 0x04, 0x00, 0x00, 0x00, 0x00 );
   cycle[2].set( 0, 450, 1000, 0x3ef, 8, 0x32, 0x32, 0x32, 0x32, 0x03, 0x00, 0x00, 0x20 );
   cycle[3].set( 0, 500, 1000, 0x3f2, 8, 0x12, 0x01, 0xFF, 0xFF, 0xFF, 0xF0, 0x00, 0x00 );
@@ -190,26 +73,27 @@ void initMetricMessage()
 {
   metric.set( 0, 0, 0, 0x129, 8, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00);
 }
+
 const int SPI_CS_PIN = 10;
 
-unsigned char rcvFlag = 0;
+bool rcvFlag = false;
 unsigned char rcvLen = 0;
 unsigned long rcvCanId = 0x0;
 unsigned char rcvBuf[8];
-unsigned char sendingNow = 0;
+bool sendingNow = false;
 
 unsigned int sentOnTick = 0;
 
 bool firstCycle = true;
 bool gotClock = false;
 
-int currentText = 0;
+unsigned char currentText = 0;
 
 MCP_CAN CAN(SPI_CS_PIN);
 
 void MCP2515_ISR()
 {
-    rcvFlag = 1;
+    rcvFlag = true;
 }
 
 byte decToBcd(byte val)
@@ -221,7 +105,7 @@ byte bcdToDec(byte val)
   return( (val/16*10) + (val%16) );
 }
 
-void printDebug(int timer, CANMessage msg)
+void printDebug(unsigned int timer, CANMessage msg)
 {
     Serial.print("Time: ");
     Serial.print(timer);
@@ -235,7 +119,7 @@ void printDebug(int timer, CANMessage msg)
     Serial.println("");
 }
 
-void displayText(int strNo, String str)
+void displayText(byte strNo, String str)
 {
   byte curLine, curChar, numChars;
 
@@ -359,13 +243,23 @@ if(CAN_OK == CAN.begin(CAN_125KBPS, MCP_8MHz))
         goto START_INIT;
     }
 
-  attachInterrupt(digitalPinToInterrupt(2), MCP2515_ISR, FALLING); // start interrupt
+  #if defined(__AVR_ATmega32U4__) // Arduino Pro Micro
+    attachInterrupt(digitalPinToInterrupt(2), MCP2515_ISR, FALLING); // start interrupt
+  #else // Other Arduinos (Nano in my case)
+    attachInterrupt(digitalPinToInterrupt(3), MCP2515_ISR, FALLING); // start interrupt
+  #endif
 
-  CAN.init_Mask(0, 0, 0x7FF << 18);   // there are 2 mask in mcp2515, you need to set both of them
-  CAN.init_Mask(1, 0, 0x7FF << 18);
-  CAN.init_Filt(0, 0, 0x423 << 18);   // Speed data
-  CAN.init_Filt(1, 0, 0x3B5 << 18);   // TPMS data
-  CAN.init_Filt(2, 0, 0x466 << 18);   // GPS
+  CAN.init_Mask(0, CAN_STDID, 0x7FF);   // there are 2 mask in mcp2515, you need to set both of them
+  CAN.init_Mask(1, CAN_STDID, 0x7FF);
+  CAN.init_Filt(0, CAN_STDID, 0x423);   // Speed data
+  CAN.init_Filt(1, CAN_STDID, 0x3B5);   // TPMS data
+  CAN.init_Filt(2, CAN_STDID, 0x466);   // GPS
+
+//  CAN.init_Mask(0, 0, 0x7FF << 18);   // there are 2 mask in mcp2515, you need to set both of them
+//  CAN.init_Mask(1, 0, 0x7FF << 18);
+//  CAN.init_Filt(0, 0, 0x423 << 18);   // Speed data
+//  CAN.init_Filt(1, 0, 0x3B5 << 18);   // TPMS data
+//  CAN.init_Filt(2, 0, 0x466 << 18);   // GPS
 
 //  CAN.init_Filt(3, 0, 0x43a << 18);   // ???
 //  CAN.init_Filt(3, 0, 0x3a1 << 18);   // HVAC?
@@ -379,14 +273,12 @@ if(CAN_OK == CAN.begin(CAN_125KBPS, MCP_8MHz))
   delay(500);
 
   CAN.sendMsgBuf(metric.header, 0, metric.len, metric.data);
-
-//  LowPower.powerDown(SLEEP_FOREVER, ADC_OFF, BOD_OFF);
 }
 
 void loop() {
   String inSerialData;
-  if (rcvFlag == 1) {
-    rcvFlag = 0;
+  if (rcvFlag) {
+    rcvFlag = false;
     while (CAN_MSGAVAIL == CAN.checkReceive()) {
       CAN.readMsgBuf(&rcvLen, rcvBuf);
       rcvCanId = CAN.getCanId();
@@ -414,18 +306,17 @@ void loop() {
           byte t = rcvBuf[4];
           temperature = String(t-40);
 
-          if ( ((rpm == "0") || (rpm == "")) && (sendingNow == 1)) {
+          if ( ((rpm == "0") || (rpm == "")) && sendingNow) {
             carSpeed = "";
             rpm = "";
             temperature = "";
             message = "";
-            sendingNow = 0;
+            sendingNow = false;
             gotClock = false;
-            LowPower.powerDown(SLEEP_FOREVER, ADC_OFF, BOD_OFF);
           }
 
-          if ((rpm != "0") && (rpm != "") && (sendingNow == 0)) {
-            sendingNow = 1;
+          if ((rpm != "0") && (rpm != "") && !sendingNow) {
+            sendingNow = true;
             sendStartSequence();
           }
         }
@@ -435,14 +326,13 @@ void loop() {
             minute = (rcvBuf[1] & 0xFC) >> 2;
             second = (rcvBuf[2] & 0xFC) >> 2;
             gotClock = true;
-            //message=String(hour, DEC) + " " + String(minute, DEC) + " " + String(second, DEC);
         }
           break;
       }
     }
   }
 
-  if ((sendingNow == 1) || (DEBUG)) {
+  if (sendingNow || DEBUG) {
     for (int currentCycle = 0; currentCycle < MSG_COUNT; currentCycle ++ ) {
       if ( ( (timer >= cycle[currentCycle].started ) || (!firstCycle) ) && ((timer % cycle[currentCycle].repeated) - cycle[currentCycle].delayed) == 0) {
         if (cycle[currentCycle].header == 0x3f2) {
@@ -479,7 +369,6 @@ void loop() {
     message = String(sensorValue, DEC);*/
     if (message == "%MTRACK") message = "";
 
-    //Serial.println(">>>>>> " + String(timer) + " " + String(i) + " " + String(timer % text[i].repeated) + " " + String(firstCycle ? text[i].started : 0) + " " + String(text[i].delayed)) + " " + String(((timer % text[i].repeated) - (firstCycle ? text[i].started : 0 ) - text[i].delayed));
     if ( ( (timer >= text[currentText].started ) || (!firstCycle) ) && ((timer % text[currentText].repeated) - text[currentText].delayed) == 0) {
       if (currentText == 0) {
         displayText(0, padRight(carSpeed,3));
@@ -489,7 +378,6 @@ void loop() {
       if (sentOnTick == timer) delay(TIMER_STEP/2);
       CAN.sendMsgBuf(text[currentText].header, 0, text[currentText].len, text[currentText].data);
       printDebug(timer, text[currentText]);
-      //delay(text[currentText].delayed);
       currentText = (currentText + 1) % TEXT_COUNT;
     }
 
