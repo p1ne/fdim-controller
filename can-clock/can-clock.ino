@@ -20,6 +20,8 @@
 
 #define TZ 3
 
+#undef MQ135_CONNECTED
+
 byte second, minute, hour;
 
 SoftwareSerial mySerial(8, 9); // RX, TX
@@ -181,12 +183,13 @@ void sendStartSequence()
 }
 
 void setup() {
+  Serial.begin(115200);
+  mySerial.begin(9600);
+
   initStartMessages();
   initCycleMessages();
   initTextMessages();
   initMetricMessage();
-  Serial.begin(115200);
-  mySerial.begin(9600);
 
   pinMode(A4, INPUT);
   pinMode(2, INPUT);
@@ -232,10 +235,6 @@ void loop() {
 
       switch (rcvCanId) {
         case 0x3b5: { // TPMS
-            fl = String(rcvBuf[0]);
-            fr = String(rcvBuf[1]);
-            rr = String(rcvBuf[2]);
-            rl = String(rcvBuf[3]);
             fl = rcvBuf[0] > 25 ? String(rcvBuf[0]) : "LO";
             fr = rcvBuf[1] > 25 ? String(rcvBuf[1]) : "LO";
             rr = rcvBuf[2] > 25 ? String(rcvBuf[2]) : "LO";
@@ -243,16 +242,9 @@ void loop() {
         }
           break;
         case 0x423: { // Speed, RPM
-          byte rpm1 = rcvBuf[2];
-          byte rpm2 = rcvBuf[3];
-          rpm = String(( ( rpm1 << 8 ) + rpm2 ) / 4);
-
-          byte speed1 = rcvBuf[0];
-          byte speed2 = rcvBuf[1];
-          carSpeed = String(round((( speed1 << 8) + speed2)/100) - 100, 0);
-
-          byte t = rcvBuf[4];
-          temperature = String(t-40);
+          rpm = String(( ( rcvBuf[2] << 8 ) + rcvBuf[3] ) / 4);
+          carSpeed = String(round((( rcvBuf[0] << 8) + rcvBuf[1])/100) - 100, 0);
+          temperature = String(rcvBuf[4]-40);
 
           if ( ((rpm == "0") || (rpm == "")) && sendingNow) {
             carSpeed = "";
@@ -311,12 +303,13 @@ void loop() {
         }
     }
 
-    // For MQ135
-    /*int sensorValue = analogRead(4);
-    Serial.println(sensorValue);
-    message = String(sensorValue, DEC);*/
-    if (message == "%MTRACK") message = "";
 
+#if defined(MQ135_CONNECTED)    // For MQ135
+    int sensorValue = analogRead(4);
+    message = String(sensorValue, DEC);
+#endif // MQ135_CONNECTED
+
+    if (message == "%MTRACK") message = "";
     if ( ( (timer >= text[currentText].started ) || (!firstCycle) ) && ((timer % text[currentText].repeated) - text[currentText].delayed) == 0) {
       if (currentText == 0) {
         displayText(0, carSpeed.padRight(3));

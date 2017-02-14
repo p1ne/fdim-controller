@@ -1,20 +1,29 @@
 #include <Arduino.h>
 
-class FormattedString : String {
+class FormattedString {
 
 private:
   String value;
 
 public:
   FormattedString() { };
-  FormattedString(String v) : value (v) { }
-  operator FormattedString () { return value; }
+  FormattedString(const String v) { value = v; }
 
-  using String::operator=;
-  using String::operator==;
-  using String::operator!=;
+  operator String () const { return value; }
 
-  String padLeft(byte length)
+  operator = (const String v)  { value = v; }
+  operator = (const FormattedString v)  { value = v; }
+
+  FormattedString operator + (const String v)  { return (value + v); }
+  FormattedString operator + (const FormattedString v)  { return (value + v); }
+
+  operator == (const FormattedString v) const { return (v == value); }
+  operator == (const String v) const { return (v == value); }
+
+  operator != (const FormattedString v) const { return (v != value); }
+  operator != (const String v) const { return (v != value); }
+  
+  String padLeft(byte length) const
   {
     String str = value;
     str.trim();
@@ -25,7 +34,7 @@ public:
     return str;
   }
 
-  String padRight(byte length)
+  String padRight(byte length) const
   {
     String str = value;
     str.trim();
@@ -36,7 +45,7 @@ public:
     return str;
   }
 
-  String padCenter(byte length)
+  String padCenter(byte length) const
   {
     String str = value;
     str.trim();
