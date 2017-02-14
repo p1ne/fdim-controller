@@ -74,35 +74,24 @@ public:
     data[6] = _d6;
     data[7] = _d7;
   }
+
   void print()
   {
-    Serial.println("****");
     Serial.print(started);
-    Serial.print(" ");
+    Serial.print("| ");
     Serial.print(delayed);
     Serial.print(" ");
     Serial.print(repeated);
-    Serial.print(" ");
-    Serial.print(header);
-    Serial.print(" ");
+    Serial.print(" | ");
+    Serial.print(header, HEX);
+    Serial.print(" | ");
     Serial.print(len);
-    Serial.print(" ");
-    Serial.print(data[0]);
-    Serial.print(" ");
-    Serial.print(data[1]);
-    Serial.print(" ");
-    Serial.print(data[2]);
-    Serial.print(" ");
-    Serial.print(data[3]);
-    Serial.print(" ");
-    Serial.print(data[4]);
-    Serial.print(" ");
-    Serial.print(data[5]);
-    Serial.print(" ");
-    Serial.print(data[6]);
-    Serial.print(" ");
-    Serial.print(data[7]);
-    Serial.println(" ");
+
+    for (int i=0;i<len;i++) {
+      Serial.print(" ");
+      Serial.print(data[i], HEX);
+    }
+    Serial.println();
   }
 
 };
