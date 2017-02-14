@@ -11,18 +11,18 @@ public:
 
   operator String () const { return value; }
 
-  operator = (const String v)  { value = v; }
-  operator = (const FormattedString v)  { value = v; }
+  void operator = (const String v)  { value = v; }
+  void operator = (const FormattedString v)  { value = v; }
 
   FormattedString operator + (const String v)  { return (value + v); }
   FormattedString operator + (const FormattedString v)  { return (value + v); }
 
-  operator == (const FormattedString v) const { return (v == value); }
-  operator == (const String v) const { return (v == value); }
+  bool operator == (const FormattedString v) const { return (v == value); }
+  bool operator == (const String v) const { return (v == value); }
 
-  operator != (const FormattedString v) const { return (v != value); }
-  operator != (const String v) const { return (v != value); }
-  
+  bool operator != (const FormattedString v) const { return (v != value); }
+  bool operator != (const String v) const { return (v != value); }
+
   String padLeft(byte length) const
   {
     String str = value;
