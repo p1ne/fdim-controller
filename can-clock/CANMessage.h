@@ -1,3 +1,6 @@
+#ifndef __CAN_MESSAGE_H_
+#define __CAN_MESSAGE_H_
+
 #include <Arduino.h>
 
 class CANMessage {
@@ -95,3 +98,5 @@ public:
   }
 
 };
+
+#endif // __CAN_MESSAGE_H_
