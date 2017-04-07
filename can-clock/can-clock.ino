@@ -6,10 +6,12 @@
 #include <mcp_can.h>
 #include <mcp_can_dfs.h>
 #include <uRTCLib.h>
+#include <EEPROM.h>
 
 #include "CANMessage.h"
 #include "FordMessages.h"
 #include "FormattedString.h"
+#include "Service.h"
 
 #define DEBUG 0
 
@@ -17,13 +19,9 @@
 
 #define TEXT_MSG_LENGTH 14
 
-#undef USE_RTC
-
 #define TZ 3
 
-#if defined(USE_RTC)
 uRTCLib rtc;
-#endif
 
 #undef MQ135_CONNECTED
 
@@ -34,6 +32,8 @@ SoftwareSerial mySerial(8, 9); // RX, TX
 FormattedString fl, fr, rl, rr, message, rpm, carSpeed, temperature;
 
 String dump[8];
+
+bool useRTC = false;
 
 unsigned int timer;
 
@@ -57,15 +57,6 @@ MCP_CAN CAN(SPI_CS_PIN);
 void MCP2515_ISR()
 {
     rcvFlag = true;
-}
-
-byte decToBcd(byte val)
-{
-  return( (val/10*16) + (val%10) );
-}
-byte bcdToDec(byte val)
-{
-  return( (val/16*10) + (val%16) );
 }
 
 void printDebug(unsigned int timer, CANMessage msg)
@@ -141,6 +132,117 @@ void sendStartSequence()
   delay(500);
 }
 
+
+struct Settings {
+  int configVersion;
+  bool useRTC;
+  bool pressurePsi;
+  bool displayPressure;
+  bool speedUnitsMetric;
+  bool param1;
+  bool param2;
+  bool param3;
+  bool param4;
+  bool param5;
+  bool param6;
+};
+
+Settings currentSettings;
+#define CONFIG_START 32
+#define CONFIG_VERSION 1
+
+void readSettings() {
+  if (EEPROM.read(CONFIG_START + 0) == CONFIG_VERSION)
+   for (unsigned int t=0; t<sizeof(currentSettings); t++)
+     *((char*)&currentSettings + t) = EEPROM.read(CONFIG_START + t);
+}
+
+void saveSettings() {
+  for (unsigned int t=0; t<sizeof(currentSettings); t++)
+   EEPROM.write(CONFIG_START + t, *((char*)&currentSettings + t));
+}
+
+void printCurrentSettings() {
+  Serial.println("\nCurrent settings\n\n");
+  Serial.println("Time source: " + String(currentSettings.useRTC ? "RTC" : "GPS"));
+  if (currentSettings.useRTC) {
+    rtc.refresh();
+    Serial.println("Current RTC time: " + String(rtc.hour()) + ":" + String(rtc.minute()) + ":" + String(rtc.second()));
+  }
+  Serial.println("Pressure units: " + String(currentSettings.pressurePsi ? "Psi" : "Bars"));
+  Serial.println("Display pressure: " + String(currentSettings.displayPressure ? "Yes" : "No"));
+  Serial.println("Speed units: " + String(currentSettings.speedUnitsMetric ? "Metric" : "Imperial"));
+  Serial.println();
+}
+
+void settingsMenu() {
+
+  String input;
+  readSettings();
+  printCurrentSettings();
+
+  Serial.println("FORD FDIM Controller configuration\n");
+
+  Serial.println("Select time source\n1 - 911 Assist GPS (2010+)\n2 - controller real time clock\n");
+
+  input = readSerialString();
+
+  if (input.equals("1")) {
+    currentSettings.useRTC = false;
+  } else if (input.equals("2")) {
+    currentSettings.useRTC = true;
+  }
+
+  if (currentSettings.useRTC) {
+    rtc.refresh();
+    Serial.println("Current RTC time: " + String(rtc.hour()) + ":" + String(rtc.minute()) + ":" + String(rtc.second())+"\n");
+    Serial.println("Enter current local time in 24h format (HH:MM) or Enter to keep as is");
+    input = readSerialString();
+    Serial.println(input);
+    if (!input.equals("")) {
+      minute = input.substring(3,5).toInt();
+      hour = input.substring(0,2).toInt();
+      rtc.set(0, minute, hour, 0, 1, 1, 0);
+      delay(1000);
+      rtc.refresh();
+      Serial.println("Time set to " + String(rtc.hour()) + ":" + String(rtc.minute()) + ":" + String(rtc.second()));
+    }
+  }
+
+  Serial.println("Select speed units\n1 - Metric\n2 - Imperial\n");
+
+  input = readSerialString();
+
+  if (input.equals("1")) {
+    currentSettings.speedUnitsMetric = true;
+  } else if (input.equals("2")) {
+    currentSettings.speedUnitsMetric = false;
+  }
+
+  Serial.println("Display tires pressure\n1 - Yes\n2 - No\n");
+
+  input = readSerialString();
+
+  if (input.equals("1")) {
+    currentSettings.displayPressure = true;
+  } else if (input.equals("2")) {
+    currentSettings.displayPressure = false;
+  }
+
+  if (currentSettings.displayPressure) {
+    Serial.println("Pressure units\n1 - Psi\n2 - Bars\n");
+
+    input = readSerialString();
+
+    if (input.equals("1")) {
+      currentSettings.pressurePsi = true;
+    } else if (input.equals("2")) {
+      currentSettings.pressurePsi = false;
+    }
+  }
+  saveSettings();
+}
+
 void setup() {
   Serial.begin(115200);
   mySerial.begin(9600);
@@ -148,13 +250,10 @@ void setup() {
   initStartMessages();
   initCycleMessages();
   initTextMessages();
-  initMetricMessage();
 
 #if defined(MQ135_CONNECTED)
   pinMode(A4, INPUT);
 #endif
-
-  pinMode(2, INPUT);
 
 START_INIT:
 if(CAN_OK == CAN.begin(CAN_125KBPS, MCP_8MHz))
@@ -169,8 +268,10 @@ if(CAN_OK == CAN.begin(CAN_125KBPS, MCP_8MHz))
     }
 
   #if defined(__AVR_ATmega32U4__) // Arduino Pro Micro
-    attachInterrupt(digitalPinToInterrupt(2), MCP2515_ISR, FALLING); // start interrupt
+    pinMode(4, INPUT);
+    attachInterrupt(digitalPinToInterrupt(4), MCP2515_ISR, FALLING); // start interrupt
   #else // Other Arduinos (Nano in my case)
+    pinMode(3, INPUT);
     attachInterrupt(digitalPinToInterrupt(3), MCP2515_ISR, FALLING); // start interrupt
   #endif
 
@@ -178,7 +279,9 @@ if(CAN_OK == CAN.begin(CAN_125KBPS, MCP_8MHz))
   CAN.init_Mask(1, CAN_STDID, 0x7FF);
   CAN.init_Filt(0, CAN_STDID, 0x423);   // Speed data
   CAN.init_Filt(1, CAN_STDID, 0x3B5);   // TPMS data
-  CAN.init_Filt(2, CAN_STDID, 0x466);   // GPS
+  if (!useRTC) {
+    CAN.init_Filt(2, CAN_STDID, 0x466);   // GPS
+  }
 
   timer = 0;
   delay(500);
@@ -223,15 +326,15 @@ void loop() {
           }
         }
           break;
-#if !defined(USE_RTC)
         case 0x466: {  // GPS clock
-            hour = (((rcvBuf[0] & 0xF8) >> 3) + TZ ) % 24;
-            minute = (rcvBuf[1] & 0xFC) >> 2;
-            second = (rcvBuf[2] & 0xFC) >> 2;
-            gotClock = true;
+            if (!useRTC) {
+              hour = (((rcvBuf[0] & 0xF8) >> 3) + TZ ) % 24;
+              minute = (rcvBuf[1] & 0xFC) >> 2;
+              second = (rcvBuf[2] & 0xFC) >> 2;
+              gotClock = true;
+            }
         }
           break;
-#endif
       }
     }
   }
@@ -240,12 +343,12 @@ void loop() {
     for (int currentCycle = 0; currentCycle < MSG_COUNT; currentCycle ++ ) {
       if ( ( (timer >= cycle[currentCycle].started ) || (!firstCycle) ) && ((timer % cycle[currentCycle].repeated) - cycle[currentCycle].delayed) == 0) {
         if (cycle[currentCycle].header == 0x3f2) {
-          #if defined(USE_RTC)
+          if (useRTC) {
             rtc.refresh();
             hour = rtc.hour();
             minute = rtc.minute();
             gotClock = true;
-          #endif
+          }
           cycle[currentCycle].data[0] = decToBcd(hour);
           cycle[currentCycle].data[1] = decToBcd(minute);
           if (gotClock) {
@@ -298,5 +401,7 @@ void loop() {
       timer = 0;
       firstCycle = false;
     }
+  } else if (millis() > 10000) {
+    settingsMenu();
   }
 }
