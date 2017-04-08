@@ -147,7 +147,20 @@ struct Settings {
   bool param6;
 };
 
-Settings currentSettings;
+Settings currentSettings = {
+  1,
+  false,
+  true,
+  true,
+  true,
+  false,
+  false,
+  false,
+  false,
+  false,
+  false
+};
+
 #define CONFIG_START 32
 #define CONFIG_VERSION 1
 
@@ -202,7 +215,7 @@ void settingsMenu() {
     if (!input.equals("")) {
       minute = input.substring(3,5).toInt();
       hour = input.substring(0,2).toInt();
-      rtc.set(0, minute, hour, 0, 1, 1, 0);
+      rtc.set(0, minute, hour, 6, 2, 5, 15);
       delay(1000);
       rtc.refresh();
       Serial.println("Time set to " + String(rtc.hour()) + ":" + String(rtc.minute()) + ":" + String(rtc.second()));
