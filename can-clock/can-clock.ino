@@ -5,7 +5,7 @@
 #include <SoftwareSerial.h>
 #include <mcp_can.h>
 #include <mcp_can_dfs.h>
-#include <uRTCLib.h>
+#include "RTClib.h"
 #include <EEPROM.h>
 
 #include "CANMessage.h"
@@ -21,7 +21,7 @@
 
 #define TZ 3
 
-uRTCLib rtc;
+RTC_DS3231 rtc;
 
 #undef MQ135_CONNECTED
 
@@ -179,8 +179,8 @@ void printCurrentSettings() {
   Serial.println("\nCurrent settings\n\n");
   Serial.println("Time source: " + String(currentSettings.useRTC ? "RTC" : "GPS"));
   if (currentSettings.useRTC) {
-    rtc.refresh();
-    Serial.println("Current RTC time: " + String(rtc.hour()) + ":" + String(rtc.minute()) + ":" + String(rtc.second()));
+    DateTime now = rtc.now();
+    Serial.println("Current RTC time: " + String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second()));
   }
   Serial.println("Pressure units: " + String(currentSettings.pressurePsi ? "Psi" : "Bars"));
   Serial.println("Display pressure: " + String(currentSettings.displayPressure ? "Yes" : "No"));
@@ -207,18 +207,18 @@ void settingsMenu() {
   }
 
   if (currentSettings.useRTC) {
-    rtc.refresh();
-    Serial.println("Current RTC time: " + String(rtc.hour()) + ":" + String(rtc.minute()) + ":" + String(rtc.second())+"\n");
+    DateTime now = rtc.now();
+    Serial.println("Current RTC time: " + String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second())+"\n");
     Serial.println("Enter current local time in 24h format (HH:MM) or Enter to keep as is");
     input = readSerialString();
     Serial.println(input);
     if (!input.equals("")) {
       minute = input.substring(3,5).toInt();
       hour = input.substring(0,2).toInt();
-      rtc.set(0, minute, hour, 6, 2, 5, 15);
+      rtc.adjust(DateTime(2017, 1, 1, hour, minute, 0));
       delay(1000);
-      rtc.refresh();
-      Serial.println("Time set to " + String(rtc.hour()) + ":" + String(rtc.minute()) + ":" + String(rtc.second()));
+      now = rtc.now();
+      Serial.println("Time set to " + String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second()));
     }
   }
 
@@ -264,9 +264,12 @@ void setup() {
   initCycleMessages();
   initTextMessages();
 
+  readSettings();
+
 #if defined(MQ135_CONNECTED)
   pinMode(A4, INPUT);
 #endif
+
 
 START_INIT:
 if(CAN_OK == CAN.begin(CAN_125KBPS, MCP_8MHz))
@@ -292,7 +295,13 @@ if(CAN_OK == CAN.begin(CAN_125KBPS, MCP_8MHz))
   CAN.init_Mask(1, CAN_STDID, 0x7FF);
   CAN.init_Filt(0, CAN_STDID, 0x423);   // Speed data
   CAN.init_Filt(1, CAN_STDID, 0x3B5);   // TPMS data
-  if (!useRTC) {
+
+  if (currentSettings.useRTC) {
+    if (! rtc.begin()) {
+      Serial.println("Couldn't find RTC");
+      while (1);
+    }
+  } else {
     CAN.init_Filt(2, CAN_STDID, 0x466);   // GPS
   }
 
@@ -357,9 +366,9 @@ void loop() {
       if ( ( (timer >= cycle[currentCycle].started ) || (!firstCycle) ) && ((timer % cycle[currentCycle].repeated) - cycle[currentCycle].delayed) == 0) {
         if (cycle[currentCycle].header == 0x3f2) {
           if (useRTC) {
-            rtc.refresh();
-            hour = rtc.hour();
-            minute = rtc.minute();
+            DateTime now = rtc.now();
+            hour = now.hour();
+            minute = now.minute();
             gotClock = true;
           }
           cycle[currentCycle].data[0] = decToBcd(hour);
