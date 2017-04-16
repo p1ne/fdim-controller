@@ -12,16 +12,11 @@
 #include "FordMessages.h"
 #include "FormattedString.h"
 #include "Service.h"
+#include "Settings.h"
 
 #define DEBUG 0
 
 #define TIMER_STEP 25
-
-#define TEXT_MSG_LENGTH 14
-
-#define TZ 3
-
-RTC_DS3231 rtc;
 
 #undef MQ135_CONNECTED
 
@@ -31,9 +26,9 @@ SoftwareSerial mySerial(8, 9); // RX, TX
 
 FormattedString fl, fr, rl, rr, message, rpm, carSpeed, temperature;
 
-String dump[8];
-
-bool useRTC = false;
+byte pressurePadding;
+String rpmMessage;
+byte textMsgLength;
 
 unsigned int timer;
 
@@ -133,129 +128,6 @@ void sendStartSequence()
 }
 
 
-struct Settings {
-  int configVersion;
-  bool useRTC;
-  bool pressurePsi;
-  bool displayPressure;
-  bool speedUnitsMetric;
-  bool param1;
-  bool param2;
-  bool param3;
-  bool param4;
-  bool param5;
-  bool param6;
-};
-
-Settings currentSettings = {
-  1,
-  false,
-  true,
-  true,
-  true,
-  false,
-  false,
-  false,
-  false,
-  false,
-  false
-};
-
-#define CONFIG_START 32
-#define CONFIG_VERSION 1
-
-void readSettings() {
-  if (EEPROM.read(CONFIG_START + 0) == CONFIG_VERSION)
-   for (unsigned int t=0; t<sizeof(currentSettings); t++)
-     *((char*)&currentSettings + t) = EEPROM.read(CONFIG_START + t);
-}
-
-void saveSettings() {
-  for (unsigned int t=0; t<sizeof(currentSettings); t++)
-   EEPROM.write(CONFIG_START + t, *((char*)&currentSettings + t));
-}
-
-void printCurrentSettings() {
-  Serial.println("\nCurrent settings\n\n");
-  Serial.println("Time source: " + String(currentSettings.useRTC ? "RTC" : "GPS"));
-  if (currentSettings.useRTC) {
-    DateTime now = rtc.now();
-    Serial.println("Current RTC time: " + String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second()));
-  }
-  Serial.println("Pressure units: " + String(currentSettings.pressurePsi ? "Psi" : "Bars"));
-  Serial.println("Display pressure: " + String(currentSettings.displayPressure ? "Yes" : "No"));
-  Serial.println("Speed units: " + String(currentSettings.speedUnitsMetric ? "Metric" : "Imperial"));
-  Serial.println();
-}
-
-void settingsMenu() {
-
-  String input;
-  readSettings();
-  printCurrentSettings();
-
-  Serial.println("FORD FDIM Controller configuration\n");
-
-  Serial.println("Select time source\n1 - 911 Assist GPS (2010+)\n2 - controller real time clock\n");
-
-  input = readSerialString();
-
-  if (input.equals("1")) {
-    currentSettings.useRTC = false;
-  } else if (input.equals("2")) {
-    currentSettings.useRTC = true;
-  }
-
-  if (currentSettings.useRTC) {
-    DateTime now = rtc.now();
-    Serial.println("Current RTC time: " + String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second())+"\n");
-    Serial.println("Enter current local time in 24h format (HH:MM) or Enter to keep as is");
-    input = readSerialString();
-    Serial.println(input);
-    if (!input.equals("")) {
-      minute = input.substring(3,5).toInt();
-      hour = input.substring(0,2).toInt();
-      rtc.adjust(DateTime(2017, 1, 1, hour, minute, 0));
-      delay(1000);
-      now = rtc.now();
-      Serial.println("Time set to " + String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second()));
-    }
-  }
-
-  Serial.println("Select speed units\n1 - Metric\n2 - Imperial\n");
-
-  input = readSerialString();
-
-  if (input.equals("1")) {
-    currentSettings.speedUnitsMetric = true;
-  } else if (input.equals("2")) {
-    currentSettings.speedUnitsMetric = false;
-  }
-
-  Serial.println("Display tires pressure\n1 - Yes\n2 - No\n");
-
-  input = readSerialString();
-
-  if (input.equals("1")) {
-    currentSettings.displayPressure = true;
-  } else if (input.equals("2")) {
-    currentSettings.displayPressure = false;
-  }
-
-  if (currentSettings.displayPressure) {
-    Serial.println("Pressure units\n1 - Psi\n2 - Bars\n");
-
-    input = readSerialString();
-
-    if (input.equals("1")) {
-      currentSettings.pressurePsi = true;
-    } else if (input.equals("2")) {
-      currentSettings.pressurePsi = false;
-    }
-  }
-  saveSettings();
-}
-
 void setup() {
   Serial.begin(115200);
   mySerial.begin(9600);
@@ -294,7 +166,10 @@ if(CAN_OK == CAN.begin(CAN_125KBPS, MCP_8MHz))
   CAN.init_Mask(0, CAN_STDID, 0x7FF);   // there are 2 mask in mcp2515, you need to set both of them
   CAN.init_Mask(1, CAN_STDID, 0x7FF);
   CAN.init_Filt(0, CAN_STDID, 0x423);   // Speed data
-  CAN.init_Filt(1, CAN_STDID, 0x3B5);   // TPMS data
+
+  if (currentSettings.displayPressure) {
+    CAN.init_Filt(1, CAN_STDID, 0x3B5);   // TPMS data
+  }
 
   if (currentSettings.useRTC) {
     if (! rtc.begin()) {
@@ -322,16 +197,30 @@ void loop() {
 
       switch (rcvCanId) {
         case 0x3b5: { // TPMS
-            fl = rcvBuf[0] > 25 ? String(rcvBuf[0]) : "LO";
-            fr = rcvBuf[1] > 25 ? String(rcvBuf[1]) : "LO";
-            rr = rcvBuf[2] > 25 ? String(rcvBuf[2]) : "LO";
-            rl = rcvBuf[3] > 25 ? String(rcvBuf[3]) : "LO";
+            if (currentSettings.displayPressure) {
+              if (currentSettings.pressurePsi) {
+                fl = rcvBuf[0] > 25 ? String(rcvBuf[0]) : "LO";
+                fr = rcvBuf[1] > 25 ? String(rcvBuf[1]) : "LO";
+                rr = rcvBuf[2] > 25 ? String(rcvBuf[2]) : "LO";
+                rl = rcvBuf[3] > 25 ? String(rcvBuf[3]) : "LO";
+              } else {
+                fl = rcvBuf[0] > 25 ? String(round(rcvBuf[0] * 0.0689476 * 10) / 10) : "LO";
+                fr = rcvBuf[1] > 25 ? String(round(rcvBuf[1] * 0.0689476 * 10) / 10) : "LO";
+                rr = rcvBuf[2] > 25 ? String(round(rcvBuf[2] * 0.0689476 * 10) / 10) : "LO";
+                rl = rcvBuf[3] > 25 ? String(round(rcvBuf[3] * 0.0689476 * 10) / 10) : "LO";
+              }
+            } else {
+              fl = "  ";
+              fr = "  ";
+              rr = "  ";
+              rl = "  ";
+            }
         }
           break;
         case 0x423: { // Speed, RPM
           rpm = String(( ( rcvBuf[2] << 8 ) + rcvBuf[3] ) / 4);
-          carSpeed = String(round((( rcvBuf[0] << 8) + rcvBuf[1])/100) - 100, 0);
-          temperature = String(rcvBuf[4]-40);
+          carSpeed = String(round(((((rcvBuf[0] << 8) + rcvBuf[1])/100) - 100) * (currentSettings.unitsMetric ? 1 : 0.621371)), 0);
+          temperature = String((rcvBuf[4]-40) * (currentSettings.unitsMetric ? 1 : 1.8) + (currentSettings.unitsMetric ? 0 : 32));
 
           if ( ((rpm == "0") || (rpm == "")) && sendingNow) {
             carSpeed = "";
@@ -349,8 +238,8 @@ void loop() {
         }
           break;
         case 0x466: {  // GPS clock
-            if (!useRTC) {
-              hour = (((rcvBuf[0] & 0xF8) >> 3) + TZ ) % 24;
+            if (!currentSettings.useRTC) {
+              hour = (((rcvBuf[0] & 0xF8) >> 3) + currentSettings.tz ) % (currentSettings.hours24 ? 24 : 12);
               minute = (rcvBuf[1] & 0xFC) >> 2;
               second = (rcvBuf[2] & 0xFC) >> 2;
               gotClock = true;
@@ -365,7 +254,7 @@ void loop() {
     for (int currentCycle = 0; currentCycle < MSG_COUNT; currentCycle ++ ) {
       if ( ( (timer >= cycle[currentCycle].started ) || (!firstCycle) ) && ((timer % cycle[currentCycle].repeated) - cycle[currentCycle].delayed) == 0) {
         if (cycle[currentCycle].header == 0x3f2) {
-          if (useRTC) {
+          if (currentSettings.useRTC) {
             DateTime now = rtc.now();
             hour = now.hour();
             minute = now.minute();
@@ -407,9 +296,18 @@ void loop() {
     if (message == "%MTRACK") message = "";
     if ( ( (timer >= text[currentText].started ) || (!firstCycle) ) && ((timer % text[currentText].repeated) - text[currentText].delayed) == 0) {
       if (currentText == 0) {
+        if (currentSettings.pressurePsi) {
+          pressurePadding = 2;
+          rpmMessage = " RPM:";
+          textMsgLength = 14;
+        } else {
+          pressurePadding = 3;
+          rpmMessage = " R:";
+          textMsgLength = 12;
+        }
         displayText(0, carSpeed.padRight(3));
-        displayText(1, fl.padRight(2) + " RPM:" + rpm.padRight(4) + " T:" + temperature.padRight(3) + " " + fr.padRight(2));
-        displayText(2, rl.padRight(2) + " " + message.padCenter(TEXT_MSG_LENGTH) + " " + rr.padRight(2));
+        displayText(1, fl.padRight(pressurePadding) + rpmMessage + rpm.padRight(4) + " T:" + temperature.padRight(3) + " " + fr.padRight(pressurePadding));
+        displayText(2, rl.padRight(pressurePadding) + " " + message.padCenter(textMsgLength) + " " + rr.padRight(pressurePadding));
       }
       if (sentOnTick == timer) delay(TIMER_STEP/2);
       CAN.sendMsgBuf(text[currentText].header, 0, text[currentText].len, text[currentText].data);

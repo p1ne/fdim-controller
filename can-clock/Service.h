@@ -1,3 +1,6 @@
+#ifndef __SERVICE_H_
+#define __SERVICE_H_
+
 #include <Arduino.h>
 #include <stdarg.h>
 
@@ -26,3 +29,5 @@ String readSerialString()
   inSerialData.trim();
   return(inSerialData);
 }
+
+#endif // __SERVICE_H_
