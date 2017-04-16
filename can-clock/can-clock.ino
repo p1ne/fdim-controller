@@ -337,7 +337,7 @@ void loop() {
       timer = 0;
       firstCycle = false;
     }
-  } else if (millis() > 10000) {
+  } else if ( (millis() > 10000) && !isConfigured) {
     settingsMenu();
   }
 }
