@@ -56,16 +56,17 @@ void saveSettings() {
 
 void printCurrentSettings() {
   Serial.println("\n\nCurrent settings\n");
+  Serial.println("Units: " + String(currentSettings.unitsMetric ? "Metric" : "Imperial"));
   Serial.println("Time source: " + String(currentSettings.useRTC ? "RTC" : "GPS"));
   if (currentSettings.useRTC) {
     DateTime now = rtc.now();
     Serial.println("Current RTC time: " + String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second()));
+  } else {
+    Serial.println("Time zone: " + String(currentSettings.tz));
   }
   Serial.println("Time format: " + String(currentSettings.hours24 ? "24 hours" : "12 hours"));
-  Serial.println("Time zone: " + String(currentSettings.tz));
   Serial.println("Pressure units: " + String(currentSettings.pressurePsi ? "Psi" : "Bars"));
   Serial.println("Display pressure: " + String(currentSettings.displayPressure ? "Yes" : "No"));
-  Serial.println("Units: " + String(currentSettings.unitsMetric ? "Metric" : "Imperial"));
   Serial.println();
 }
 
@@ -101,6 +102,10 @@ void settingsMenu() {
       now = rtc.now();
       Serial.println("Time set to " + String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second()));
     }
+  } else {
+    Serial.println("Enter timezone (+- hours)\n");
+    input = readSerialString();
+    currentSettings.tz = input.toInt();
   }
 
   Serial.println("Set clock format\n1 - 24 hours\n2 - 12 hours");
@@ -110,10 +115,6 @@ void settingsMenu() {
   } else if (input.equals("2")) {
     currentSettings.hours24 = false;
   }
-
-  Serial.println("Enter timezone (+- hours)\n");
-  input = readSerialString();
-  currentSettings.tz = input.toInt();
 
   Serial.println("Select speed/temperature units\n1 - Metric\n2 - Imperial\n");
 
