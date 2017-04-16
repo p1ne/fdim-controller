@@ -22,7 +22,10 @@
 
 byte second, minute, hour;
 
-SoftwareSerial mySerial(8, 9); // RX, TX
+#if !defined(__AVR_ATmega32U4__) // not Arduino Pro Micro
+  SoftwareSerial mySerial(8, 9); // RX, TX
+#endif
+
 
 FormattedString fl, fr, rl, rr, message, rpm, carSpeed, temperature;
 
@@ -130,7 +133,10 @@ void sendStartSequence()
 
 void setup() {
   Serial.begin(115200);
-  mySerial.begin(9600);
+
+  #if !defined(__AVR_ATmega32U4__) // Arduino Pro Micro - use hw serial for input, others - software serial
+    mySerial.begin(9600);
+  #endif
 
   initStartMessages();
   initCycleMessages();
@@ -274,8 +280,21 @@ void loop() {
         }
       }
     }
+
     inSerialData = "";
 
+#if defined(__AVR_ATmega32U4__) // Arduino Pro Micro - input connected to pins TX,RX
+    while (Serial.available() > 0) {
+        char recieved = Serial.read();
+        inSerialData += recieved;
+
+        if (recieved == '\n')
+        {
+          message = inSerialData;
+          inSerialData = "";
+        }
+    }
+#else // Other Arduinos (Nano in my case) - input connected to pins 8,9
     while (mySerial.available() > 0) {
         char recieved = mySerial.read();
         inSerialData += recieved;
@@ -286,7 +305,7 @@ void loop() {
           inSerialData = "";
         }
     }
-
+#endif
 
 #if defined(MQ135_CONNECTED)    // For MQ135
     int sensorValue = analogRead(4);
