@@ -11,6 +11,8 @@
 
 RTC_DS3231 rtc;
 
+bool isConfigured = false;
+
 struct Settings {
   int configVersion;
   bool useRTC;
@@ -48,6 +50,8 @@ void readSettings() {
 void saveSettings() {
   for (unsigned int t=0; t<sizeof(currentSettings); t++)
    EEPROM.write(CONFIG_START + t, *((char*)&currentSettings + t));
+
+  isConfigured = true;
 }
 
 void printCurrentSettings() {
