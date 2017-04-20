@@ -55,7 +55,7 @@ void saveSettings() {
 }
 
 void printCurrentSettings() {
-  Serial.println("\n\nCurrent settings\n");
+  Serial.println(F("\n\nCurrent settings\n"));
   Serial.println("Units: " + String(currentSettings.unitsMetric ? "Metric" : "Imperial"));
   Serial.println("Time source: " + String(currentSettings.useRTC ? "RTC" : "GPS"));
   if (currentSettings.useRTC) {
@@ -76,9 +76,9 @@ void settingsMenu() {
   readSettings();
   printCurrentSettings();
 
-  Serial.println("FORD FDIM Controller configuration\n");
+  Serial.println(F("FORD FDIM Controller configuration\n"));
 
-  Serial.println("Select time source\n1 - 911 Assist GPS (2010+)\n2 - controller real time clock\n");
+  Serial.println(F("Select time source\n1 - 911 Assist GPS (2010+)\n2 - controller real time clock\n"));
 
   input = readSerialString();
 
@@ -91,7 +91,7 @@ void settingsMenu() {
   if (currentSettings.useRTC) {
     DateTime now = rtc.now();
     Serial.println("Current RTC time: " + String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second())+"\n");
-    Serial.println("Enter current local time in 24h format (HH:MM) or Enter to keep as is");
+    Serial.println(F("Enter current local time in 24h format (HH:MM) or Enter to keep as is"));
     input = readSerialString();
     Serial.println(input);
     if (!input.equals("")) {
@@ -103,12 +103,12 @@ void settingsMenu() {
       Serial.println("Time set to " + String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second()));
     }
   } else {
-    Serial.println("Enter timezone (+- hours)\n");
+    Serial.println(F("Enter timezone (+- hours)\n"));
     input = readSerialString();
     currentSettings.tz = input.toInt();
   }
 
-  Serial.println("Set clock format\n1 - 24 hours\n2 - 12 hours");
+  Serial.println(F("Set clock format\n1 - 24 hours\n2 - 12 hours"));
   input = readSerialString();
   if (input.equals("1")) {
     currentSettings.hours24 = true;
@@ -116,7 +116,7 @@ void settingsMenu() {
     currentSettings.hours24 = false;
   }
 
-  Serial.println("Select speed/temperature units\n1 - Metric\n2 - Imperial\n");
+  Serial.println(F("Select speed/temperature units\n1 - Metric\n2 - Imperial\n"));
 
   input = readSerialString();
 
@@ -126,7 +126,7 @@ void settingsMenu() {
     currentSettings.unitsMetric = false;
   }
 
-  Serial.println("Display tires pressure\n1 - Yes\n2 - No\n");
+  Serial.println(F("Display tires pressure\n1 - Yes\n2 - No\n"));
 
   input = readSerialString();
 
@@ -137,7 +137,7 @@ void settingsMenu() {
   }
 
   if (currentSettings.displayPressure) {
-    Serial.println("Pressure units\n1 - Psi\n2 - Bars\n");
+    Serial.println(F("Pressure units\n1 - Psi\n2 - Bars\n"));
 
     input = readSerialString();
 
