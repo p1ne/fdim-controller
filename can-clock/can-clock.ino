@@ -33,6 +33,8 @@ byte pressurePadding;
 String rpmMessage;
 byte textMsgLength;
 
+String pressureLow = "LO";
+
 unsigned int timer;
 
 const int SPI_CS_PIN = 10;
@@ -59,9 +61,9 @@ void MCP2515_ISR()
 
 void printDebug(unsigned int timer, CANMessage msg)
 {
-    Serial.print("Time: ");
+    Serial.print(F("Time: "));
     Serial.print(timer);
-    Serial.print(" Message: ");
+    Serial.print(F(" Message: "));
     msg.print();
 }
 
@@ -150,13 +152,16 @@ void setup() {
 
 
 START_INIT:
-  if(CAN_OK == CAN.begin(CAN_125KBPS, MCP_8MHz)) {
-    Serial.println("CAN ok!");
-  } else {
-    Serial.println("CAN fail");
-    delay(100);
-    goto START_INIT;
-  }
+if(CAN_OK == CAN.begin(CAN_125KBPS, MCP_8MHz))
+    {
+        Serial.println(F("CAN ok!"));
+    }
+    else
+    {
+        Serial.println(F("CAN fail"));
+        delay(100);
+        goto START_INIT;
+    }
 
   #if defined(__AVR_ATmega32U4__) // Arduino Pro Micro
     pinMode(7, INPUT);
@@ -176,7 +181,7 @@ START_INIT:
 
   if (currentSettings.useRTC) {
     if (! rtc.begin()) {
-      Serial.println("Couldn't find RTC");
+      Serial.println(F("Couldn't find RTC"));
       while (1);
     }
   } else {
@@ -202,15 +207,15 @@ void loop() {
         case 0x3b5: { // TPMS
             if (currentSettings.displayPressure) {
               if (currentSettings.pressurePsi) {
-                fl = rcvBuf[0] > 25 ? String(rcvBuf[0]) : "LO";
-                fr = rcvBuf[1] > 25 ? String(rcvBuf[1]) : "LO";
-                rr = rcvBuf[2] > 25 ? String(rcvBuf[2]) : "LO";
-                rl = rcvBuf[3] > 25 ? String(rcvBuf[3]) : "LO";
+                fl = rcvBuf[0] > 25 ? String(rcvBuf[0]) : pressureLow;
+                fr = rcvBuf[1] > 25 ? String(rcvBuf[1]) : pressureLow;
+                rr = rcvBuf[2] > 25 ? String(rcvBuf[2]) : pressureLow;
+                rl = rcvBuf[3] > 25 ? String(rcvBuf[3]) : pressureLow;
               } else {
-                fl = rcvBuf[0] > 25 ? String(round(rcvBuf[0] * 0.0689476 * 10) / 10) : "LO";
-                fr = rcvBuf[1] > 25 ? String(round(rcvBuf[1] * 0.0689476 * 10) / 10) : "LO";
-                rr = rcvBuf[2] > 25 ? String(round(rcvBuf[2] * 0.0689476 * 10) / 10) : "LO";
-                rl = rcvBuf[3] > 25 ? String(round(rcvBuf[3] * 0.0689476 * 10) / 10) : "LO";
+                fl = rcvBuf[0] > 25 ? String(round(rcvBuf[0] * 0.0689476 * 10) / 10) : pressureLow;
+                fr = rcvBuf[1] > 25 ? String(round(rcvBuf[1] * 0.0689476 * 10) / 10) : pressureLow;
+                rr = rcvBuf[2] > 25 ? String(round(rcvBuf[2] * 0.0689476 * 10) / 10) : pressureLow;
+                rl = rcvBuf[3] > 25 ? String(round(rcvBuf[3] * 0.0689476 * 10) / 10) : pressureLow;
               }
             } else {
               fl = "  ";
@@ -309,20 +314,20 @@ void loop() {
     message = String(sensorValue, DEC);
 #endif // MQ135_CONNECTED
 
-    if (message == "%MTRACK") message = "";
+    if (message == F("%MTRACK")) message = "";
     if ( ( (timer >= text[currentText].started ) || (!firstCycle) ) && ((timer % text[currentText].repeated) - text[currentText].delayed) == 0) {
       if (currentText == 0) {
         if (currentSettings.pressurePsi) {
           pressurePadding = 2;
-          rpmMessage = " RPM:";
+          rpmMessage = F(" RPM:");
           textMsgLength = 14;
         } else {
           pressurePadding = 3;
-          rpmMessage = " R:";
+          rpmMessage = F(" R:");
           textMsgLength = 12;
         }
         displayText(0, carSpeed.padRight(3));
-        displayText(1, fl.padRight(pressurePadding) + rpmMessage + rpm.padRight(4) + " T:" + temperature.padRight(3) + " " + fr.padRight(pressurePadding));
+        displayText(1, fl.padRight(pressurePadding) + rpmMessage + rpm.padRight(4) + F(" T:") + temperature.padRight(3) + " " + fr.padRight(pressurePadding));
         displayText(2, rl.padRight(pressurePadding) + " " + message.padCenter(textMsgLength) + " " + rr.padRight(pressurePadding));
       }
       if (sentOnTick == timer) delay(TIMER_STEP/2);
