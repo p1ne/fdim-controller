@@ -152,16 +152,13 @@ void setup() {
 
 
 START_INIT:
-if(CAN_OK == CAN.begin(CAN_125KBPS, MCP_8MHz))
-    {
-        Serial.println(F("CAN ok!"));
-    }
-    else
-    {
-        Serial.println(F("CAN fail"));
-        delay(100);
-        goto START_INIT;
-    }
+  if(CAN_OK == CAN.begin(CAN_125KBPS, MCP_8MHz)) {
+    Serial.println(F("CAN ok!"));
+  } else {
+    Serial.println(F("CAN fail"));
+    delay(100);
+    goto START_INIT;
+  }
 
   #if defined(__AVR_ATmega32U4__) // Arduino Pro Micro
     pinMode(7, INPUT);
