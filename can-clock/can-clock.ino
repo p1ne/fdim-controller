@@ -152,23 +152,20 @@ void setup() {
 
 
 START_INIT:
-if(CAN_OK == CAN.begin(CAN_125KBPS, MCP_8MHz))
-    {
-        Serial.println(F("CAN ok!"));
-    }
-    else
-    {
-        Serial.println(F("CAN fail"));
-        delay(100);
-        goto START_INIT;
-    }
+  if(CAN_OK == CAN.begin(CAN_125KBPS, MCP_8MHz)) {
+    Serial.println(F("CAN ok!"));
+  } else {
+    Serial.println(F("CAN fail"));
+    delay(100);
+    goto START_INIT;
+  }
 
   #if defined(__AVR_ATmega32U4__) // Arduino Pro Micro
     pinMode(4, INPUT);
     attachInterrupt(digitalPinToInterrupt(4), MCP2515_ISR, FALLING); // start interrupt
   #else // Other Arduinos (Nano in my case)
-    pinMode(3, INPUT);
-    attachInterrupt(digitalPinToInterrupt(3), MCP2515_ISR, FALLING); // start interrupt
+    pinMode(2, INPUT);
+    attachInterrupt(digitalPinToInterrupt(2), MCP2515_ISR, FALLING); // start interrupt
   #endif
 
   CAN.init_Mask(0, CAN_STDID, 0x7FF);   // there are 2 mask in mcp2515, you need to set both of them
