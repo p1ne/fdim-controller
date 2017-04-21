@@ -8,7 +8,7 @@
 #include "CANMessage.h"
 #include "FormattedString.h"
 
-#define DEBUG 0
+#define DEBUG 1
 
 #define TIMER_STEP 25
 
@@ -207,8 +207,10 @@ if(CAN_OK == CAN.begin(CAN_125KBPS, MCP_8MHz))
     }
 
   #if defined(__AVR_ATmega32U4__) // Arduino Pro Micro
+    pinMode(4, INPUT);
     attachInterrupt(digitalPinToInterrupt(4), MCP2515_ISR, FALLING); // start interrupt
   #else // Other Arduinos (Nano in my case)
+    pinMode(3, INPUT);
     attachInterrupt(digitalPinToInterrupt(3), MCP2515_ISR, FALLING); // start interrupt
   #endif
 
@@ -221,7 +223,7 @@ if(CAN_OK == CAN.begin(CAN_125KBPS, MCP_8MHz))
   timer = 0;
   delay(500);
 
-  CAN.sendMsgBuf(metric.header, 0, metric.len, metric.data);
+  //CAN.sendMsgBuf(metric.header, 0, metric.len, metric.data);
 }
 
 void loop() {
