@@ -6,7 +6,7 @@ GND - GND
 14 - SO
 16 - SI
 15 - SCK
-4 - INT
+7 - INT
 
 Arduino Pro Micro <-> RTC clock DS3231
 SCL - C
