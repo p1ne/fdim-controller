@@ -161,8 +161,8 @@ START_INIT:
   }
 
   #if defined(__AVR_ATmega32U4__) // Arduino Pro Micro
-    pinMode(4, INPUT);
-    attachInterrupt(digitalPinToInterrupt(4), MCP2515_ISR, FALLING); // start interrupt
+    pinMode(7, INPUT);
+    attachInterrupt(digitalPinToInterrupt(7), MCP2515_ISR, FALLING); // start interrupt
   #else // Other Arduinos (Nano in my case)
     pinMode(2, INPUT);
     attachInterrupt(digitalPinToInterrupt(2), MCP2515_ISR, FALLING); // start interrupt
