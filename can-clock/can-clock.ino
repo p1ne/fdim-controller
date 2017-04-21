@@ -5,37 +5,78 @@
 #include <SoftwareSerial.h>
 #include <mcp_can.h>
 #include <mcp_can_dfs.h>
-#include "RTClib.h"
-#include <EEPROM.h>
-
 #include "CANMessage.h"
-#include "FordMessages.h"
 #include "FormattedString.h"
-#include "Service.h"
-#include "Settings.h"
 
 #define DEBUG 0
 
 #define TIMER_STEP 25
 
+#define START_COUNT 8
+#define MSG_COUNT 4
+#define TEXT_COUNT 12
+
+#define TEXT_MSG_LENGTH 14
+
+#define TZ 3
+
 #undef MQ135_CONNECTED
 
 byte second, minute, hour;
 
-#if !defined(__AVR_ATmega32U4__) // not Arduino Pro Micro
-  SoftwareSerial mySerial(8, 9); // RX, TX
-#endif
-
+SoftwareSerial mySerial(8, 9); // RX, TX
 
 FormattedString fl, fr, rl, rr, message, rpm, carSpeed, temperature;
 
-byte pressurePadding;
-String rpmMessage;
-byte textMsgLength;
-
-String pressureLow = "LO";
+String dump[8];
 
 unsigned int timer;
+
+CANMessage start[START_COUNT];
+CANMessage cycle[MSG_COUNT];
+CANMessage text[TEXT_COUNT];
+CANMessage metric;
+
+void initStartMessages()
+{
+  start[0].set( 0, 100, 0, 0x50c, 3, 0x0C, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 );
+  start[1].set( 0, 250, 0, 0x3e8, 8, 0x00, 0x00, 0x29, 0x00, 0x00, 0x00, 0x00, 0x00 );
+  start[2].set( 0,  50, 0, 0x3ef, 8, 0x32, 0x32, 0x32, 0x32, 0x03, 0x00, 0x00, 0x00 );
+  start[3].set( 0,  50, 0, 0x3f2, 8, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x60, 0x00, 0x00 );
+  start[4].set( 0, 100, 0, 0x50c, 3, 0x01, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 );
+  start[5].set( 0,  50, 0, 0x3f2, 8, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xF0, 0x00, 0x00 );
+  start[6].set( 0,  50, 0, 0x3f1, 8, 0xF5, 0x90, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 );
+  start[7].set( 0, 100, 0, 0x50c, 3, 0x01, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 );
+}
+
+void initCycleMessages()
+{
+  cycle[0].set( 0,   0,  500, 0x50c, 3, 0x11, 0x02, 0x00, 0xBE, 0xBE, 0xBE, 0xBE, 0xBE );
+  cycle[1].set( 0, 400, 1000, 0x3e8, 8, 0x0F, 0x00, 0x29, 0x04, 0x00, 0x00, 0x00, 0x00 );
+  cycle[2].set( 0, 450, 1000, 0x3ef, 8, 0x32, 0x32, 0x32, 0x32, 0x03, 0x00, 0x00, 0x20 );
+  cycle[3].set( 0, 500, 1000, 0x3f2, 8, 0x12, 0x01, 0xFF, 0xFF, 0xFF, 0xF0, 0x00, 0x00 );
+}
+
+void initTextMessages()
+{
+  text[ 0].set( 1000,   0, 500, 0x336, 8, 0x03, 0x01, 0x0A, 0x01, 0xFE, 0x00, 0x00, 0x00 );
+  text[ 1].set( 1000,  50, 500, 0x324, 8, 0x01, 0x01, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00 );
+  text[ 2].set( 1000, 100, 500, 0x337, 8, 0x06, 0x20,  ' ',  '@',  ' ',  '@',  ' ', 0x00 );
+  text[ 3].set( 1000, 200, 500, 0x336, 8, 0x03, 0x01, 0x05, 0x03, 0x03, 0x00, 0x00, 0x00 );
+  text[ 4].set( 1000, 225, 500, 0x324, 8, 0x03, 0x01, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00 );
+  text[ 5].set( 1000, 250, 500, 0x337, 8, 0x10, 0x2B,  ' ',  ' ',  ' ',  '@',  ' ',  ' ' );
+  text[ 6].set( 1000, 275, 500, 0x337, 8, 0x21,  ' ',  'M',  'e',  'r',  'c',  '@',  'u' );
+  text[ 7].set( 1000, 300, 500, 0x337, 8, 0x22,  'r',  'y',  ' ',  ' ',  ' ',  ' ',  ' ' );
+  text[ 8].set( 1000, 325, 500, 0x337, 8, 0x23,  ' ',  ' ',  ' ',  ' ',  ' ',  '@',  ' ' );
+  text[ 9].set( 1000, 350, 500, 0x337, 8, 0x24,  ' ',  ' ',  'M',  'a',  'r',  'i',  'n' );
+  text[10].set( 1000, 375, 500, 0x337, 8, 0x25,  'e',  'r',  ' ',  ' ',  ' ',  ' ',  ' ' );
+  text[11].set( 1000, 400, 500, 0x337, 8, 0x26,  ' ',  ' ', 0x00, 0x00, 0x00, 0x00, 0x00 );
+}
+
+void initMetricMessage()
+{
+  metric.set( 0, 0, 0, 0x129, 8, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00);
+}
 
 const int SPI_CS_PIN = 10;
 
@@ -59,11 +100,20 @@ void MCP2515_ISR()
     rcvFlag = true;
 }
 
+byte decToBcd(byte val)
+{
+  return( (val/10*16) + (val%10) );
+}
+byte bcdToDec(byte val)
+{
+  return( (val/16*10) + (val%16) );
+}
+
 void printDebug(unsigned int timer, CANMessage msg)
 {
-    Serial.print(F("Time: "));
+    Serial.print("Time: ");
     Serial.print(timer);
-    Serial.print(F(" Message: "));
+    Serial.print(" Message: ");
     msg.print();
 }
 
@@ -132,30 +182,21 @@ void sendStartSequence()
   delay(500);
 }
 
-
 void setup() {
   Serial.begin(115200);
-
-  #if !defined(__AVR_ATmega32U4__) // Arduino Pro Micro - use hw serial for input, others - software serial
-    mySerial.begin(9600);
-  #endif
+  mySerial.begin(9600);
 
   initStartMessages();
   initCycleMessages();
   initTextMessages();
-
-  readSettings();
-
-#if defined(MQ135_CONNECTED)
-  pinMode(A4, INPUT);
-#endif
+  initMetricMessage();
 
 
 START_INIT:
   if(CAN_OK == CAN.begin(CAN_125KBPS, MCP_8MHz)) {
-    Serial.println(F("CAN ok!"));
+    Serial.println("CAN ok!");
   } else {
-    Serial.println(F("CAN fail"));
+    Serial.println("CAN fail");
     delay(100);
     goto START_INIT;
   }
@@ -171,24 +212,13 @@ START_INIT:
   CAN.init_Mask(0, CAN_STDID, 0x7FF);   // there are 2 mask in mcp2515, you need to set both of them
   CAN.init_Mask(1, CAN_STDID, 0x7FF);
   CAN.init_Filt(0, CAN_STDID, 0x423);   // Speed data
-
-  if (currentSettings.displayPressure) {
-    CAN.init_Filt(1, CAN_STDID, 0x3B5);   // TPMS data
-  }
-
-  if (currentSettings.useRTC) {
-    if (! rtc.begin()) {
-      Serial.println(F("Couldn't find RTC"));
-      while (1);
-    }
-  } else {
-    CAN.init_Filt(2, CAN_STDID, 0x466);   // GPS
-  }
+  CAN.init_Filt(1, CAN_STDID, 0x3B5);   // TPMS data
+  CAN.init_Filt(2, CAN_STDID, 0x466);   // GPS
 
   timer = 0;
   delay(500);
 
-  CAN.sendMsgBuf(metric.header, 0, metric.len, metric.data);
+  //CAN.sendMsgBuf(metric.header, 0, metric.len, metric.data);
 }
 
 void loop() {
@@ -202,30 +232,16 @@ void loop() {
 
       switch (rcvCanId) {
         case 0x3b5: { // TPMS
-            if (currentSettings.displayPressure) {
-              if (currentSettings.pressurePsi) {
-                fl = rcvBuf[0] > 25 ? String(rcvBuf[0]) : pressureLow;
-                fr = rcvBuf[1] > 25 ? String(rcvBuf[1]) : pressureLow;
-                rr = rcvBuf[2] > 25 ? String(rcvBuf[2]) : pressureLow;
-                rl = rcvBuf[3] > 25 ? String(rcvBuf[3]) : pressureLow;
-              } else {
-                fl = rcvBuf[0] > 25 ? String(round(rcvBuf[0] * 0.0689476 * 10) / 10) : pressureLow;
-                fr = rcvBuf[1] > 25 ? String(round(rcvBuf[1] * 0.0689476 * 10) / 10) : pressureLow;
-                rr = rcvBuf[2] > 25 ? String(round(rcvBuf[2] * 0.0689476 * 10) / 10) : pressureLow;
-                rl = rcvBuf[3] > 25 ? String(round(rcvBuf[3] * 0.0689476 * 10) / 10) : pressureLow;
-              }
-            } else {
-              fl = "  ";
-              fr = "  ";
-              rr = "  ";
-              rl = "  ";
-            }
+            fl = rcvBuf[0] > 25 ? String(rcvBuf[0]) : "LO";
+            fr = rcvBuf[1] > 25 ? String(rcvBuf[1]) : "LO";
+            rr = rcvBuf[2] > 25 ? String(rcvBuf[2]) : "LO";
+            rl = rcvBuf[3] > 25 ? String(rcvBuf[3]) : "LO";
         }
           break;
         case 0x423: { // Speed, RPM
           rpm = String(( ( rcvBuf[2] << 8 ) + rcvBuf[3] ) / 4);
-          carSpeed = String(round(((((rcvBuf[0] << 8) + rcvBuf[1])/100) - 100) * (currentSettings.unitsMetric ? 1 : 0.621371)), 0);
-          temperature = String((rcvBuf[4]-40) * (currentSettings.unitsMetric ? 1 : 1.8) + (currentSettings.unitsMetric ? 0 : 32));
+          carSpeed = String(round((( rcvBuf[0] << 8) + rcvBuf[1])/100) - 100, 0);
+          temperature = String(rcvBuf[4]-40);
 
           if ( ((rpm == "0") || (rpm == "")) && sendingNow) {
             carSpeed = "";
@@ -243,12 +259,10 @@ void loop() {
         }
           break;
         case 0x466: {  // GPS clock
-            if (!currentSettings.useRTC) {
-              hour = (((rcvBuf[0] & 0xF8) >> 3) + currentSettings.tz ) % (currentSettings.hours24 ? 24 : 12);
-              minute = (rcvBuf[1] & 0xFC) >> 2;
-              second = (rcvBuf[2] & 0xFC) >> 2;
-              gotClock = true;
-            }
+            hour = (((rcvBuf[0] & 0xF8) >> 3) + TZ ) % 24;
+            minute = (rcvBuf[1] & 0xFC) >> 2;
+            second = (rcvBuf[2] & 0xFC) >> 2;
+            gotClock = true;
         }
           break;
       }
@@ -259,12 +273,6 @@ void loop() {
     for (int currentCycle = 0; currentCycle < MSG_COUNT; currentCycle ++ ) {
       if ( ( (timer >= cycle[currentCycle].started ) || (!firstCycle) ) && ((timer % cycle[currentCycle].repeated) - cycle[currentCycle].delayed) == 0) {
         if (cycle[currentCycle].header == 0x3f2) {
-          if (currentSettings.useRTC) {
-            DateTime now = rtc.now();
-            hour = now.hour();
-            minute = now.minute();
-            gotClock = true;
-          }
           cycle[currentCycle].data[0] = decToBcd(hour);
           cycle[currentCycle].data[1] = decToBcd(minute);
           if (gotClock) {
@@ -279,21 +287,8 @@ void loop() {
         }
       }
     }
-
     inSerialData = "";
 
-#if defined(__AVR_ATmega32U4__) // Arduino Pro Micro - input connected to pins TX,RX
-    while (Serial.available() > 0) {
-        char recieved = Serial.read();
-        inSerialData += recieved;
-
-        if (recieved == '\n')
-        {
-          message = inSerialData;
-          inSerialData = "";
-        }
-    }
-#else // Other Arduinos (Nano in my case) - input connected to pins 8,9
     while (mySerial.available() > 0) {
         char recieved = mySerial.read();
         inSerialData += recieved;
@@ -304,28 +299,19 @@ void loop() {
           inSerialData = "";
         }
     }
-#endif
+
 
 #if defined(MQ135_CONNECTED)    // For MQ135
     int sensorValue = analogRead(4);
     message = String(sensorValue, DEC);
 #endif // MQ135_CONNECTED
 
-    if (message == F("%MTRACK")) message = "";
+    if (message == "%MTRACK") message = "";
     if ( ( (timer >= text[currentText].started ) || (!firstCycle) ) && ((timer % text[currentText].repeated) - text[currentText].delayed) == 0) {
       if (currentText == 0) {
-        if (currentSettings.pressurePsi) {
-          pressurePadding = 2;
-          rpmMessage = F(" RPM:");
-          textMsgLength = 14;
-        } else {
-          pressurePadding = 3;
-          rpmMessage = F(" R:");
-          textMsgLength = 12;
-        }
         displayText(0, carSpeed.padRight(3));
-        displayText(1, fl.padRight(pressurePadding) + rpmMessage + rpm.padRight(4) + F(" T:") + temperature.padRight(3) + " " + fr.padRight(pressurePadding));
-        displayText(2, rl.padRight(pressurePadding) + " " + message.padCenter(textMsgLength) + " " + rr.padRight(pressurePadding));
+        displayText(1, fl.padRight(2) + " RPM:" + rpm.padRight(4) + " T:" + temperature.padRight(3) + " " + fr.padRight(2));
+        displayText(2, rl.padRight(2) + " " + message.padCenter(TEXT_MSG_LENGTH) + " " + rr.padRight(2));
       }
       if (sentOnTick == timer) delay(TIMER_STEP/2);
       CAN.sendMsgBuf(text[currentText].header, 0, text[currentText].len, text[currentText].data);
@@ -339,7 +325,5 @@ void loop() {
       timer = 0;
       firstCycle = false;
     }
-  } else if ( (millis() > 10000) && !isConfigured) {
-    settingsMenu();
   }
 }
