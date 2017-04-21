@@ -207,7 +207,7 @@ if(CAN_OK == CAN.begin(CAN_125KBPS, MCP_8MHz))
     }
 
   #if defined(__AVR_ATmega32U4__) // Arduino Pro Micro
-    attachInterrupt(digitalPinToInterrupt(2), MCP2515_ISR, FALLING); // start interrupt
+    attachInterrupt(digitalPinToInterrupt(4), MCP2515_ISR, FALLING); // start interrupt
   #else // Other Arduinos (Nano in my case)
     attachInterrupt(digitalPinToInterrupt(3), MCP2515_ISR, FALLING); // start interrupt
   #endif
