@@ -233,7 +233,7 @@ void loop() {
         case 0x423: { // Speed, RPM
           rpm = String(( ( rcvBuf[2] << 8 ) + rcvBuf[3] ) / 4);
           carSpeed = String(round(((((rcvBuf[0] << 8) + rcvBuf[1])/100) - 100) * (currentSettings.unitsMetric ? 1 : 0.621371)), 0);
-          temperature = String((rcvBuf[4]-40) * (currentSettings.unitsMetric ? 1 : 1.8) + (currentSettings.unitsMetric ? 0 : 32));
+          temperature = String(round((rcvBuf[4]-40) * (currentSettings.unitsMetric ? 1 : 1.8) + (currentSettings.unitsMetric ? 0 : 32)));
 
           if ( ((rpm == "0") || (rpm == "")) && sendingNow) {
             carSpeed = "";
