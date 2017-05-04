@@ -147,7 +147,9 @@ void settingsMenu() {
       currentSettings.pressurePsi = false;
     }
   }
+  Serial.println(F("Saving settings...\n\n"));
   saveSettings();
+  Serial.println(F("Settings saved, getting back to operation mode"));
 }
 
 #endif // __SETTINGS_H_

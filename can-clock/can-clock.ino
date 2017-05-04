@@ -3,8 +3,8 @@
 #include <avr/pgmspace.h>
 #include <Wire.h>
 #include <SoftwareSerial.h>
-#include <mcp_can.h>
-#include <mcp_can_dfs.h>
+#include "mcp_can.h"
+#include "mcp_can_dfs.h"
 #include "RTClib.h"
 #include <EEPROM.h>
 
@@ -25,7 +25,6 @@ byte second, minute, hour;
 #if !defined(__AVR_ATmega32U4__) // not Arduino Pro Micro
   SoftwareSerial mySerial(8, 9); // RX, TX
 #endif
-
 
 FormattedString fl, fr, rl, rr, message, rpm, carSpeed, temperature;
 
@@ -58,6 +57,7 @@ void MCP2515_ISR()
 {
     rcvFlag = true;
 }
+
 
 void printDebug(unsigned int timer, CANMessage msg)
 {
@@ -152,7 +152,7 @@ void setup() {
 
 
 START_INIT:
-  if(CAN_OK == CAN.begin(CAN_125KBPS, MCP_8MHz)) {
+  if(CAN_OK == CAN.begin(MCP_STDEXT, CAN_125KBPS, MCP_8MHZ)) {
     Serial.println(F("CAN ok!"));
   } else {
     Serial.println(F("CAN fail"));
@@ -168,22 +168,31 @@ START_INIT:
     attachInterrupt(digitalPinToInterrupt(2), MCP2515_ISR, FALLING); // start interrupt
   #endif
 
-  CAN.init_Mask(0, CAN_STDID, 0x7FF);   // there are 2 mask in mcp2515, you need to set both of them
-  CAN.init_Mask(1, CAN_STDID, 0x7FF);
-  CAN.init_Filt(0, CAN_STDID, 0x423);   // Speed data
+  //CAN.setMode(MCP_LOOPBACK);
+
+  byte filtNo = 0;
+
+  CAN.init_Mask(0, CAN_STDID, 0x07FF0000);   // there are 2 mask in mcp2515, you need to set both of them
+  CAN.init_Mask(1, CAN_STDID, 0x07FF0000);
+  for (int i=0;i<5;i++)
+    CAN.init_Filt(i, CAN_STDID, 0x04230000);   // Speed data
+
+  CAN.init_Filt(filtNo++, CAN_STDID, 0x04230000);   // Speed data
 
   if (currentSettings.displayPressure) {
-    CAN.init_Filt(1, CAN_STDID, 0x3B5);   // TPMS data
+    CAN.init_Filt(filtNo++, CAN_STDID, 0x03B50000);   // TPMS data
   }
 
   if (currentSettings.useRTC) {
-    if (! rtc.begin()) {
-      Serial.println(F("Couldn't find RTC"));
-      while (1);
+    if (!rtc.begin()) {
+      currentSettings.useRTC = false;
+      CAN.init_Filt(filtNo++, CAN_STDID, 0x04660000);   // GPS
     }
   } else {
-    CAN.init_Filt(2, CAN_STDID, 0x466);   // GPS
+    CAN.init_Filt(filtNo++, CAN_STDID, 0x04660000);   // GPS
   }
+
+  CAN.setMode(MCP_NORMAL);
 
   timer = 0;
   delay(500);
@@ -197,8 +206,7 @@ void loop() {
     rcvFlag = false;
     while (CAN_MSGAVAIL == CAN.checkReceive()) {
 
-      CAN.readMsgBuf(&rcvLen, rcvBuf);
-      rcvCanId = CAN.getCanId();
+      CAN.readMsgBuf(&rcvCanId, &rcvLen, rcvBuf);
 
       switch (rcvCanId) {
         case 0x3b5: { // TPMS
