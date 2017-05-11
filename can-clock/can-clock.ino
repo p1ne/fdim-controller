@@ -253,7 +253,7 @@ void loop() {
         }
           break;
         case 0x72e: { // TPMS response
-          if ( currentSettings.displayPressure && currentSettings.tpmsRequest && (rcvLen == 7) && (rcvBuf[0] == 0x62) && (rcvBuf[1] = 0x41)) {
+          if ( currentSettings.displayPressure && currentSettings.tpmsRequest && (rcvLen == 7) && (rcvBuf[0] == 0x62) && (rcvBuf[1] == 0x41)) {
             switch (rcvBuf[2]) {
               case 0x40: {
                 if (currentSettings.pressurePsi) {
