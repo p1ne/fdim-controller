@@ -149,6 +149,18 @@ void setup() {
 
   readSettings();
 
+  if (currentSettings.pressurePsi) {
+    fl = "  ";
+    fr = "  ";
+    rl = "  ";
+    rr = "  ";
+  } else {
+    fl = "   ";
+    fr = "   ";
+    rl = "   ";
+    rr = "   ";
+  }
+
   if (DEBUG) {
     delay(5000);
     printCurrentSettings();
@@ -237,11 +249,6 @@ void loop() {
                 rr = rcvBuf[2] > 25 ? String(round(rcvBuf[2] * 0.0689476 * 10) / 10) : pressureLow;
                 rl = rcvBuf[3] > 25 ? String(round(rcvBuf[3] * 0.0689476 * 10) / 10) : pressureLow;
               }
-            } else {
-              fl = "  ";
-              fr = "  ";
-              rr = "  ";
-              rl = "  ";
             }
         }
           break;
