@@ -15,6 +15,7 @@
 #include "Settings.h"
 
 #define DEBUG 0
+#define IS_HYBRID true
 
 #define TIMER_STEP 25
 
@@ -295,7 +296,7 @@ void loop() {
           carSpeed = String(round(((((rcvBuf[0] << 8) + rcvBuf[1])/100) - 100) * (currentSettings.unitsMetric ? 1 : 0.621371)), 0);
           temperature = String(round((rcvBuf[4]-40) * (currentSettings.unitsMetric ? 1 : 1.8) + (currentSettings.unitsMetric ? 0 : 32)));
 
-          if ( ((rpm == "0") || (rpm == "")) && sendingNow) {
+          if ( ((rpm == "0") || (rpm == "")) && sendingNow && !IS_HYBRID) {
             carSpeed = "";
             rpm = "";
             temperature = "";
@@ -304,7 +305,7 @@ void loop() {
             gotClock = false;
           }
 
-          if ((rpm != "0") && (rpm != "") && !sendingNow) {
+          if (( ((rpm != "0") && (rpm != "")) || IS_HYBRID ) && !sendingNow) {
             sendingNow = true;
             sendStartSequence();
           }
