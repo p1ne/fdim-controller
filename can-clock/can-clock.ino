@@ -258,26 +258,26 @@ void loop() {
           for (int i=0;i<rcvLen;i++)
             Serial.println(rcvBuf[i],HEX);
           Serial.println("<<<<");
-          if ( currentSettings.displayPressure && currentSettings.tpmsRequest && (rcvLen == 7) && (rcvBuf[0] == 0x62) && (rcvBuf[1] == 0x41)) {
-            switch (rcvBuf[2]) {
+          if ( currentSettings.displayPressure && currentSettings.tpmsRequest && (rcvBuf[0] == 7) && (rcvBuf[1] == 0x62) && (rcvBuf[2] == 0x41)) {
+            switch (rcvBuf[3]) {
               case 0x40: {
                 if (currentSettings.pressurePsi) {
-                  fl = String(round((rcvBuf[3] * 256 + rcvBuf[4]) / 20));
-                  fr = String(round((rcvBuf[5] * 256 + rcvBuf[6]) / 20));
+                  fl = String(round((rcvBuf[4] * 256 + rcvBuf[5]) / 20));
+                  fr = String(round((rcvBuf[6] * 256 + rcvBuf[7]) / 20));
                 } else {
-                  fl = String(round((rcvBuf[3] * 256 + rcvBuf[4]) * 0.034475) / 10);
-                  fr = String(round((rcvBuf[5] * 256 + rcvBuf[6]) * 0.034475) / 10);
+                  fl = String(round((rcvBuf[4] * 256 + rcvBuf[5]) * 0.034475) / 10);
+                  fr = String(round((rcvBuf[6] * 256 + rcvBuf[7]) * 0.034475) / 10);
                 }
               }
               currentTpmsRequest = TPMS_REAR;
                 break;
               case 0x41: {
                 if (currentSettings.pressurePsi) {
-                  rl = String(round((rcvBuf[3] * 256 + rcvBuf[4]) / 20));
-                  rr = String(round((rcvBuf[5] * 256 + rcvBuf[6]) / 20));
+                  rl = String(round((rcvBuf[4] * 256 + rcvBuf[5]) / 20));
+                  rr = String(round((rcvBuf[6] * 256 + rcvBuf[7]) / 20));
                 } else {
-                  rl = String(round((rcvBuf[3] * 256 + rcvBuf[4]) * 0.034475) / 10);
-                  rr = String(round((rcvBuf[5] * 256 + rcvBuf[6]) * 0.034475) / 10);
+                  rl = String(round((rcvBuf[4] * 256 + rcvBuf[5]) * 0.034475) / 10);
+                  rr = String(round((rcvBuf[6] * 256 + rcvBuf[7]) * 0.034475) / 10);
                 }
               }
               currentTpmsRequest = TPMS_FRONT;
@@ -285,8 +285,8 @@ void loop() {
             }
           }
 
-          if ( currentSettings.displayPressure && currentSettings.tpmsRequest && (rcvLen == 6) && (rcvBuf[0] == 0x62) && (rcvBuf[1] == 0x41) && (rcvBuf[2] == 0x60)) {
-            tireTemperature = String(rcvBuf[3] - 40);
+          if ( currentSettings.displayPressure && currentSettings.tpmsRequest && (rcvBuf[0] == 6) && (rcvBuf[1] == 0x62) && (rcvBuf[2] == 0x41) && (rcvBuf[3] == 0x60)) {
+            tireTemperature = String(rcvBuf[4] - 40);
           }
         }
           break;
@@ -387,6 +387,10 @@ void loop() {
 #endif // MQ135_CONNECTED
 
     if (message == F("%MTRACK")) message = "";
+
+    // FIXME
+    message = "Tire temp: " + String(tireTemperature);
+
     if ( ( (timer >= text[currentText].started ) || (!firstCycle) ) && ((timer % text[currentText].repeated) - text[currentText].delayed) == 0) {
       if (currentText == 0) {
         if (currentSettings.pressurePsi) {
