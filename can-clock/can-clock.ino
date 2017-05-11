@@ -26,7 +26,7 @@ byte second, minute, hour;
   SoftwareSerial mySerial(8, 9); // RX, TX
 #endif
 
-FormattedString fl, fr, rl, rr, message, rpm, carSpeed, temperature;
+FormattedString fl, fr, rl, rr, message, rpm, carSpeed, temperature, tireTemperature;
 
 byte pressurePadding;
 String rpmMessage;
@@ -253,6 +253,11 @@ void loop() {
         }
           break;
         case 0x72e: { // TPMS response
+          Serial.println(">>>>");
+          Serial.println(rcvLen);
+          for (int i=0;i<rcvLen;i++)
+            Serial.println(rcvBuf[i],HEX);
+          Serial.println("<<<<");
           if ( currentSettings.displayPressure && currentSettings.tpmsRequest && (rcvLen == 7) && (rcvBuf[0] == 0x62) && (rcvBuf[1] == 0x41)) {
             switch (rcvBuf[2]) {
               case 0x40: {
@@ -277,9 +282,11 @@ void loop() {
               }
               currentTpmsRequest = TPMS_FRONT;
                 break;
-              case TPMS_TEMP: {
-              }
             }
+          }
+
+          if ( currentSettings.displayPressure && currentSettings.tpmsRequest && (rcvLen == 6) && (rcvBuf[0] == 0x62) && (rcvBuf[1] == 0x41) && (rcvBuf[2] == 0x60)) {
+            tireTemperature = String(rcvBuf[3] - 40);
           }
         }
           break;
