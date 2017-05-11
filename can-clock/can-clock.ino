@@ -51,6 +51,8 @@ bool gotClock = false;
 
 unsigned char currentText = 0;
 
+byte currentTpmsRequest = TPMS_INIT;
+
 MCP_CAN CAN(SPI_CS_PIN);
 
 void MCP2515_ISR()
@@ -143,8 +145,14 @@ void setup() {
   initStartMessages();
   initCycleMessages();
   initTextMessages();
+  initTpmsMessages();
 
   readSettings();
+
+  if (DEBUG) {
+    delay(5000);
+    printCurrentSettings();
+  }
 
 #if defined(MQ135_CONNECTED)
   pinMode(A4, INPUT);
@@ -180,8 +188,15 @@ START_INIT:
   CAN.init_Filt(filtNo++, CAN_STDID, 0x04230000);   // Speed data
 
   if (currentSettings.displayPressure) {
-    CAN.init_Filt(filtNo++, CAN_STDID, 0x03B50000);   // TPMS data
+    if (currentSettings.tpmsRequest) {
+      CAN.init_Filt(filtNo++, CAN_STDID, 0x072E0000);    // TPMS response
+      CAN.sendMsgBuf(tpms[TPMS_INIT].header, 0, tpms[TPMS_INIT].len, tpms[TPMS_INIT].data);
+      printDebug(0, tpms[TPMS_INIT]);
+    } else {
+      CAN.init_Filt(filtNo++, CAN_STDID, 0x03B50000);   // TPMS broadcast
+    }
   }
+
 
   if (currentSettings.useRTC) {
     if (!rtc.begin()) {
@@ -197,7 +212,7 @@ START_INIT:
   timer = 0;
   delay(500);
 
-  CAN.sendMsgBuf(metric.header, 0, metric.len, metric.data);
+  //CAN.sendMsgBuf(metric.header, 0, metric.len, metric.data);
 }
 
 void loop() {
@@ -209,8 +224,8 @@ void loop() {
       CAN.readMsgBuf(&rcvCanId, &rcvLen, rcvBuf);
 
       switch (rcvCanId) {
-        case 0x3b5: { // TPMS
-            if (currentSettings.displayPressure) {
+        case 0x3b5: { // TPMS Broadcast
+            if ( currentSettings.displayPressure && !currentSettings.tpmsRequest) {
               if (currentSettings.pressurePsi) {
                 fl = rcvBuf[0] > 25 ? String(rcvBuf[0]) : pressureLow;
                 fr = rcvBuf[1] > 25 ? String(rcvBuf[1]) : pressureLow;
@@ -228,6 +243,37 @@ void loop() {
               rr = "  ";
               rl = "  ";
             }
+        }
+          break;
+        case 0x72e: { // TPMS response
+          if ( currentSettings.displayPressure && currentSettings.tpmsRequest) {
+            switch (currentTpmsRequest) {
+              case TPMS_FRONT: {
+                if (currentSettings.pressurePsi) {
+                  fl = String(round((rcvBuf[3] * 256 + rcvBuf[4]) / 20));
+                  fr = String(round((rcvBuf[5] * 256 + rcvBuf[6]) / 20));
+                } else {
+                  fl = String(round((rcvBuf[3] * 256 + rcvBuf[4]) * 0.034475) / 10);
+                  fr = String(round((rcvBuf[5] * 256 + rcvBuf[6]) * 0.034475) / 10);
+                }
+              }
+              currentTpmsRequest = TPMS_REAR;
+                break;
+              case TPMS_REAR: {
+                if (currentSettings.pressurePsi) {
+                  rl = String(round((rcvBuf[3] * 256 + rcvBuf[4]) / 20));
+                  rr = String(round((rcvBuf[5] * 256 + rcvBuf[6]) / 20));
+                } else {
+                  rl = String(round((rcvBuf[3] * 256 + rcvBuf[4]) * 0.034475) / 10);
+                  rr = String(round((rcvBuf[5] * 256 + rcvBuf[6]) * 0.034475) / 10);
+                }
+              }
+              currentTpmsRequest = TPMS_FRONT;
+                break;
+              case TPMS_TEMP: {
+              }
+            }
+          }
         }
           break;
         case 0x423: { // Speed, RPM
@@ -286,6 +332,13 @@ void loop() {
           printDebug(timer, cycle[currentCycle]);
         }
       }
+    }
+
+    currentTpmsRequest = currentTpmsRequest % TPMS_COUNT;
+    if ( ( (timer >= tpms[currentTpmsRequest].started ) || (!firstCycle) ) && ((timer % tpms[currentTpmsRequest].repeated) - tpms[currentTpmsRequest].delayed) == 0) {
+      CAN.sendMsgBuf(tpms[currentTpmsRequest].header, 0, tpms[currentTpmsRequest].len, tpms[currentTpmsRequest].data);
+      sentOnTick = timer;
+      printDebug(timer, tpms[currentTpmsRequest]);
     }
 
     inSerialData = "";

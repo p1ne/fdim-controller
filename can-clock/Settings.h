@@ -2,12 +2,15 @@
 #define __SETTINGS_H_
 
 #include <Arduino.h>
-#include <EEPROM.h>
+#include <avr/pgmspace.h>
+#include "mcp_can.h"
+#include "mcp_can_dfs.h"
 #include "RTClib.h"
+#include <EEPROM.h>
 #include "Service.h"
 
 #define CONFIG_START 32
-#define CONFIG_VERSION 1
+#define CONFIG_VERSION 3
 
 RTC_DS3231 rtc;
 
@@ -21,21 +24,21 @@ struct Settings {
   bool unitsMetric;
   bool hours24;
   byte tz;
-  bool spare1;
+  bool tpmsRequest;
   bool spare2;
   bool spare3;
   bool spare4;
 };
 
 Settings currentSettings = {
-  1,      // version
+  CONFIG_VERSION,      // version
   false,  // useRTC
   true,   // pressurePsi
   true,   // displayPressure
   true,   // unitsMetric
   true,   // hours24
   3,      // tz
-  false,  // spare1
+  true,  // tpmsRequest
   false,  // spare2
   false,  // spare3
   false   // spare4
@@ -56,6 +59,7 @@ void saveSettings() {
 
 void printCurrentSettings() {
   Serial.println(F("\n\nCurrent settings\n"));
+  Serial.println("Config version: " + String(currentSettings.configVersion));
   Serial.println("Units: " + String(currentSettings.unitsMetric ? "Metric" : "Imperial"));
   Serial.println("Time source: " + String(currentSettings.useRTC ? "RTC" : "GPS"));
   if (currentSettings.useRTC) {
@@ -67,6 +71,7 @@ void printCurrentSettings() {
   Serial.println("Time format: " + String(currentSettings.hours24 ? "24 hours" : "12 hours"));
   Serial.println("Pressure units: " + String(currentSettings.pressurePsi ? "Psi" : "Bars"));
   Serial.println("Display pressure: " + String(currentSettings.displayPressure ? "Yes" : "No"));
+  Serial.println("TPMS interaction mode: " + String(currentSettings.tpmsRequest ? "Request" : "Broadcast"));
   Serial.println();
 }
 
@@ -117,7 +122,6 @@ void settingsMenu() {
   }
 
   Serial.println(F("Select speed/temperature units\n1 - Metric\n2 - Imperial\n"));
-
   input = readSerialString();
 
   if (input.equals("1")) {
@@ -127,7 +131,6 @@ void settingsMenu() {
   }
 
   Serial.println(F("Display tires pressure\n1 - Yes\n2 - No\n"));
-
   input = readSerialString();
 
   if (input.equals("1")) {
@@ -147,6 +150,15 @@ void settingsMenu() {
       currentSettings.pressurePsi = false;
     }
   }
+
+  Serial.println(F("Set TPMS interaction mode\n1 - Request\n2 - Broadcast"));
+  input = readSerialString();
+  if (input.equals("1")) {
+    currentSettings.tpmsRequest = true;
+  } else if (input.equals("2")) {
+    currentSettings.tpmsRequest = false;
+  }
+
   Serial.println(F("Saving settings...\n\n"));
   saveSettings();
   Serial.println(F("Settings saved, getting back to operation mode"));
