@@ -253,9 +253,9 @@ void loop() {
         }
           break;
         case 0x72e: { // TPMS response
-          if ( currentSettings.displayPressure && currentSettings.tpmsRequest) {
-            switch (currentTpmsRequest) {
-              case TPMS_FRONT: {
+          if ( currentSettings.displayPressure && currentSettings.tpmsRequest && (rcvLen == 7) && (rcvBuf[0] == 0x62) && (rcvBuf[1] = 0x41)) {
+            switch (rcvBuf[2]) {
+              case 0x40: {
                 if (currentSettings.pressurePsi) {
                   fl = String(round((rcvBuf[3] * 256 + rcvBuf[4]) / 20));
                   fr = String(round((rcvBuf[5] * 256 + rcvBuf[6]) / 20));
@@ -266,7 +266,7 @@ void loop() {
               }
               currentTpmsRequest = TPMS_REAR;
                 break;
-              case TPMS_REAR: {
+              case 0x41: {
                 if (currentSettings.pressurePsi) {
                   rl = String(round((rcvBuf[3] * 256 + rcvBuf[4]) / 20));
                   rr = String(round((rcvBuf[5] * 256 + rcvBuf[6]) / 20));
