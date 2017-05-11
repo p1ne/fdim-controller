@@ -6,11 +6,20 @@
 #define START_COUNT 8
 #define MSG_COUNT 4
 #define TEXT_COUNT 12
+#define TPMS_COUNT 3
+#define TPMS_INIT_COUNT 1
+
+#define TPMS_FRONT 0
+#define TPMS_REAR 1
+#define TPMS_TEMP 2
+#define TPMS_INIT 3
 
 CANMessage start[START_COUNT];
 CANMessage cycle[MSG_COUNT];
 CANMessage text[TEXT_COUNT];
 CANMessage metric;
+
+CANMessage tpms[TPMS_COUNT+TPMS_INIT_COUNT];
 
 void initStartMessages()
 {
@@ -51,6 +60,14 @@ void initTextMessages()
 void initMetricMessage()
 {
   metric.set( 0, 0, 0, 0x129, 8, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00);
+}
+
+void initTpmsMessages()
+{
+  tpms[0].set( 0,   0,  300, 0x726, 3, 0x22, 0x41, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00 );  // Front
+  tpms[1].set( 0, 150,  300, 0x726, 3, 0x22, 0x41, 0x41, 0x00, 0x00, 0x00, 0x00, 0x00 );  // Rear
+  tpms[2].set( 0, 200, 1000, 0x726, 3, 0x22, 0x41, 0x60, 0x00, 0x00, 0x00, 0x00, 0x00 );  // Temperature
+  tpms[3].set( 0,   0,    0, 0x726, 2, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 );  // Initialization
 }
 
 #endif // __FORD_MESSAGES_H_
