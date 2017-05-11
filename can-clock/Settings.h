@@ -140,7 +140,7 @@ void settingsMenu() {
   }
 
   if (currentSettings.displayPressure) {
-    Serial.println(F("Pressure units\n1 - Psi\n2 - Bars\n"));
+    Serial.println(F("Pressure units\n1 - Psi\n2 - kPa\n"));
 
     input = readSerialString();
 

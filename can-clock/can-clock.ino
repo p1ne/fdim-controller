@@ -245,10 +245,10 @@ void loop() {
                 rr = rcvBuf[2] > 25 ? String(rcvBuf[2]) : pressureLow;
                 rl = rcvBuf[3] > 25 ? String(rcvBuf[3]) : pressureLow;
               } else {
-                fl = rcvBuf[0] > 25 ? String(round(rcvBuf[0] * 0.0689476 * 10) / 10) : pressureLow;
-                fr = rcvBuf[1] > 25 ? String(round(rcvBuf[1] * 0.0689476 * 10) / 10) : pressureLow;
-                rr = rcvBuf[2] > 25 ? String(round(rcvBuf[2] * 0.0689476 * 10) / 10) : pressureLow;
-                rl = rcvBuf[3] > 25 ? String(round(rcvBuf[3] * 0.0689476 * 10) / 10) : pressureLow;
+                fl = rcvBuf[0] > 25 ? String(round(rcvBuf[0] * 0.689476)) : pressureLow;
+                fr = rcvBuf[1] > 25 ? String(round(rcvBuf[1] * 0.689476)) : pressureLow;
+                rr = rcvBuf[2] > 25 ? String(round(rcvBuf[2] * 0.689476)) : pressureLow;
+                rl = rcvBuf[3] > 25 ? String(round(rcvBuf[3] * 0.689476)) : pressureLow;
               }
             }
         }
@@ -266,8 +266,8 @@ void loop() {
                   fl = String(round((rcvBuf[4] * 256 + rcvBuf[5]) / 20));
                   fr = String(round((rcvBuf[6] * 256 + rcvBuf[7]) / 20));
                 } else {
-                  fl = String(round((rcvBuf[4] * 256 + rcvBuf[5]) * 0.034475) / 10);
-                  fr = String(round((rcvBuf[6] * 256 + rcvBuf[7]) * 0.034475) / 10);
+                  fl = String(round((rcvBuf[4] * 256 + rcvBuf[5]) * 0.34475));
+                  fr = String(round((rcvBuf[6] * 256 + rcvBuf[7]) * 0.34475));
                 }
               }
               currentTpmsRequest = TPMS_REAR;
@@ -277,8 +277,8 @@ void loop() {
                   rl = String(round((rcvBuf[4] * 256 + rcvBuf[5]) / 20));
                   rr = String(round((rcvBuf[6] * 256 + rcvBuf[7]) / 20));
                 } else {
-                  rl = String(round((rcvBuf[4] * 256 + rcvBuf[5]) * 0.034475) / 10);
-                  rr = String(round((rcvBuf[6] * 256 + rcvBuf[7]) * 0.034475) / 10);
+                  rl = String(round((rcvBuf[4] * 256 + rcvBuf[5]) * 0.34475));
+                  rr = String(round((rcvBuf[6] * 256 + rcvBuf[7]) * 0.34475));
                 }
               }
               currentTpmsRequest = TPMS_FRONT;
