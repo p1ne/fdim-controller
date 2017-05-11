@@ -15,7 +15,7 @@
 #include "Settings.h"
 
 #define DEBUG 0
-#define IS_HYBRID true
+#define IS_HYBRID false
 
 #define TIMER_STEP 25
 
@@ -64,10 +64,12 @@ void MCP2515_ISR()
 
 void printDebug(unsigned int timer, CANMessage msg)
 {
+  if (DEBUG) {
     Serial.print(F("Time: "));
     Serial.print(timer);
     Serial.print(F(" Message: "));
     msg.print();
+  }
 }
 
 void displayText(byte strNo, String str)
@@ -204,7 +206,6 @@ START_INIT:
     if (currentSettings.tpmsRequest) {
       CAN.init_Filt(filtNo++, CAN_STDID, 0x072E0000);    // TPMS response
       CAN.sendMsgBuf(tpms[TPMS_INIT].header, 0, tpms[TPMS_INIT].len, tpms[TPMS_INIT].data);
-      printDebug(0, tpms[TPMS_INIT]);
     } else {
       CAN.init_Filt(filtNo++, CAN_STDID, 0x03B50000);   // TPMS broadcast
     }
@@ -254,11 +255,6 @@ void loop() {
         }
           break;
         case 0x72e: { // TPMS response
-          Serial.println(">>>>");
-          Serial.println(rcvLen);
-          for (int i=0;i<rcvLen;i++)
-            Serial.println(rcvBuf[i],HEX);
-          Serial.println("<<<<");
           if ( currentSettings.displayPressure && currentSettings.tpmsRequest && (rcvBuf[0] == 7) && (rcvBuf[1] == 0x62) && (rcvBuf[2] == 0x41)) {
             switch (rcvBuf[3]) {
               case 0x40: {
@@ -281,13 +277,14 @@ void loop() {
                   rr = String(round((rcvBuf[6] * 256 + rcvBuf[7]) * 0.34475));
                 }
               }
-              currentTpmsRequest = TPMS_FRONT;
+              currentTpmsRequest = TPMS_TEMP;
                 break;
             }
           }
 
           if ( currentSettings.displayPressure && currentSettings.tpmsRequest && (rcvBuf[0] == 6) && (rcvBuf[1] == 0x62) && (rcvBuf[2] == 0x41) && (rcvBuf[3] == 0x60)) {
             tireTemperature = String(rcvBuf[4] - 40);
+            currentTpmsRequest = TPMS_FRONT;
           }
         }
           break;
