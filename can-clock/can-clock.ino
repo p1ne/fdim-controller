@@ -27,7 +27,7 @@ byte second, minute, hour;
   SoftwareSerial mySerial(8, 9); // RX, TX
 #endif
 
-FormattedString fl, fr, rl, rr, message, rpm, carSpeed, temperature, tireTemperature;
+FormattedString tirePressure[TIRES], message, rpm, carSpeed, temperature, tireTemperature;
 
 byte pressurePadding;
 String rpmMessage;
@@ -154,7 +154,8 @@ void setup() {
 
   delay(2000);
   for (int i=5;i>0;i--) {
-    Serial.println("Press any key to enter settings menu... " + String(i));
+    Serial.print(F("Press any key to enter settings menu... "));
+    Serial.println(String(i));
     delay(1000);
     if (Serial.available() > 0) {
       Serial.read();
@@ -165,15 +166,11 @@ void setup() {
   }
 
   if (currentSettings.pressurePsi) {
-    fl = "  ";
-    fr = "  ";
-    rl = "  ";
-    rr = "  ";
+    for (int i=TIRE_FL;i<TIRES;i++)
+      tirePressure[i] = "  ";
   } else {
-    fl = "   ";
-    fr = "   ";
-    rl = "   ";
-    rr = "   ";
+    for (int i=TIRE_FL;i<TIRES;i++)
+      tirePressure[i] = "   ";
   }
 
   if (DEBUG) {
@@ -252,17 +249,8 @@ void loop() {
       switch (rcvCanId) {
         case 0x3b5: { // TPMS Broadcast
             if ( currentSettings.displayPressure && !currentSettings.tpmsRequest) {
-              if (currentSettings.pressurePsi) {
-                fl = rcvBuf[0] > 25 ? String(rcvBuf[0]) : pressureLow;
-                fr = rcvBuf[1] > 25 ? String(rcvBuf[1]) : pressureLow;
-                rr = rcvBuf[2] > 25 ? String(rcvBuf[2]) : pressureLow;
-                rl = rcvBuf[3] > 25 ? String(rcvBuf[3]) : pressureLow;
-              } else {
-                fl = rcvBuf[0] > 25 ? String(round(rcvBuf[0] * 0.689476)) : pressureLow;
-                fr = rcvBuf[1] > 25 ? String(round(rcvBuf[1] * 0.689476)) : pressureLow;
-                rr = rcvBuf[2] > 25 ? String(round(rcvBuf[2] * 0.689476)) : pressureLow;
-                rl = rcvBuf[3] > 25 ? String(round(rcvBuf[3] * 0.689476)) : pressureLow;
-              }
+              for (int i=TIRE_FL;i<TIRES;i++)
+                tirePressure[i] = rcvBuf[i] > 25 ? String(round(rcvBuf[i] * (currentSettings.pressurePsi ? 1 : 0.689476))) : pressureLow;
             }
         }
           break;
@@ -270,24 +258,14 @@ void loop() {
           if ( currentSettings.displayPressure && currentSettings.tpmsRequest && (rcvBuf[0] == 7) && (rcvBuf[1] == 0x62) && (rcvBuf[2] == 0x41)) {
             switch (rcvBuf[3]) {
               case 0x40: {
-                if (currentSettings.pressurePsi) {
-                  fl = String(round((rcvBuf[4] * 256 + rcvBuf[5]) / 20));
-                  fr = String(round((rcvBuf[6] * 256 + rcvBuf[7]) / 20));
-                } else {
-                  fl = String(round((rcvBuf[4] * 256 + rcvBuf[5]) * 0.34475));
-                  fr = String(round((rcvBuf[6] * 256 + rcvBuf[7]) * 0.34475));
-                }
+                for (int i = TIRE_FL;i <= TIRE_FR; i++)
+                  tirePressure[i] = String(round((rcvBuf[4+(i-TIRE_FL)*2] * 256 + rcvBuf[5+(i-TIRE_FL)*2]) * (currentSettings.pressurePsi ? 0.05 : 0.34475)));
               }
               currentTpmsRequest = TPMS_REAR;
                 break;
               case 0x41: {
-                if (currentSettings.pressurePsi) {
-                  rl = String(round((rcvBuf[4] * 256 + rcvBuf[5]) / 20));
-                  rr = String(round((rcvBuf[6] * 256 + rcvBuf[7]) / 20));
-                } else {
-                  rl = String(round((rcvBuf[4] * 256 + rcvBuf[5]) * 0.34475));
-                  rr = String(round((rcvBuf[6] * 256 + rcvBuf[7]) * 0.34475));
-                }
+                for (int i = TIRE_RL;i <= TIRE_RR; i++)
+                  tirePressure[i] = String(round((rcvBuf[4+(i-TIRE_RL)*2] * 256 + rcvBuf[5+(i-TIRE_RL)*2]) * (currentSettings.pressurePsi ? 0.05 : 0.34475)));
               }
               currentTpmsRequest = TPMS_TEMP;
                 break;
@@ -413,8 +391,8 @@ void loop() {
           textMsgLength = 12;
         }
         displayText(0, carSpeed.padRight(3));
-        displayText(1, fl.padRight(pressurePadding) + rpmMessage + rpm.padRight(4) + F(" T:") + temperature.padRight(3) + " " + fr.padRight(pressurePadding));
-        displayText(2, rl.padRight(pressurePadding) + " " + message.padCenter(textMsgLength) + " " + rr.padRight(pressurePadding));
+        displayText(1, tirePressure[TIRE_FL].padRight(pressurePadding) + rpmMessage + rpm.padRight(4) + F(" T:") + temperature.padRight(3) + " " + tirePressure[TIRE_FR].padRight(pressurePadding));
+        displayText(2, tirePressure[TIRE_RL].padRight(pressurePadding) + " " + message.padCenter(textMsgLength) + " " + tirePressure[TIRE_RR].padRight(pressurePadding));
       }
       if (sentOnTick == timer) delay(TIMER_STEP/2);
       CAN.sendMsgBuf(text[currentText].header, 0, text[currentText].len, text[currentText].data);

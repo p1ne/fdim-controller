@@ -70,4 +70,10 @@ void initTpmsMessages()
   tpms[3].set( 0,   0,    0, 0x726, 8, 2, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 );  // Initialization
 }
 
+#define TIRE_FL 0
+#define TIRE_FR 1
+#define TIRE_RL 2
+#define TIRE_RR 3
+#define TIRES 4
+
 #endif // __FORD_MESSAGES_H_
