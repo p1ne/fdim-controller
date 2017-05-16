@@ -152,6 +152,18 @@ void setup() {
 
   readSettings();
 
+  delay(2000);
+  for (int i=5;i>0;i--) {
+    Serial.println("Press any key to enter settings menu... " + String(i));
+    delay(1000);
+    if (Serial.available() > 0) {
+      Serial.read();
+      Serial.println();
+      settingsMenu();
+      break;
+    }
+  }
+
   if (currentSettings.pressurePsi) {
     fl = "  ";
     fr = "  ";
@@ -416,7 +428,5 @@ void loop() {
       timer = 0;
       firstCycle = false;
     }
-  } else if ( (millis() > 10000) && !isConfigured) {
-    settingsMenu();
   }
 }
