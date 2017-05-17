@@ -69,7 +69,7 @@ void printCurrentSettings() {
     Serial.println("Time zone: " + String(currentSettings.tz));
   }
   Serial.println("Time format: " + String(currentSettings.hours24 ? "24 hours" : "12 hours"));
-  Serial.println("Pressure units: " + String(currentSettings.pressurePsi ? "Psi" : "Bars"));
+  Serial.println("Pressure units: " + String(currentSettings.pressurePsi ? "Psi" : "kPa"));
   Serial.println("Display pressure: " + String(currentSettings.displayPressure ? "Yes" : "No"));
   Serial.println("TPMS interaction mode: " + String(currentSettings.tpmsRequest ? "Request" : "Broadcast"));
   Serial.println();

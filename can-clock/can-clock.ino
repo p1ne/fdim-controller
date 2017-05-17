@@ -15,7 +15,6 @@
 #include "Settings.h"
 
 #define DEBUG 0
-#define IS_HYBRID false
 
 #define TIMER_STEP 25
 
@@ -283,7 +282,7 @@ void loop() {
           carSpeed = String(round(((((rcvBuf[0] << 8) + rcvBuf[1])/100) - 100) * (currentSettings.unitsMetric ? 1 : 0.621371)), 0);
           temperature = String(round((rcvBuf[4]-40) * (currentSettings.unitsMetric ? 1 : 1.8) + (currentSettings.unitsMetric ? 0 : 32)));
 
-          if ( ((rpm == "0") || (rpm == "")) && sendingNow && !IS_HYBRID) {
+          if ( rcvBuf[4] == 0xFE && sendingNow) {
             carSpeed = "";
             rpm = "";
             temperature = "";
@@ -292,7 +291,7 @@ void loop() {
             gotClock = false;
           }
 
-          if (( ((rpm != "0") && (rpm != "")) || IS_HYBRID ) && !sendingNow) {
+          if ( ((rcvBuf[4] & 0xF0) == 0x70) && !sendingNow) {
             sendingNow = true;
             sendStartSequence();
           }
@@ -377,7 +376,7 @@ void loop() {
     if (message == F("%MTRACK")) message = "";
 
     // FIXME
-    message = "Tire temp: " + String(tireTemperature);
+    message = "Tire temp:" + String(tireTemperature);
 
     if ( ( (timer >= text[currentText].started ) || (!firstCycle) ) && ((timer % text[currentText].repeated) - text[currentText].delayed) == 0) {
       if (currentText == 0) {
