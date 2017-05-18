@@ -282,7 +282,7 @@ void loop() {
           carSpeed = String(round(((((rcvBuf[0] << 8) + rcvBuf[1])/100) - 100) * (currentSettings.unitsMetric ? 1 : 0.621371)), 0);
           temperature = String(round((rcvBuf[4]-40) * (currentSettings.unitsMetric ? 1 : 1.8) + (currentSettings.unitsMetric ? 0 : 32)));
 
-          if ( rcvBuf[4] == 0xFE && sendingNow) {
+          if ( (rcvBuf[4] == 0xFE) && sendingNow) {
             carSpeed = "";
             rpm = "";
             temperature = "";
