@@ -279,7 +279,7 @@ void loop() {
           break;
         case 0x423: { // Speed, RPM
           rpm = String((unsigned int)round(( ( rcvBuf[2] << 8 ) + rcvBuf[3] ) / 4));
-          carSpeed = String((byte)round(((((rcvBuf[0] << 8) + rcvBuf[1])/100) - 100) * (currentSettings.unitsMetric ? 1 : 0.621371)), 0);
+          carSpeed = String(round(((((rcvBuf[0] << 8) + rcvBuf[1])/100) - 100) * (currentSettings.unitsMetric ? 1 : 0.621371)), 0);
           temperature = String((byte)round((rcvBuf[4]-40) * (currentSettings.unitsMetric ? 1 : 1.8) + (currentSettings.unitsMetric ? 0 : 32)));
 
           if ( sendingNow && (rcvBuf[0] == 0xFF) && (rcvBuf[1] == 0xFE) && (rcvBuf[2] == 0xFF) && (rcvBuf[3] == 0xFE) && (rcvBuf[4] == 0xFE)) {
