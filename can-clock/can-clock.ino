@@ -14,7 +14,7 @@
 #include "Service.h"
 #include "Settings.h"
 
-#define DEBUG 0
+#define DEBUG 1
 
 #define TIMER_STEP 25
 
@@ -121,6 +121,7 @@ void displayText(byte strNo, String str)
 
 void sendStartSequence()
 {
+  if (DEBUG) Serial.println("Start sequence");
   delay(1000);
   timer = 0;
 
@@ -128,12 +129,12 @@ void sendStartSequence()
     CAN.sendMsgBuf(start[i].header, 0, start[i].len, start[i].data);
     printDebug(timer, start[i]);
     delay(start[i].delayed);
-    timer = timer + start[i].header;
+    timer = timer + start[i].delayed;
   }
   timer = 0;
   firstCycle = true;
   currentText = 0;
-  delay(500);
+  delay(200);
 }
 
 
@@ -281,7 +282,9 @@ void loop() {
           rpm = String((unsigned int)round(( ( rcvBuf[2] << 8 ) + rcvBuf[3] ) / 4));
           carSpeed = String(round(((((rcvBuf[0] << 8) + rcvBuf[1])/100) - 100) * (currentSettings.unitsMetric ? 1 : 0.621371)), 0);
           temperature = String((byte)round((rcvBuf[4]-40) * (currentSettings.unitsMetric ? 1 : 1.8) + (currentSettings.unitsMetric ? 0 : 32)));
-          Serial.print(rcvBuf[0]);
+
+          Serial.println("sendingNow: " + String(sendingNow) + " buf0 " + String(rcvBuf[0],HEX));
+
           if ( sendingNow && (rcvBuf[0] == 0xFF)) {
             carSpeed = "";
             rpm = "";
@@ -310,7 +313,7 @@ void loop() {
     }
   }
 
-  if (sendingNow || DEBUG) {
+  if (sendingNow) {
     for (int currentCycle = 0; currentCycle < MSG_COUNT; currentCycle ++ ) {
       if ( ( (timer >= cycle[currentCycle].started ) || (!firstCycle) ) && ((timer % cycle[currentCycle].repeated) - cycle[currentCycle].delayed) == 0) {
         if (cycle[currentCycle].header == 0x3f2) {
@@ -337,6 +340,7 @@ void loop() {
 
     currentTpmsRequest = currentTpmsRequest % TPMS_COUNT;
     if ( ( (timer >= tpms[currentTpmsRequest].started ) || (!firstCycle) ) && ((timer % tpms[currentTpmsRequest].repeated) - tpms[currentTpmsRequest].delayed) == 0) {
+      if (sentOnTick == timer) delay(TIMER_STEP/2);
       CAN.sendMsgBuf(tpms[currentTpmsRequest].header, 0, tpms[currentTpmsRequest].len, tpms[currentTpmsRequest].data);
       sentOnTick = timer;
       printDebug(timer, tpms[currentTpmsRequest]);
