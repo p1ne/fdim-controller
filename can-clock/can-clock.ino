@@ -14,13 +14,14 @@
 #include "Service.h"
 #include "Settings.h"
 
-#define DEBUG 1
+#define DEBUG 0
 
 #define TIMER_STEP 25
 
 #undef MQ135_CONNECTED
 
 byte second, minute, hour;
+byte i,filtNo;
 
 #if !defined(__AVR_ATmega32U4__) // not Arduino Pro Micro
   SoftwareSerial mySerial(8, 9); // RX, TX
@@ -96,7 +97,7 @@ void displayText(byte strNo, String str)
       break;
   }
 
-  for (byte i=0;i<numChars;i++) {
+  for (i=0;i<numChars;i++) {
     if (
           ( curLine == 2 && curChar == 3 ) ||
           ( curLine == 2 && curChar == 5 ) ||
@@ -121,11 +122,14 @@ void displayText(byte strNo, String str)
 
 void sendStartSequence()
 {
+
+  detachCAN();
+
   if (DEBUG) Serial.println("Start sequence");
   delay(1000);
   timer = 0;
 
-  for (int i=0;i<START_COUNT;i++) {
+  for (i=0;i<START_COUNT;i++) {
     CAN.sendMsgBuf(start[i].header, 0, start[i].len, start[i].data);
     printDebug(timer, start[i]);
     delay(start[i].delayed);
@@ -134,9 +138,36 @@ void sendStartSequence()
   timer = 0;
   firstCycle = true;
   currentText = 0;
-  delay(200);
+
+  if (currentSettings.tpmsRequest) {
+    CAN.sendMsgBuf(tpms[TPMS_INIT].header, 0, tpms[TPMS_INIT].len, tpms[TPMS_INIT].data);
+    currentTpmsRequest = TPMS_FRONT;
+  }
+  attachCAN();
+  delay(500);
 }
 
+void attachCAN()
+{
+  #if defined(__AVR_ATmega32U4__) // Arduino Pro Micro
+    pinMode(7, INPUT);
+    attachInterrupt(digitalPinToInterrupt(7), MCP2515_ISR, FALLING); // start interrupt
+  #else // Other Arduinos (Nano in my case)
+    pinMode(2, INPUT);
+    attachInterrupt(digitalPinToInterrupt(2), MCP2515_ISR, FALLING); // start interrupt
+  #endif
+}
+
+void detachCAN()
+{
+  #if defined(__AVR_ATmega32U4__) // Arduino Pro Micro
+    pinMode(7, INPUT);
+    detachInterrupt(digitalPinToInterrupt(7));
+  #else // Other Arduinos (Nano in my case)
+    pinMode(2, INPUT);
+    detachInterrupt(digitalPinToInterrupt(2));
+  #endif
+}
 
 void setup() {
   Serial.begin(115200);
@@ -153,7 +184,7 @@ void setup() {
   readSettings();
 
   delay(2000);
-  for (int i=5;i>0;i--) {
+  for (i=5;i>0;i--) {
     Serial.print(F("Press any key to enter settings menu... "));
     Serial.println(String(i));
     delay(1000);
@@ -166,10 +197,10 @@ void setup() {
   }
 
   if (currentSettings.pressurePsi) {
-    for (int i=TIRE_FL;i<TIRES;i++)
+    for (i=TIRE_FL;i<TIRES;i++)
       tirePressure[i] = "  ";
   } else {
-    for (int i=TIRE_FL;i<TIRES;i++)
+    for (i=TIRE_FL;i<TIRES;i++)
       tirePressure[i] = "   ";
   }
 
@@ -192,21 +223,15 @@ START_INIT:
     goto START_INIT;
   }
 
-  #if defined(__AVR_ATmega32U4__) // Arduino Pro Micro
-    pinMode(7, INPUT);
-    attachInterrupt(digitalPinToInterrupt(7), MCP2515_ISR, FALLING); // start interrupt
-  #else // Other Arduinos (Nano in my case)
-    pinMode(2, INPUT);
-    attachInterrupt(digitalPinToInterrupt(2), MCP2515_ISR, FALLING); // start interrupt
-  #endif
+  attachCAN();
 
-  //CAN.setMode(MCP_LOOPBACK);
+  CAN.setMode(MCP_LOOPBACK);
 
-  byte filtNo = 0;
+  filtNo = 0;
 
   CAN.init_Mask(0, CAN_STDID, 0x07FF0000);   // there are 2 mask in mcp2515, you need to set both of them
   CAN.init_Mask(1, CAN_STDID, 0x07FF0000);
-  for (int i=0;i<5;i++)
+  for (i=0;i<5;i++)
     CAN.init_Filt(i, CAN_STDID, 0x04230000);   // Speed data
 
   CAN.init_Filt(filtNo++, CAN_STDID, 0x04230000);   // Speed data
@@ -214,7 +239,6 @@ START_INIT:
   if (currentSettings.displayPressure) {
     if (currentSettings.tpmsRequest) {
       CAN.init_Filt(filtNo++, CAN_STDID, 0x072E0000);    // TPMS response
-      CAN.sendMsgBuf(tpms[TPMS_INIT].header, 0, tpms[TPMS_INIT].len, tpms[TPMS_INIT].data);
     } else {
       CAN.init_Filt(filtNo++, CAN_STDID, 0x03B50000);   // TPMS broadcast
     }
@@ -249,7 +273,7 @@ void loop() {
       switch (rcvCanId) {
         case 0x3b5: { // TPMS Broadcast
             if ( currentSettings.displayPressure && !currentSettings.tpmsRequest) {
-              for (int i=TIRE_FL;i<TIRES;i++)
+              for (i=TIRE_FL;i<TIRES;i++)
                 tirePressure[i] = rcvBuf[i] > 25 ? String(round(rcvBuf[i] * (currentSettings.pressurePsi ? 1 : 0.689476))) : pressureLow;
             }
         }
@@ -258,16 +282,16 @@ void loop() {
           if ( currentSettings.displayPressure && currentSettings.tpmsRequest && (rcvBuf[0] == 7) && (rcvBuf[1] == 0x62) && (rcvBuf[2] == 0x41)) {
             switch (rcvBuf[3]) {
               case 0x40: {
-                for (int i = TIRE_FL;i <= TIRE_FR; i++)
+                for (i = TIRE_FL;i <= TIRE_FR; i++)
                   tirePressure[i] = String(round((rcvBuf[4+(i-TIRE_FL)*2] * 256 + rcvBuf[5+(i-TIRE_FL)*2]) * (currentSettings.pressurePsi ? 0.05 : 0.34475)));
+                  currentTpmsRequest = TPMS_REAR;
               }
-              currentTpmsRequest = TPMS_REAR;
                 break;
               case 0x41: {
-                for (int i = TIRE_RL;i <= TIRE_RR; i++)
+                for (i = TIRE_RL;i <= TIRE_RR; i++)
                   tirePressure[i] = String(round((rcvBuf[4+(i-TIRE_RL)*2] * 256 + rcvBuf[5+(i-TIRE_RL)*2]) * (currentSettings.pressurePsi ? 0.05 : 0.34475)));
+                  currentTpmsRequest = TPMS_TEMP;
               }
-              currentTpmsRequest = TPMS_TEMP;
                 break;
             }
           }
@@ -326,11 +350,13 @@ void loop() {
           cycle[currentCycle].data[0] = decToBcd(hour);
           cycle[currentCycle].data[1] = decToBcd(minute);
           if (gotClock) {
+            if (sentOnTick == timer) delay(TIMER_STEP/2);
             CAN.sendMsgBuf(cycle[currentCycle].header, 0, cycle[currentCycle].len, cycle[currentCycle].data);
             sentOnTick = timer;
             printDebug(timer, cycle[currentCycle]);
           }
         } else {
+          if (sentOnTick == timer) delay(TIMER_STEP/2);
           CAN.sendMsgBuf(cycle[currentCycle].header, 0, cycle[currentCycle].len, cycle[currentCycle].data);
           sentOnTick = timer;
           printDebug(timer, cycle[currentCycle]);
