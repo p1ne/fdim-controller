@@ -337,7 +337,7 @@ void loop() {
     }
   }
 
-  if (sendingNow) {
+  if (sendingNow || DEBUG) {
     for (int currentCycle = 0; currentCycle < MSG_COUNT; currentCycle ++ ) {
       if ( ( (timer >= cycle[currentCycle].started ) || (!firstCycle) ) && ((timer % cycle[currentCycle].repeated) - cycle[currentCycle].delayed) == 0) {
         if (cycle[currentCycle].header == 0x3f2) {
