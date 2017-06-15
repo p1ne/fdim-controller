@@ -1,0 +1,167 @@
+#ifndef __SETTINGS_H_
+#define __SETTINGS_H_
+
+#include <Arduino.h>
+#include <avr/pgmspace.h>
+#include "mcp_can.h"
+#include "mcp_can_dfs.h"
+#include "RTClib.h"
+#include <EEPROM.h>
+#include "Service.h"
+
+#define CONFIG_START 32
+#define CONFIG_VERSION 3
+
+RTC_DS3231 rtc;
+
+bool isConfigured = false;
+
+struct Settings {
+  int configVersion;
+  bool useRTC;
+  bool pressurePsi;
+  bool displayPressure;
+  bool unitsMetric;
+  bool hours24;
+  byte tz;
+  bool tpmsRequest;
+  bool spare2;
+  bool spare3;
+  bool spare4;
+};
+
+Settings currentSettings = {
+  CONFIG_VERSION,      // version
+  false,  // useRTC
+  true,   // pressurePsi
+  true,   // displayPressure
+  true,   // unitsMetric
+  true,   // hours24
+  3,      // tz
+  true,  // tpmsRequest
+  false,  // spare2
+  false,  // spare3
+  false   // spare4
+};
+
+void readSettings() {
+  if (EEPROM.read(CONFIG_START + 0) == CONFIG_VERSION)
+   for (unsigned int t=0; t<sizeof(currentSettings); t++)
+     *((char*)&currentSettings + t) = EEPROM.read(CONFIG_START + t);
+}
+
+void saveSettings() {
+  for (unsigned int t=0; t<sizeof(currentSettings); t++)
+   EEPROM.write(CONFIG_START + t, *((char*)&currentSettings + t));
+
+  isConfigured = true;
+}
+
+void printCurrentSettings() {
+  Serial.println(F("\n\nCurrent settings\n"));
+  Serial.println("Config version: " + String(currentSettings.configVersion));
+  Serial.println("Units: " + String(currentSettings.unitsMetric ? "Metric" : "Imperial"));
+  Serial.println("Time source: " + String(currentSettings.useRTC ? "RTC" : "GPS"));
+  if (currentSettings.useRTC) {
+    DateTime now = rtc.now();
+    Serial.println("Current RTC time: " + String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second()));
+  } else {
+    Serial.println("Time zone: " + String(currentSettings.tz));
+  }
+  Serial.println("Time format: " + String(currentSettings.hours24 ? "24 hours" : "12 hours"));
+  Serial.println("Pressure units: " + String(currentSettings.pressurePsi ? "Psi" : "kPa"));
+  Serial.println("Display pressure: " + String(currentSettings.displayPressure ? "Yes" : "No"));
+  Serial.println("TPMS interaction mode: " + String(currentSettings.tpmsRequest ? "Request" : "Broadcast"));
+  Serial.println();
+}
+
+void settingsMenu() {
+
+  String input;
+  readSettings();
+  printCurrentSettings();
+
+  Serial.println(F("FORD FDIM Controller configuration\n"));
+
+  Serial.println(F("Select time source\n1 - 911 Assist GPS (2010+)\n2 - controller real time clock\n"));
+
+  input = readSerialString();
+
+  if (input.equals("1")) {
+    currentSettings.useRTC = false;
+  } else if (input.equals("2")) {
+    currentSettings.useRTC = true;
+  }
+
+  if (currentSettings.useRTC) {
+    DateTime now = rtc.now();
+    Serial.println("Current RTC time: " + String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second())+"\n");
+    Serial.println(F("Enter current local time in 24h format (HH:MM) or Enter to keep as is"));
+    input = readSerialString();
+    Serial.println(input);
+    if (!input.equals("")) {
+      byte minute = input.substring(3,5).toInt();
+      byte hour = input.substring(0,2).toInt();
+      rtc.adjust(DateTime(2017, 1, 1, hour, minute, 0));
+      delay(1000);
+      now = rtc.now();
+      Serial.println("Time set to " + String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second()));
+    }
+  } else {
+    Serial.println(F("Enter timezone (+- hours)\n"));
+    input = readSerialString();
+    currentSettings.tz = input.toInt();
+  }
+
+  Serial.println(F("Set clock format\n1 - 24 hours\n2 - 12 hours"));
+  input = readSerialString();
+  if (input.equals("1")) {
+    currentSettings.hours24 = true;
+  } else if (input.equals("2")) {
+    currentSettings.hours24 = false;
+  }
+
+  Serial.println(F("Select speed/temperature units\n1 - Metric\n2 - Imperial\n"));
+  input = readSerialString();
+
+  if (input.equals("1")) {
+    currentSettings.unitsMetric = true;
+  } else if (input.equals("2")) {
+    currentSettings.unitsMetric = false;
+  }
+
+  Serial.println(F("Display tires pressure\n1 - Yes\n2 - No\n"));
+  input = readSerialString();
+
+  if (input.equals("1")) {
+    currentSettings.displayPressure = true;
+  } else if (input.equals("2")) {
+    currentSettings.displayPressure = false;
+  }
+
+  if (currentSettings.displayPressure) {
+    Serial.println(F("Pressure units\n1 - Psi\n2 - kPa\n"));
+
+    input = readSerialString();
+
+    if (input.equals("1")) {
+      currentSettings.pressurePsi = true;
+    } else if (input.equals("2")) {
+      currentSettings.pressurePsi = false;
+    }
+  }
+
+  Serial.println(F("Set TPMS interaction mode\n1 - Request\n2 - Broadcast"));
+  input = readSerialString();
+  if (input.equals("1")) {
+    currentSettings.tpmsRequest = true;
+  } else if (input.equals("2")) {
+    currentSettings.tpmsRequest = false;
+  }
+
+  Serial.println(F("Saving settings...\n\n"));
+  saveSettings();
+  Serial.println(F("Settings saved, getting back to operation mode"));
+}
+
+#endif // __SETTINGS_H_

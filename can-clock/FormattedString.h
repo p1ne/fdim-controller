@@ -1,3 +1,6 @@
+#ifndef __FORMATTED_STRING_H_
+#define __FORMATTED_STRING_H_
+
 #include <Arduino.h>
 
 class FormattedString {
@@ -56,3 +59,5 @@ public:
     return str;
   }
 };
+
+#endif // __FORMATTED_STRING_H_

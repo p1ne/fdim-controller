@@ -1,3 +1,6 @@
+#ifndef __CAN_MESSAGE_H_
+#define __CAN_MESSAGE_H_
+
 #include <Arduino.h>
 
 class CANMessage {
@@ -86,6 +89,7 @@ public:
     Serial.print(header, HEX);
     Serial.print(" | ");
     Serial.print(len);
+    Serial.print(" > ");
 
     for (int i=0;i<len;i++) {
       Serial.print(" ");
@@ -95,3 +99,5 @@ public:
   }
 
 };
+
+#endif // __CAN_MESSAGE_H_
