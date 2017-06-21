@@ -298,7 +298,9 @@ void loop() {
           }
 
           if ( currentSettings.displayPressure && currentSettings.tpmsRequest && (rcvBuf[0] == 6) && (rcvBuf[1] == 0x62) && (rcvBuf[2] == 0x41) && (rcvBuf[3] == 0x60)) {
-            tireTemperature = String(rcvBuf[4] - 40);
+            if (rcvBuf[4] != 0 ) {
+              tireTemperature = String(rcvBuf[4] - 40);
+            }
             currentTpmsRequest = TPMS_FRONT;
           }
         }
