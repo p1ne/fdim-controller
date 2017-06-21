@@ -197,7 +197,7 @@ void setup() {
     }
   }
 
-  if (currentSettings.pressurePsi) {
+  if (currentSettings.pressureUnits == PRESSURE_PSI) {
     for (i=TIRE_FL;i<TIRES;i++)
       tirePressure[i] = "  ";
   } else {
@@ -275,7 +275,7 @@ void loop() {
         case 0x3b5: { // TPMS Broadcast
             if ( currentSettings.displayPressure && !currentSettings.tpmsRequest) {
               for (i=TIRE_FL;i<TIRES;i++)
-                tirePressure[i] = rcvBuf[i] > 25 ? String(round(rcvBuf[i] * (currentSettings.pressurePsi ? 1 : 0.689476))) : pressureLow;
+                tirePressure[i] = rcvBuf[i] > 25 ? String(round(rcvBuf[i] * (currentSettings.pressureUnits == PRESSURE_PSI ? 1 : 0.00689476 * currentSettings.pressureUnits ))) : pressureLow;
             }
         }
           break;
@@ -284,13 +284,13 @@ void loop() {
             switch (rcvBuf[3]) {
               case 0x40: {
                 for (i = TIRE_FL;i <= TIRE_FR; i++)
-                  tirePressure[i] = String(round((rcvBuf[4+(i-TIRE_FL)*2] * 256 + rcvBuf[5+(i-TIRE_FL)*2]) * (currentSettings.pressurePsi ? 0.05 : 0.34475)));
+                  tirePressure[i] = String(round((rcvBuf[4+(i-TIRE_FL)*2] * 256 + rcvBuf[5+(i-TIRE_FL)*2]) * (currentSettings.pressureUnits == PRESSURE_PSI ? 0.05 : 0.0034475 * currentSettings.pressureUnits )));
                   currentTpmsRequest = TPMS_REAR;
               }
                 break;
               case 0x41: {
                 for (i = TIRE_RL;i <= TIRE_RR; i++)
-                  tirePressure[i] = String(round((rcvBuf[4+(i-TIRE_RL)*2] * 256 + rcvBuf[5+(i-TIRE_RL)*2]) * (currentSettings.pressurePsi ? 0.05 : 0.34475)));
+                  tirePressure[i] = String(round((rcvBuf[4+(i-TIRE_RL)*2] * 256 + rcvBuf[5+(i-TIRE_RL)*2]) * (currentSettings.pressureUnits == PRESSURE_PSI ? 0.05 : 0.0034475 * currentSettings.pressureUnits )));
                   currentTpmsRequest = TPMS_TEMP;
               }
                 break;
@@ -413,7 +413,7 @@ void loop() {
 
     if ( ( (timer >= text[currentText].started ) || (!firstCycle) ) && ((timer % text[currentText].repeated) - text[currentText].delayed) == 0) {
       if (currentText == 0) {
-        if (currentSettings.pressurePsi) {
+        if (currentSettings.pressureUnits == PRESSURE_PSI) {
           pressurePadding = 2;
           rpmMessage = F(" RPM:");
           textMsgLength = 14;

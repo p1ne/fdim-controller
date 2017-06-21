@@ -10,36 +10,40 @@
 #include "Service.h"
 
 #define CONFIG_START 32
-#define CONFIG_VERSION 3
+#define CONFIG_VERSION 4
+
+#define PRESSURE_PSI 0
+#define PRESSURE_BARS 1
+#define PRESSURE_KPA 100
 
 bool isConfigured = false;
 
 struct Settings {
   int configVersion;
   bool useRTC;
-  bool pressurePsi;
+  byte pressureUnits;
   bool displayPressure;
   bool unitsMetric;
   bool hours24;
   byte tz;
   bool tpmsRequest;
+  bool spare1;
   bool spare2;
   bool spare3;
-  bool spare4;
 };
 
 Settings currentSettings = {
   CONFIG_VERSION,      // version
   false,  // useRTC
-  true,   // pressurePsi
+  true,   // pressureUnits
   true,   // displayPressure
   true,   // unitsMetric
   true,   // hours24
   3,      // tz
   true,  // tpmsRequest
+  false,  // spare1
   false,  // spare2
-  false,  // spare3
-  false   // spare4
+  false   // spare3
 };
 
 void readSettings() {
@@ -56,9 +60,11 @@ void saveSettings() {
 }
 
 void printCurrentSettings() {
+  String pressureUnitsString;
+
   Serial.println(F("\n\nCurrent settings\n"));
   Serial.println("Config version: " + String(currentSettings.configVersion));
-  Serial.println("Units: " + String(currentSettings.unitsMetric ? "Metric" : "Imperial"));
+  Serial.println("Units: " + String(currentSettings.unitsMetric ? "Metric" : "American"));
   Serial.println("Time source: " + String(currentSettings.useRTC ? "RTC" : "GPS"));
   if (currentSettings.useRTC) {
     DateTime now = rtc.now();
@@ -67,7 +73,20 @@ void printCurrentSettings() {
     Serial.println("Time zone: " + String(currentSettings.tz));
   }
   Serial.println("Time format: " + String(currentSettings.hours24 ? "24 hours" : "12 hours"));
-  Serial.println("Pressure units: " + String(currentSettings.pressurePsi ? "Psi" : "kPa"));
+
+  switch (currentSettings.pressureUnits) {
+    case PRESSURE_BARS:
+      pressureUnitsString = "Bars";
+      break;
+    case PRESSURE_PSI:
+      pressureUnitsString = "Psi";
+      break;
+    case PRESSURE_KPA:
+      pressureUnitsString = "kPa";
+      break;
+  }
+
+  Serial.println("Pressure units: " + String(pressureUnitsString));
   Serial.println("Display pressure: " + String(currentSettings.displayPressure ? "Yes" : "No"));
   Serial.println("TPMS interaction mode: " + String(currentSettings.tpmsRequest ? "Request" : "Broadcast"));
   Serial.println();
@@ -119,7 +138,7 @@ void settingsMenu() {
     currentSettings.hours24 = false;
   }
 
-  Serial.println(F("Select speed/temperature units\n1 - Metric\n2 - Imperial\n"));
+  Serial.println(F("Select speed/temperature units\n1 - Metric\n2 - American\n"));
   input = readSerialString();
 
   if (input.equals("1")) {
@@ -138,14 +157,16 @@ void settingsMenu() {
   }
 
   if (currentSettings.displayPressure) {
-    Serial.println(F("Pressure units\n1 - Psi\n2 - kPa\n"));
+    Serial.println(F("Pressure units\n1 - Psi\n2 - kPa\n3 - Bars\n"));
 
     input = readSerialString();
 
     if (input.equals("1")) {
-      currentSettings.pressurePsi = true;
+      currentSettings.pressureUnits = PRESSURE_PSI;
     } else if (input.equals("2")) {
-      currentSettings.pressurePsi = false;
+      currentSettings.pressureUnits = PRESSURE_KPA;
+    } else if (input.equals("3")) {
+      currentSettings.pressureUnits = PRESSURE_BARS;
     }
   }
 
