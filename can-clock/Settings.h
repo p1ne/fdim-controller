@@ -5,14 +5,12 @@
 #include <avr/pgmspace.h>
 #include "mcp_can.h"
 #include "mcp_can_dfs.h"
-#include "RTClib.h"
+#include "Sodaq_DS3231.h"
 #include <EEPROM.h>
 #include "Service.h"
 
 #define CONFIG_START 32
 #define CONFIG_VERSION 3
-
-RTC_DS3231 rtc;
 
 bool isConfigured = false;
 
@@ -102,7 +100,7 @@ void settingsMenu() {
     if (!input.equals("")) {
       byte minute = input.substring(3,5).toInt();
       byte hour = input.substring(0,2).toInt();
-      rtc.adjust(DateTime(2017, 1, 1, hour, minute, 0));
+      rtc.setDateTime(DateTime(2011, 11, 10, hour, minute, 0, 5));
       delay(1000);
       now = rtc.now();
       Serial.println("Time set to " + String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second()));

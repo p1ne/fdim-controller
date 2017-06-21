@@ -5,7 +5,7 @@
 #include <SoftwareSerial.h>
 #include "mcp_can.h"
 #include "mcp_can_dfs.h"
-#include "RTClib.h"
+#include "Sodaq_DS3231.h"
 #include <EEPROM.h>
 
 #include "CANMessage.h"
@@ -171,6 +171,7 @@ void detachCAN()
 
 void setup() {
   Serial.begin(115200);
+  Wire.begin();
 
   #if !defined(__AVR_ATmega32U4__) // Arduino Pro Micro - use hw serial for input, others - software serial
     mySerial.begin(9600);
@@ -307,7 +308,7 @@ void loop() {
           carSpeed = String(round(((((rcvBuf[0] << 8) + rcvBuf[1])/100) - 100) * (currentSettings.unitsMetric ? 1 : 0.621371)), 0);
           temperature = String((byte)round((rcvBuf[4]-40) * (currentSettings.unitsMetric ? 1 : 1.8) + (currentSettings.unitsMetric ? 0 : 32)));
 
-          Serial.println("sendingNow: " + String(sendingNow) + " buf0 " + String(rcvBuf[0],HEX));
+          //Serial.println("sendingNow: " + String(sendingNow) + " buf0 " + String(rcvBuf[0],HEX));
 
           if ( sendingNow && (rcvBuf[0] == 0xFF)) {
             carSpeed = "";
@@ -406,7 +407,7 @@ void loop() {
     if (message == F("%MTRACK")) message = "";
 
     // FIXME
-    message = "Tire temp:" + String(tireTemperature);
+    message = "Tires T:" + String(tireTemperature);
 
     if ( ( (timer >= text[currentText].started ) || (!firstCycle) ) && ((timer % text[currentText].repeated) - text[currentText].delayed) == 0) {
       if (currentText == 0) {

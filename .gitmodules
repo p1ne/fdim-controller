@@ -1,3 +1,6 @@
 [submodule "lib/CAN_BUS_Shield"]
 	path = lib/CAN_BUS_Shield
 	url = https://github.com/p1ne/CAN_BUS_Shield.git
+[submodule "lib/Sodaq_DS3231"]
+	path = lib/Sodaq_DS3231
+	url = https://github.com/SodaqMoja/Sodaq_DS3231.git
