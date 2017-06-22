@@ -288,13 +288,13 @@ void loop() {
             switch (rcvBuf[3]) {
               case 0x40: {
                 for (i = TIRE_FL;i <= TIRE_FR; i++)
-                  tirePressure[i] = getPressure(rcvBuf[4+(i-TIRE_FL)*2] * 256 + rcvBuf[5+(i-TIRE_FL)*2]);
+                  tirePressure[i] = getPressure((rcvBuf[4+(i-TIRE_FL)*2] * 256 + rcvBuf[5+(i-TIRE_FL)*2]) * 0.05);
                   currentTpmsRequest = TPMS_REAR;
               }
                 break;
               case 0x41: {
                 for (i = TIRE_RL;i <= TIRE_RR; i++)
-                  tirePressure[i] = getPressure(rcvBuf[4+(i-TIRE_RL)*2] * 256 + rcvBuf[5+(i-TIRE_RL)*2]);
+                  tirePressure[i] = getPressure((rcvBuf[4+(i-TIRE_RL)*2] * 256 + rcvBuf[5+(i-TIRE_RL)*2]) * 0.05);
                   currentTpmsRequest = TPMS_TEMP;
               }
                 break;
