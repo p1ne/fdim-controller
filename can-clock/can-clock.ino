@@ -120,6 +120,11 @@ void displayText(byte strNo, String str)
   }
 }
 
+FormattedString getPressure(int pressure)
+{
+  return (pressure > 25) ? String(round(pressure * (currentSettings.pressureUnits == PRESSURE_PSI ? 1 : 6.89476 ) ) / ( currentSettings.pressureUnits == PRESSURE_BARS ? 100.0 : 1 )) : pressureLow;
+}
+
 void sendStartSequence()
 {
 
@@ -214,7 +219,6 @@ void setup() {
   pinMode(A4, INPUT);
 #endif
 
-
 START_INIT:
   if(CAN_OK == CAN.begin(MCP_STDEXT, CAN_125KBPS, MCP_8MHZ)) {
     Serial.println(F("CAN ok!"));
@@ -275,7 +279,7 @@ void loop() {
         case 0x3b5: { // TPMS Broadcast
             if ( currentSettings.displayPressure && !currentSettings.tpmsRequest) {
               for (i=TIRE_FL;i<TIRES;i++)
-                tirePressure[i] = rcvBuf[i] > 25 ? String(round(rcvBuf[i] * (currentSettings.pressureUnits == PRESSURE_PSI ? 1 : 0.00689476 * currentSettings.pressureUnits ))) : pressureLow;
+                tirePressure[i] = getPressure(rcvBuf[i]);
             }
         }
           break;
@@ -284,13 +288,13 @@ void loop() {
             switch (rcvBuf[3]) {
               case 0x40: {
                 for (i = TIRE_FL;i <= TIRE_FR; i++)
-                  tirePressure[i] = String(round((rcvBuf[4+(i-TIRE_FL)*2] * 256 + rcvBuf[5+(i-TIRE_FL)*2]) * (currentSettings.pressureUnits == PRESSURE_PSI ? 0.05 : 0.0034475 * currentSettings.pressureUnits )));
+                  tirePressure[i] = getPressure(rcvBuf[4+(i-TIRE_FL)*2] * 256 + rcvBuf[5+(i-TIRE_FL)*2]);
                   currentTpmsRequest = TPMS_REAR;
               }
                 break;
               case 0x41: {
                 for (i = TIRE_RL;i <= TIRE_RR; i++)
-                  tirePressure[i] = String(round((rcvBuf[4+(i-TIRE_RL)*2] * 256 + rcvBuf[5+(i-TIRE_RL)*2]) * (currentSettings.pressureUnits == PRESSURE_PSI ? 0.05 : 0.0034475 * currentSettings.pressureUnits )));
+                  tirePressure[i] = getPressure(rcvBuf[4+(i-TIRE_RL)*2] * 256 + rcvBuf[5+(i-TIRE_RL)*2]);
                   currentTpmsRequest = TPMS_TEMP;
               }
                 break;

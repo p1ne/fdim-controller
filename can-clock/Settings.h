@@ -14,7 +14,7 @@
 
 #define PRESSURE_PSI 0
 #define PRESSURE_BARS 1
-#define PRESSURE_KPA 100
+#define PRESSURE_KPA 2
 
 bool isConfigured = false;
 
