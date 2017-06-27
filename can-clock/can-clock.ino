@@ -413,7 +413,9 @@ void loop() {
     if (message == F("%MTRACK")) message = "";
 
     // FIXME
-    message = "Tires T:" + String(tireTemperature);
+    if (currentSettings.displayPressure && currentSettings.tpmsRequest) {
+      message = "Tires T:" + String(tireTemperature);
+    }
 
     if ( ( (timer >= text[currentText].started ) || (!firstCycle) ) && ((timer % text[currentText].repeated) - text[currentText].delayed) == 0) {
       if (currentText == 0) {
