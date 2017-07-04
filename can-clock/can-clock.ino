@@ -345,15 +345,16 @@ void loop() {
   }
 
   if (sendingNow || DEBUG) {
+    if (currentSettings.useRTC) {
+      DateTime now = rtc.now();
+      hour = now.hour();
+      minute = now.minute();
+      gotClock = true;
+    }
+
     for (int currentCycle = 0; currentCycle < MSG_COUNT; currentCycle ++ ) {
       if ( ( (timer >= cycle[currentCycle].started ) || (!firstCycle) ) && ((timer % cycle[currentCycle].repeated) - cycle[currentCycle].delayed) == 0) {
         if (cycle[currentCycle].header == 0x3f2) {
-          if (currentSettings.useRTC) {
-            DateTime now = rtc.now();
-            hour = now.hour();
-            minute = now.minute();
-            gotClock = true;
-          }
           cycle[currentCycle].data[0] = decToBcd(hour);
           cycle[currentCycle].data[1] = decToBcd(minute);
           if (gotClock) {
@@ -414,7 +415,7 @@ void loop() {
 
     // FIXME
     if (currentSettings.displayPressure && currentSettings.tpmsRequest) {
-      message = "Tires T:" + String(tireTemperature);
+      message = "TT:" + String(tireTemperature);
     }
 
     if ( ( (timer >= text[currentText].started ) || (!firstCycle) ) && ((timer % text[currentText].repeated) - text[currentText].delayed) == 0) {
@@ -428,9 +429,9 @@ void loop() {
           rpmMessage = F(" R:");
           textMsgLength = 12;
         }
-        displayText(0, carSpeed.padRight(3));
-        displayText(1, tirePressure[TIRE_FL].padRight(pressurePadding) + rpmMessage + rpm.padRight(4) + F(" T:") + temperature.padRight(3) + " " + tirePressure[TIRE_FR].padRight(pressurePadding));
-        displayText(2, tirePressure[TIRE_RL].padRight(pressurePadding) + " " + message.padCenter(textMsgLength) + " " + tirePressure[TIRE_RR].padRight(pressurePadding));
+        //displayText(0, carSpeed.padRight(3));
+        displayText(1, tirePressure[TIRE_FL].padRight(pressurePadding) + " RPM:" + rpm.padRight(4) + F(" T:") + temperature.padRight(3) + " " + tirePressure[TIRE_FR].padRight(pressurePadding));
+        displayText(2, tirePressure[TIRE_RL].padRight(pressurePadding) + " SPD:" + carSpeed.padRight(3) + F(" TT:") + temperature.padRight(3) + " " + tirePressure[TIRE_RR].padRight(pressurePadding));
       }
       if (sentOnTick == timer) delay(TIMER_STEP/2);
       CAN.sendMsgBuf(text[currentText].header, 0, text[currentText].len, text[currentText].data);
