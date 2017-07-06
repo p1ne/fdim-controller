@@ -27,10 +27,10 @@ byte i,filtNo;
   SoftwareSerial mySerial(8, 9); // RX, TX
 #endif
 
-FormattedString tirePressure[TIRES], message, rpm, carSpeed, temperature, tireTemperature;
+FormattedString tirePressure[TIRES], message, rpm, carSpeed, temperature, tireTemperature, hourString, minuteString, clockMessage, temperatureMessage;
 
 byte pressurePadding;
-String rpmMessage;
+String rpmMessage, spdMessage, tireTempMessage;
 byte textMsgLength;
 
 String pressureLow = "LO";
@@ -120,9 +120,14 @@ void displayText(byte strNo, String str)
   }
 }
 
-FormattedString getPressure(int pressure)
+FormattedString getPressure(byte pressure)
 {
   return (pressure > 25) ? String(round(pressure * (currentSettings.pressureUnits == PRESSURE_PSI ? 1 : 6.89476 ) ) / ( currentSettings.pressureUnits == PRESSURE_BARS ? 100.0 : 1 )) : pressureLow;
+}
+
+FormattedString getTemperature(byte t)
+{
+  return String((byte)round((t-40) * (currentSettings.unitsMetric ? 1 : 1.8) + (currentSettings.unitsMetric ? 0 : 32)));
 }
 
 void sendStartSequence()
@@ -182,11 +187,6 @@ void setup() {
     mySerial.begin(9600);
   #endif
 
-  initStartMessages();
-  initCycleMessages();
-  initTextMessages();
-  initTpmsMessages();
-
   readSettings();
 
   delay(2000);
@@ -198,14 +198,32 @@ void setup() {
       Serial.read();
       Serial.println();
       settingsMenu();
+      readSettings();
       break;
     }
   }
 
+  initStartMessages();
+  initCycleMessages();
+  initTextMessages();
+  initTpmsMessages();
+
   if (currentSettings.pressureUnits == PRESSURE_PSI) {
+    pressurePadding = 2;
+    pressureLow = "LO";
+    rpmMessage = F(" RPM:");
+    spdMessage = F(" SPD:");
+    tireTempMessage = F("          T:");
+    textMsgLength = 14;
     for (i=TIRE_FL;i<TIRES;i++)
       tirePressure[i] = "  ";
   } else {
+    pressurePadding = 3;
+    pressureLow = "LOW";
+    rpmMessage = F(" R:");
+    spdMessage = F(" S:");
+    tireTempMessage = F("        T:");
+    textMsgLength = 12;
     for (i=TIRE_FL;i<TIRES;i++)
       tirePressure[i] = "   ";
   }
@@ -249,7 +267,6 @@ START_INIT:
     }
   }
 
-
   if (currentSettings.useRTC) {
     if (!rtc.begin()) {
       currentSettings.useRTC = false;
@@ -284,15 +301,17 @@ void loop() {
         }
           break;
         case 0x72e: { // TPMS response
+
           if ( currentSettings.displayPressure && currentSettings.tpmsRequest && (rcvBuf[0] == 7) && (rcvBuf[1] == 0x62) && (rcvBuf[2] == 0x41)) {
-            switch (rcvBuf[3]) {
-              case 0x40: {
+
+            switch (rcvBuf[3]) {  // checking front are rear tires response
+              case 0x40: {  // front tires
                 for (i = TIRE_FL;i <= TIRE_FR; i++)
                   tirePressure[i] = getPressure((rcvBuf[4+(i-TIRE_FL)*2] * 256 + rcvBuf[5+(i-TIRE_FL)*2]) * 0.05);
                   currentTpmsRequest = TPMS_REAR;
               }
                 break;
-              case 0x41: {
+              case 0x41: {  // rear tires
                 for (i = TIRE_RL;i <= TIRE_RR; i++)
                   tirePressure[i] = getPressure((rcvBuf[4+(i-TIRE_RL)*2] * 256 + rcvBuf[5+(i-TIRE_RL)*2]) * 0.05);
                   currentTpmsRequest = TPMS_TEMP;
@@ -301,9 +320,12 @@ void loop() {
             }
           }
 
+          // Tires temperature
           if ( currentSettings.displayPressure && currentSettings.tpmsRequest && (rcvBuf[0] == 6) && (rcvBuf[1] == 0x62) && (rcvBuf[2] == 0x41) && (rcvBuf[3] == 0x60)) {
-            if (rcvBuf[4] != 0 ) {
-              tireTemperature = String(rcvBuf[4] - 40);
+            if (rcvBuf[4] != 0 ) {  // cut-off for zero tires temperature
+              tireTemperature = getTemperature(rcvBuf[4]);
+            } else {
+              tireTemperature = "--";
             }
             currentTpmsRequest = TPMS_FRONT;
           }
@@ -312,28 +334,29 @@ void loop() {
         case 0x423: { // Speed, RPM
           rpm = String((unsigned int)round(( ( rcvBuf[2] << 8 ) + rcvBuf[3] ) / 4));
           carSpeed = String(round(((((rcvBuf[0] << 8) + rcvBuf[1])/100) - 100) * (currentSettings.unitsMetric ? 1 : 0.621371)), 0);
-          temperature = String((byte)round((rcvBuf[4]-40) * (currentSettings.unitsMetric ? 1 : 1.8) + (currentSettings.unitsMetric ? 0 : 32)));
+          temperature = getTemperature(rcvBuf[4]);
 
           //Serial.println("sendingNow: " + String(sendingNow) + " buf0 " + String(rcvBuf[0],HEX));
 
-          if ( sendingNow && (rcvBuf[0] == 0xFF)) {
+          if ( sendingNow && (rcvBuf[0] == 0xFF)) { // got 423 message for ignition off
+            sendingNow = false;
+            gotClock = false;
             carSpeed = "";
             rpm = "";
             temperature = "";
+            tireTemperature = "";
             message = "";
-            sendingNow = false;
-            gotClock = false;
           }
 
-          if ( !sendingNow && (rcvBuf[0] != 0xFF)) {
+          if ( !sendingNow && (rcvBuf[0] != 0xFF)) { // got 423 message for ignition on
             sendingNow = true;
             sendStartSequence();
           }
         }
           break;
         case 0x466: {  // GPS clock
-            if (!currentSettings.useRTC) {
-              hour = (((rcvBuf[0] & 0xF8) >> 3) + currentSettings.tz ) % (currentSettings.hours24 ? 24 : 12);
+            if (!currentSettings.useRTC && (currentSettings.clockMode != CLOCK_HIDE)) {
+              hour = (((rcvBuf[0] & 0xF8) >> 3) + currentSettings.tz ) % currentSettings.clockMode;
               minute = (rcvBuf[1] & 0xFC) >> 2;
               second = (rcvBuf[2] & 0xFC) >> 2;
               gotClock = true;
@@ -345,30 +368,35 @@ void loop() {
   }
 
   if (sendingNow || DEBUG) {
-    if (currentSettings.useRTC) {
+
+    if (currentSettings.useRTC && (currentSettings.clockMode != CLOCK_HIDE)) {
       DateTime now = rtc.now();
-      hour = now.hour();
+      hour = now.hour() % currentSettings.clockMode;
       minute = now.minute();
+      hourString = String(hour);
+      minuteString = String(minute);
+      clockMessage = hourString.padZeros(2) + F(":") + minuteString.padZeros(2);
       gotClock = true;
     }
 
-    for (int currentCycle = 0; currentCycle < MSG_COUNT; currentCycle ++ ) {
+    for (int currentCycle = 0; currentCycle < MSG_COUNT; currentCycle++ ) {
       if ( ( (timer >= cycle[currentCycle].started ) || (!firstCycle) ) && ((timer % cycle[currentCycle].repeated) - cycle[currentCycle].delayed) == 0) {
-        if (cycle[currentCycle].header == 0x3f2) {
+
+        if ((currentSettings.huType == HU_AFTERMARKET) &&
+            (currentSettings.clockMode != CLOCK_HIDE) &&
+            (cycle[currentCycle].header == 0x3f2) &&
+            gotClock
+           ) { // Special case - add current clock values to clock message
+               // Potential FIXME: We assume that there should not be 0x3f2 messages set in
+               // init functions if stock head unit is used, so no extra checks
           cycle[currentCycle].data[0] = decToBcd(hour);
           cycle[currentCycle].data[1] = decToBcd(minute);
-          if (gotClock) {
-            if (sentOnTick == timer) delay(TIMER_STEP/2);
-            CAN.sendMsgBuf(cycle[currentCycle].header, 0, cycle[currentCycle].len, cycle[currentCycle].data);
-            sentOnTick = timer;
-            printDebug(timer, cycle[currentCycle]);
-          }
-        } else {
-          if (sentOnTick == timer) delay(TIMER_STEP/2);
-          CAN.sendMsgBuf(cycle[currentCycle].header, 0, cycle[currentCycle].len, cycle[currentCycle].data);
-          sentOnTick = timer;
-          printDebug(timer, cycle[currentCycle]);
         }
+
+        if (sentOnTick == timer) delay(TIMER_STEP/2);
+        CAN.sendMsgBuf(cycle[currentCycle].header, 0, cycle[currentCycle].len, cycle[currentCycle].data);
+        sentOnTick = timer;
+        printDebug(timer, cycle[currentCycle]);
       }
     }
 
@@ -411,27 +439,53 @@ void loop() {
     message = String(sensorValue, DEC);
 #endif // MQ135_CONNECTED
 
-    if (message == F("%MTRACK")) message = "";
-
-    // FIXME
-    if (currentSettings.displayPressure && currentSettings.tpmsRequest) {
-      message = "TT:" + String(tireTemperature);
-    }
+    if (message == F("%MTRACK")) message = ""; // FIXME: to mask Media Utilities variable
 
     if ( ( (timer >= text[currentText].started ) || (!firstCycle) ) && ((timer % text[currentText].repeated) - text[currentText].delayed) == 0) {
       if (currentText == 0) {
-        if (currentSettings.pressureUnits == PRESSURE_PSI) {
-          pressurePadding = 2;
-          rpmMessage = F(" RPM:");
-          textMsgLength = 14;
-        } else {
-          pressurePadding = 3;
-          rpmMessage = F(" R:");
-          textMsgLength = 12;
+        switch (currentSettings.huType) {
+          case HU_AFTERMARKET:
+            //     80       12:00
+            // 2.1 R:1234 E: 83 2.1
+            // 2.1        T: 40 2.1
+
+            //     80       12:00
+            // 32 RPM:1234 E: 83 32
+            // 32          T: 40 32
+            displayText(0, carSpeed.padRight(3));
+            displayText(1, tirePressure[TIRE_FL].padRight(pressurePadding) + rpmMessage + rpm.padRight(4) + F(" E:") + temperature.padRight(3) + " " + tirePressure[TIRE_FR].padRight(pressurePadding));
+            displayText(2, tirePressure[TIRE_RL].padRight(pressurePadding) + tireTempMessage + tireTemperature.padRight(3) + " " + tirePressure[TIRE_RR].padRight(pressurePadding));
+            break;
+          case HU_STOCK:
+            // 2.1 R:1234 E: 83 2.1
+            // 2.1 S:  80 T: 40 2.1
+
+            // 32 RPM:1234 E: 83 32
+            // 32 SPD:  80 T: 40 32
+            displayText(1, tirePressure[TIRE_FL].padRight(pressurePadding) + rpmMessage + rpm.padRight(4) + F(" E:") + temperature.padRight(3) + " " + tirePressure[TIRE_FR].padRight(pressurePadding));
+            displayText(2, tirePressure[TIRE_RL].padRight(pressurePadding) + spdMessage + carSpeed.padRight(4) + F(" T:") + tireTemperature.padRight(3) + " " + tirePressure[TIRE_RR].padRight(pressurePadding));
+            break;
+          case HU_CHINESE_WITH_CAN_SIMPLE:
+            // 2.1    12:00     2.1
+            // 2.1    E: 83     2.1
+
+            // 32     12:00      32
+            // 32     E: 83      32
+            temperatureMessage = "E:" + temperature.padRight(3);
+            displayText(1, tirePressure[TIRE_FL].padRight(pressurePadding) + clockMessage.padCenter(textMsgLength+2) + tirePressure[TIRE_FR].padRight(pressurePadding));
+            displayText(2, tirePressure[TIRE_FL].padRight(pressurePadding) + temperatureMessage.padCenter(textMsgLength+2) + tirePressure[TIRE_FR].padRight(pressurePadding));
+            break;
+
+          case HU_CHINESE_WITH_CAN_EXTENDED:
+            // 2.1 R:1234 E: 83 2.1
+            // 2.1 S:  80 12:00 2.1
+
+            // 32 RPM:1234 E: 83 32
+            // 32 SPD:  80 12:00 32
+            displayText(1, tirePressure[TIRE_FL].padRight(pressurePadding) + rpmMessage + rpm.padRight(4) + F(" E:") + temperature.padRight(3) + " " + tirePressure[TIRE_FR].padRight(pressurePadding));
+            displayText(2, tirePressure[TIRE_RL].padRight(pressurePadding) + spdMessage + carSpeed.padRight(4) + F(" ") + clockMessage + F(" ") + tirePressure[TIRE_RR].padRight(pressurePadding));
+            break;
         }
-        //displayText(0, carSpeed.padRight(3));
-        displayText(1, tirePressure[TIRE_FL].padRight(pressurePadding) + " RPM:" + rpm.padRight(4) + F(" T:") + temperature.padRight(3) + " " + tirePressure[TIRE_FR].padRight(pressurePadding));
-        displayText(2, tirePressure[TIRE_RL].padRight(pressurePadding) + " SPD:" + carSpeed.padRight(3) + F(" TT:") + temperature.padRight(3) + " " + tirePressure[TIRE_RR].padRight(pressurePadding));
       }
       if (sentOnTick == timer) delay(TIMER_STEP/2);
       CAN.sendMsgBuf(text[currentText].header, 0, text[currentText].len, text[currentText].data);

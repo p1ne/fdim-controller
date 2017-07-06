@@ -10,11 +10,20 @@
 #include "Service.h"
 
 #define CONFIG_START 32
-#define CONFIG_VERSION 4
+#define CONFIG_VERSION 5
 
 #define PRESSURE_PSI 0
 #define PRESSURE_BARS 1
 #define PRESSURE_KPA 2
+
+#define CLOCK_HIDE 1
+#define CLOCK_12 12
+#define CLOCK_24 24
+
+#define HU_AFTERMARKET 1
+#define HU_STOCK 2
+#define HU_CHINESE_WITH_CAN_SIMPLE 3
+#define HU_CHINESE_WITH_CAN_EXTENDED 4
 
 bool isConfigured = false;
 
@@ -24,26 +33,26 @@ struct Settings {
   byte pressureUnits;
   bool displayPressure;
   bool unitsMetric;
-  bool hours24;
+  byte clockMode;
   byte tz;
   bool tpmsRequest;
-  bool spare1;
+  byte huType;
   bool spare2;
   bool spare3;
 };
 
 Settings currentSettings = {
-  CONFIG_VERSION,      // version
-  false,  // useRTC
-  true,   // pressureUnits
-  true,   // displayPressure
-  true,   // unitsMetric
-  true,   // hours24
-  3,      // tz
-  true,  // tpmsRequest
-  false,  // spare1
-  false,  // spare2
-  false   // spare3
+  CONFIG_VERSION, // version
+  false,          // useRTC
+  PRESSURE_PSI,   // pressureUnits
+  true,           // displayPressure
+  true,           // unitsMetric
+  CLOCK_24,       // clockMode
+  3,              // tz
+  true,           // tpmsRequest
+  HU_AFTERMARKET, // huType
+  false,          // spare2
+  false           // spare3
 };
 
 void readSettings() {
@@ -59,11 +68,34 @@ void saveSettings() {
   isConfigured = true;
 }
 
+boolean wantClock() {
+  // we only need to send clock messages on aftermarket HU if it is not visible
+  // because on stock HU we already have it, and on chinese we have that line empty
+  return (currentSettings.clockMode != CLOCK_HIDE) && (currentSettings.huType == HU_AFTERMARKET);
+}
+
 void printCurrentSettings() {
   String pressureUnitsString;
 
   Serial.println(F("\n\nCurrent settings\n"));
   Serial.println("Config version: " + String(currentSettings.configVersion));
+
+  Serial.print(F("HU type: "));
+  switch (currentSettings.huType) {
+    case HU_AFTERMARKET:
+      Serial.println(F("Aftermarket"));
+      break;
+    case HU_STOCK:
+      Serial.println(F("Stock"));
+      break;
+    case HU_CHINESE_WITH_CAN_SIMPLE:
+      Serial.println(F("Aftermarket with CAN (simple output)"));
+      break;
+    case HU_CHINESE_WITH_CAN_EXTENDED:
+      Serial.println(F("Aftermarket with CAN (extended output)"));
+      break;
+  }
+
   Serial.println("Units: " + String(currentSettings.unitsMetric ? "Metric" : "American"));
   Serial.println("Time source: " + String(currentSettings.useRTC ? "RTC" : "GPS"));
   if (currentSettings.useRTC) {
@@ -72,21 +104,33 @@ void printCurrentSettings() {
   } else {
     Serial.println("Time zone: " + String(currentSettings.tz));
   }
-  Serial.println("Time format: " + String(currentSettings.hours24 ? "24 hours" : "12 hours"));
 
-  switch (currentSettings.pressureUnits) {
-    case PRESSURE_BARS:
-      pressureUnitsString = "Bars";
+  Serial.print(F("Clock mode: "));
+  switch (currentSettings.clockMode) {
+    case CLOCK_HIDE:
+      Serial.println(F("Hide"));
       break;
-    case PRESSURE_PSI:
-      pressureUnitsString = "Psi";
+    case CLOCK_12:
+      Serial.println(F("12h"));
       break;
-    case PRESSURE_KPA:
-      pressureUnitsString = "kPa";
+    case CLOCK_24:
+      Serial.println(F("24h"));
       break;
   }
 
-  Serial.println("Pressure units: " + String(pressureUnitsString));
+  Serial.print(F("Pressure units: "));
+  switch (currentSettings.pressureUnits) {
+    case PRESSURE_BARS:
+      Serial.println(F("Bars"));
+      break;
+    case PRESSURE_PSI:
+      Serial.println(F("Psi"));
+      break;
+    case PRESSURE_KPA:
+      Serial.println(F("kPa"));
+      break;
+  }
+
   Serial.println("Display pressure: " + String(currentSettings.displayPressure ? "Yes" : "No"));
   Serial.println("TPMS interaction mode: " + String(currentSettings.tpmsRequest ? "Request" : "Broadcast"));
   Serial.println();
@@ -99,6 +143,20 @@ void settingsMenu() {
   printCurrentSettings();
 
   Serial.println(F("FORD FDIM Controller configuration\n"));
+
+  Serial.println(F("Select HU type\n1 - Aftermarket\n2 - Stock\n3 - Aftermarket with CAN (simple info)\n4 - Aftermarket with CAN (extended info)\n"));
+
+  input = readSerialString();
+
+  if (input.equals("1")) {
+    currentSettings.huType = HU_AFTERMARKET;
+  } else if (input.equals("2")) {
+    currentSettings.huType = HU_STOCK;
+  } else if (input.equals("3")) {
+    currentSettings.huType = HU_CHINESE_WITH_CAN_SIMPLE;
+  } else if (input.equals("4")) {
+    currentSettings.huType = HU_CHINESE_WITH_CAN_EXTENDED;
+  }
 
   Serial.println(F("Select time source\n1 - 911 Assist GPS (2010+)\n2 - controller real time clock\n"));
 
@@ -130,12 +188,14 @@ void settingsMenu() {
     currentSettings.tz = input.toInt();
   }
 
-  Serial.println(F("Set clock format\n1 - 24 hours\n2 - 12 hours"));
+  Serial.println(F("Set clock mode\n1 - Hide\n2 - 12h\n3 - 24h"));
   input = readSerialString();
   if (input.equals("1")) {
-    currentSettings.hours24 = true;
+    currentSettings.clockMode = CLOCK_HIDE;
   } else if (input.equals("2")) {
-    currentSettings.hours24 = false;
+    currentSettings.clockMode = CLOCK_12;
+  } else if (input.equals("3")) {
+    currentSettings.clockMode = CLOCK_24;
   }
 
   Serial.println(F("Select speed/temperature units\n1 - Metric\n2 - American\n"));
