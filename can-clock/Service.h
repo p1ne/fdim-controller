@@ -18,7 +18,7 @@ String readSerialString()
 {
   String inSerialData;
   char received = ' ';
-  Serial.print("\n> ");
+  Serial.print(F("\n> "));
   while (received != '\r') {
       if (Serial.available() > 0) {
         received = Serial.read();

@@ -71,14 +71,22 @@ void saveSettings() {
 boolean wantClock() {
   // we only need to send clock messages on aftermarket HU if it is not visible
   // because on stock HU we already have it, and on chinese we have that line empty
-  return (currentSettings.clockMode != CLOCK_HIDE) && (currentSettings.huType == HU_AFTERMARKET);
+  return ((currentSettings.clockMode != CLOCK_HIDE) && (currentSettings.huType == HU_AFTERMARKET));
+}
+
+void printCurrentRTCTime()
+{
+  DateTime now = rtc.now();
+  Serial.println(F("Current RTC time: "));
+  Serial.println(String(now.hour()) + F(":") + String(now.minute()) + F(":") + String(now.second()));
 }
 
 void printCurrentSettings() {
   String pressureUnitsString;
 
   Serial.println(F("\n\nCurrent settings\n"));
-  Serial.println("Config version: " + String(currentSettings.configVersion));
+  Serial.print(F("Config version: "));
+  Serial.println(String(currentSettings.configVersion));
 
   Serial.print(F("HU type: "));
   switch (currentSettings.huType) {
@@ -96,13 +104,15 @@ void printCurrentSettings() {
       break;
   }
 
-  Serial.println("Units: " + String(currentSettings.unitsMetric ? "Metric" : "American"));
-  Serial.println("Time source: " + String(currentSettings.useRTC ? "RTC" : "GPS"));
+  Serial.print(F("Units: "));
+  Serial.println(String(currentSettings.unitsMetric ? "Metric" : "American"));
+  Serial.print(F("Time source: "));
+  Serial.println(String(currentSettings.useRTC ? "RTC" : "GPS"));
   if (currentSettings.useRTC) {
-    DateTime now = rtc.now();
-    Serial.println("Current RTC time: " + String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second()));
+    printCurrentRTCTime();
   } else {
-    Serial.println("Time zone: " + String(currentSettings.tz));
+    Serial.print(F("Time zone: "));
+    Serial.println(String(currentSettings.tz));
   }
 
   Serial.print(F("Clock mode: "));
@@ -131,10 +141,14 @@ void printCurrentSettings() {
       break;
   }
 
-  Serial.println("Display pressure: " + String(currentSettings.displayPressure ? "Yes" : "No"));
-  Serial.println("TPMS interaction mode: " + String(currentSettings.tpmsRequest ? "Request" : "Broadcast"));
+  Serial.print(F("Display pressure: "));
+  Serial.println(String(currentSettings.displayPressure ? "Yes" : "No"));
+  Serial.println(F("TPMS interaction mode: "));
+  Serial.println(String(currentSettings.tpmsRequest ? "Request" : "Broadcast"));
   Serial.println();
 }
+
+
 
 void settingsMenu() {
 
@@ -169,9 +183,8 @@ void settingsMenu() {
   }
 
   if (currentSettings.useRTC) {
-    DateTime now = rtc.now();
-    Serial.println("Current RTC time: " + String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second())+"\n");
-    Serial.println(F("Enter current local time in 24h format (HH:MM) or Enter to keep as is"));
+    printCurrentRTCTime();
+    Serial.println(F("Enter local time in 24h format (HH:MM) or Enter to keep as is"));
     input = readSerialString();
     Serial.println(input);
     if (!input.equals("")) {
@@ -179,8 +192,7 @@ void settingsMenu() {
       byte hour = input.substring(0,2).toInt();
       rtc.setDateTime(DateTime(2011, 11, 10, hour, minute, 0, 5));
       delay(1000);
-      now = rtc.now();
-      Serial.println("Time set to " + String(now.hour()) + ":" + String(now.minute()) + ":" + String(now.second()));
+      printCurrentRTCTime();
     }
   } else {
     Serial.println(F("Enter timezone (+- hours)\n"));

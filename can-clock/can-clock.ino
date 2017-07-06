@@ -14,7 +14,7 @@
 #include "Service.h"
 #include "Settings.h"
 
-#define DEBUG 0
+#undef DEBUG
 
 #define TIMER_STEP 25
 
@@ -37,7 +37,7 @@ String pressureLow = "LO";
 
 unsigned int timer;
 
-const int SPI_CS_PIN = 10;
+const byte SPI_CS_PIN = 10;
 
 bool rcvFlag = false;
 unsigned char rcvLen = 0;
@@ -64,21 +64,22 @@ void MCP2515_ISR()
 
 void printDebug(unsigned int timer, CANMessage msg)
 {
-  if (DEBUG) {
+#if defined (DEBUG)
     Serial.print(F("Time: "));
     Serial.print(timer);
     Serial.print(F(" Message: "));
     msg.print();
-  }
+#endif
 }
 
 void displayText(byte strNo, String str)
 {
   byte curLine, curChar, numChars;
 
-  if (DEBUG) {
+#if defined (DEBUG)
     Serial.println(String(strNo) + ": " + str);
-  }
+#endif
+
   switch (strNo) {
     case 0:
       curLine = 2;
@@ -135,7 +136,10 @@ void sendStartSequence()
 
   detachCAN();
 
-  if (DEBUG) Serial.println("Start sequence");
+#if defined DEBUG
+  Serial.println("Start sequence");
+#endif
+
   delay(1000);
   timer = 0;
 
@@ -181,7 +185,6 @@ void detachCAN()
 
 void setup() {
   Serial.begin(115200);
-  Wire.begin();
 
   #if !defined(__AVR_ATmega32U4__) // Arduino Pro Micro - use hw serial for input, others - software serial
     mySerial.begin(9600);
@@ -203,6 +206,10 @@ void setup() {
     }
   }
 
+  if (currentSettings.useRTC) {
+    Wire.begin();
+  }
+
   initStartMessages();
   initCycleMessages();
   initTextMessages();
@@ -210,28 +217,28 @@ void setup() {
 
   if (currentSettings.pressureUnits == PRESSURE_PSI) {
     pressurePadding = 2;
-    pressureLow = "LO";
+    pressureLow = F("LO");
     rpmMessage = F(" RPM:");
     spdMessage = F(" SPD:");
     tireTempMessage = F("          T:");
     textMsgLength = 14;
     for (i=TIRE_FL;i<TIRES;i++)
-      tirePressure[i] = "  ";
+      tirePressure[i] = F("  ");
   } else {
     pressurePadding = 3;
-    pressureLow = "LOW";
+    pressureLow = F("LOW");
     rpmMessage = F(" R:");
     spdMessage = F(" S:");
     tireTempMessage = F("        T:");
     textMsgLength = 12;
     for (i=TIRE_FL;i<TIRES;i++)
-      tirePressure[i] = "   ";
+      tirePressure[i] = F("   ");
   }
 
-  if (DEBUG) {
+#if defined (DEBUG)
     delay(5000);
     printCurrentSettings();
-  }
+#endif
 
 #if defined(MQ135_CONNECTED)
   pinMode(A4, INPUT);
@@ -325,7 +332,7 @@ void loop() {
             if (rcvBuf[4] != 0 ) {  // cut-off for zero tires temperature
               tireTemperature = getTemperature(rcvBuf[4]);
             } else {
-              tireTemperature = "--";
+              tireTemperature = F("--");
             }
             currentTpmsRequest = TPMS_FRONT;
           }
@@ -341,11 +348,11 @@ void loop() {
           if ( sendingNow && (rcvBuf[0] == 0xFF)) { // got 423 message for ignition off
             sendingNow = false;
             gotClock = false;
-            carSpeed = "";
-            rpm = "";
-            temperature = "";
-            tireTemperature = "";
-            message = "";
+            carSpeed = F("");
+            rpm = F("");
+            temperature = F("");
+            tireTemperature = F("");
+            message = F("");
           }
 
           if ( !sendingNow && (rcvBuf[0] != 0xFF)) { // got 423 message for ignition on
@@ -367,7 +374,11 @@ void loop() {
     }
   }
 
-  if (sendingNow || DEBUG) {
+#if defined (DEBUG)
+  sendingNow = true;
+#endif
+
+  if (sendingNow) {
 
     if (currentSettings.useRTC && (currentSettings.clockMode != CLOCK_HIDE)) {
       DateTime now = rtc.now();
@@ -418,7 +429,7 @@ void loop() {
         if (recieved == '\n')
         {
           message = inSerialData;
-          inSerialData = "";
+          inSerialData = F("");
         }
     }
 #else // Other Arduinos (Nano in my case) - input connected to pins 8,9
@@ -429,7 +440,7 @@ void loop() {
         if (recieved == '\n')
         {
           message = inSerialData;
-          inSerialData = "";
+          inSerialData = F("");
         }
     }
 #endif
@@ -439,7 +450,7 @@ void loop() {
     message = String(sensorValue, DEC);
 #endif // MQ135_CONNECTED
 
-    if (message == F("%MTRACK")) message = ""; // FIXME: to mask Media Utilities variable
+    if (message == F("%MTRACK")) message = F(""); // FIXME: to mask Media Utilities variable
 
     if ( ( (timer >= text[currentText].started ) || (!firstCycle) ) && ((timer % text[currentText].repeated) - text[currentText].delayed) == 0) {
       if (currentText == 0) {
