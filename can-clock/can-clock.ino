@@ -383,7 +383,7 @@ void loop() {
       if ( ( (timer >= cycle[currentCycle].started ) || (!firstCycle) ) && ((timer % cycle[currentCycle].repeated) - cycle[currentCycle].delayed) == 0) {
 
         if ((currentSettings.huType == HU_AFTERMARKET) &&
-            (currentSettings.clockMode != CLOCK_HIDE) &&
+            wantClock() &&
             (cycle[currentCycle].header == 0x3f2) &&
             gotClock
            ) { // Special case - add current clock values to clock message
