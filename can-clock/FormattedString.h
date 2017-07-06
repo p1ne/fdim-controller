@@ -26,6 +26,17 @@ public:
   bool operator != (const FormattedString v) const { return (v != value); }
   bool operator != (const String v) const { return (v != value); }
 
+  String padZeros(byte length) const
+  {
+    String str = value;
+    str.trim();
+    str = str.substring(0,length);
+    while ( str.length() < length) {
+      str = "0" + str;
+    }
+    return str;
+  }
+
   String padLeft(byte length) const
   {
     String str = value;
