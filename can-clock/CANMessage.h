@@ -6,31 +6,31 @@
 class CANMessage {
 
 public:
-  uint32_t started;
-  uint32_t delayed;
-  uint32_t repeated;
-  uint32_t header;
+  uint16_t started;
+  uint16_t delayed;
+  uint16_t repeated;
+  uint16_t header;
 
-  byte len;
-  byte data[8];
+  uint8_t len;
+  uint8_t data[8];
 
   CANMessage()
   {
   }
 
-  CANMessage( uint32_t _started,
-              uint32_t _delayed,
-              uint32_t _repeated,
-              uint32_t _header,
-              byte _len,
-              byte _d0,
-              byte _d1,
-              byte _d2,
-              byte _d3,
-              byte _d4,
-              byte _d5,
-              byte _d6,
-              byte _d7
+  CANMessage( uint16_t _started,
+              uint16_t _delayed,
+              uint16_t _repeated,
+              uint16_t _header,
+              uint8_t _len,
+              uint8_t _d0,
+              uint8_t _d1,
+              uint8_t _d2,
+              uint8_t _d3,
+              uint8_t _d4,
+              uint8_t _d5,
+              uint8_t _d6,
+              uint8_t _d7
             )
   {
     started = _started;
@@ -49,19 +49,19 @@ public:
   }
 
   void set(
-            uint32_t _started,
-            uint32_t _delayed,
-            uint32_t _repeated,
-            uint32_t _header,
-            byte _len,
-            byte _d0,
-            byte _d1,
-            byte _d2,
-            byte _d3,
-            byte _d4,
-            byte _d5,
-            byte _d6,
-            byte _d7)
+            uint16_t _started,
+            uint16_t _delayed,
+            uint16_t _repeated,
+            uint16_t _header,
+            uint8_t _len,
+            uint8_t _d0,
+            uint8_t _d1,
+            uint8_t _d2,
+            uint8_t _d3,
+            uint8_t _d4,
+            uint8_t _d5,
+            uint8_t _d6,
+            uint8_t _d7)
   {
     started = _started;
     delayed = _delayed;
@@ -91,7 +91,7 @@ public:
     Serial.print(len);
     Serial.print(" > ");
 
-    for (int i=0;i<len;i++) {
+    for (uint8_t i=0;i<len;i++) {
       Serial.print(" ");
       Serial.print(data[i], HEX);
     }
