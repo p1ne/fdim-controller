@@ -15,13 +15,13 @@
 #include "Settings.h"
 
 #undef DEBUG
-
-#define TIMER_STEP 25
-
 #undef MQ135_CONNECTED
 
-byte second, minute, hour;
-byte i,filtNo;
+const uint8_t TIMER_STEP = 25;
+const uint8_t SPI_CS_PIN = 10;
+
+uint8_t second, minute, hour;
+uint8_t i,filtNo;
 
 #if !defined(__AVR_ATmega32U4__) // not Arduino Pro Micro
   SoftwareSerial mySerial(8, 9); // RX, TX
@@ -29,30 +29,26 @@ byte i,filtNo;
 
 FormattedString tirePressure[TIRES], message, rpm, carSpeed, temperature, tireTemperature, hourString, minuteString, clockMessage, temperatureMessage;
 
-byte pressurePadding;
-String rpmMessage, spdMessage, tireTempMessage;
-byte textMsgLength;
+uint8_t pressurePadding;
+String rpmMessage, spdMessage, tireTempMessage, pressureLow;
+uint8_t textMsgLength;
 
-String pressureLow = "LO";
-
-unsigned int timer;
-
-const byte SPI_CS_PIN = 10;
+uint16_t timer;
 
 bool rcvFlag = false;
-unsigned char rcvLen = 0;
-unsigned long rcvCanId = 0x0;
-unsigned char rcvBuf[8];
+uint8_t rcvLen = 0;
+uint32_t rcvCanId = 0x0;
+uint8_t rcvBuf[8];
 bool sendingNow = false;
 
-unsigned int sentOnTick = 0;
+uint16_t sentOnTick = 0;
 
 bool firstCycle = true;
 bool gotClock = false;
 
-unsigned char currentText = 0;
+uint8_t currentText = 0;
 
-byte currentTpmsRequest = TPMS_INIT;
+uint8_t currentTpmsRequest = TPMS_INIT;
 
 MCP_CAN CAN(SPI_CS_PIN);
 
@@ -62,7 +58,7 @@ void MCP2515_ISR()
 }
 
 
-void printDebug(unsigned int timer, CANMessage msg)
+void printDebug(uint16_t timer, CANMessage msg)
 {
 #if defined (DEBUG)
     Serial.print(F("Time: "));
@@ -72,9 +68,9 @@ void printDebug(unsigned int timer, CANMessage msg)
 #endif
 }
 
-void displayText(byte strNo, String str)
+void displayText(uint8_t strNo, String str)
 {
-  byte curLine, curChar, numChars;
+  uint8_t curLine, curChar, numChars;
 
 #if defined (DEBUG)
     Serial.println(String(strNo) + ": " + str);
@@ -121,14 +117,14 @@ void displayText(byte strNo, String str)
   }
 }
 
-FormattedString getPressure(byte pressure)
+FormattedString getPressure(uint8_t pressure)
 {
   return (pressure > 25) ? String(round(pressure * (currentSettings.pressureUnits == PRESSURE_PSI ? 1 : 6.89476 ) ) / ( currentSettings.pressureUnits == PRESSURE_BARS ? 100.0 : 1 )) : pressureLow;
 }
 
-FormattedString getTemperature(byte t)
+FormattedString getTemperature(uint8_t t)
 {
-  return String((byte)round((t-40) * (currentSettings.unitsMetric ? 1 : 1.8) + (currentSettings.unitsMetric ? 0 : 32)));
+  return String((uint8_t)round((t-40) * (currentSettings.unitsMetric ? 1 : 1.8) + (currentSettings.unitsMetric ? 0 : 32)));
 }
 
 void sendStartSequence()
@@ -390,7 +386,7 @@ void loop() {
       gotClock = true;
     }
 
-    for (int currentCycle = 0; currentCycle < MSG_COUNT; currentCycle++ ) {
+    for (uint16_t currentCycle = 0; currentCycle < MSG_COUNT; currentCycle++ ) {
       if ( ( (timer >= cycle[currentCycle].started ) || (!firstCycle) ) && ((timer % cycle[currentCycle].repeated) - cycle[currentCycle].delayed) == 0) {
 
         if ((currentSettings.huType == HU_AFTERMARKET) &&
@@ -446,7 +442,7 @@ void loop() {
 #endif
 
 #if defined(MQ135_CONNECTED)    // For MQ135
-    int sensorValue = analogRead(4);
+    uint8_t sensorValue = analogRead(4);
     message = String(sensorValue, DEC);
 #endif // MQ135_CONNECTED
 

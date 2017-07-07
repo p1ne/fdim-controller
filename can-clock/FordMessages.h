@@ -4,28 +4,34 @@
 #include "CANMessage.h"
 #include "Settings.h"
 
-#define MAX_START_COUNT 8
-#define MAX_MSG_COUNT 4
-#define MAX_TEXT_COUNT 12
+const uint8_t MAX_START_COUNT = 8;
+const uint8_t MAX_MSG_COUNT   = 4;
+const uint8_t MAX_TEXT_COUNT  = 12;
 
-#define TPMS_COUNT 4
-#define TPMS_INIT_COUNT 1
+const uint8_t TPMS_COUNT      = 4;
+const uint8_t TPMS_INIT_COUNT = 1;
 
-#define TPMS_FRONT 0
-#define TPMS_REAR 1
-#define TPMS_TEMP 2
-#define TPMS_INIT 3
+const uint8_t TPMS_FRONT      = 0;
+const uint8_t TPMS_REAR       = 1;
+const uint8_t TPMS_TEMP       = 2;
+const uint8_t TPMS_INIT       = 3;
 
-byte START_COUNT = 0;
-byte MSG_COUNT = 0;
-byte TEXT_COUNT = 0;
+const uint8_t TIRE_FL         = 0;
+const uint8_t TIRE_FR         = 1;
+const uint8_t TIRE_RL         = 2;
+const uint8_t TIRE_RR         = 3;
+const uint8_t TIRES           = 4;
 
-CANMessage start[MAX_START_COUNT];
-CANMessage cycle[MAX_MSG_COUNT];
-CANMessage text[MAX_TEXT_COUNT];
-CANMessage metric;
+uint8_t START_COUNT           = 0;
+uint8_t MSG_COUNT             = 0;
+uint8_t TEXT_COUNT            = 0;
 
-CANMessage tpms[TPMS_COUNT+TPMS_INIT_COUNT];
+CANMessage start[ MAX_START_COUNT ];
+CANMessage cycle[ MAX_MSG_COUNT ];
+CANMessage text[ MAX_TEXT_COUNT ];
+//CANMessage metric;
+
+CANMessage tpms[ TPMS_COUNT + TPMS_INIT_COUNT ];
 
 void initStartMessages()
 {
@@ -101,10 +107,12 @@ void initTextMessages()
   text[TEXT_COUNT++].set( 1000, 400, 500, 0x337, 8, 0x26,  ' ',  ' ', 0x00, 0x00, 0x00, 0x00, 0x00 );
 }
 
+/*
 void initMetricMessage()
 {
   metric.set( 0, 0, 0, 0x129, 8, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00);
 }
+*/
 
 void initTpmsMessages()
 {
@@ -113,11 +121,5 @@ void initTpmsMessages()
   tpms[2].set( 0, 400, 10000, 0x726, 8, 3, 0x22, 0x41, 0x60, 0x00, 0x00, 0x00, 0x00 );  // Temperature
   tpms[3].set( 0,   0,     0, 0x726, 8, 2, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 );  // Initialization
 }
-
-#define TIRE_FL 0
-#define TIRE_FR 1
-#define TIRE_RL 2
-#define TIRE_RR 3
-#define TIRES 4
 
 #endif // __FORD_MESSAGES_H_

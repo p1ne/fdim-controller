@@ -27,19 +27,19 @@
 
 bool isConfigured = false;
 
-struct Settings {
-  int configVersion;
+typedef struct __attribute__((__packed__)) {
+  uint8_t configVersion;
   bool useRTC;
-  byte pressureUnits;
+  uint8_t pressureUnits;
   bool displayPressure;
   bool unitsMetric;
-  byte clockMode;
-  byte tz;
+  uint8_t clockMode;
+  uint8_t tz;
   bool tpmsRequest;
-  byte huType;
+  uint8_t huType;
   bool spare2;
   bool spare3;
-};
+} Settings;
 
 Settings currentSettings = {
   CONFIG_VERSION, // version

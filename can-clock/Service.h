@@ -4,12 +4,12 @@
 #include <Arduino.h>
 #include <stdarg.h>
 
-byte decToBcd(byte val)
+byte decToBcd(uint8_t val)
 {
   return( (val/10*16) + (val%10) );
 }
 
-byte bcdToDec(byte val)
+byte bcdToDec(uint8_t val)
 {
   return( (val/16*10) + (val%16) );
 }
