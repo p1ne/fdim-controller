@@ -62,9 +62,35 @@ DIY electronics store.
 
 ### Messages for FDIM
 
-####
+#### 0x50c - heartbeat
 
-### Message blocks
+#### 0x3e8 - top line of FDIM module
+
+#### 0x3ef
+
+#### 0x3f2 - clock
+
+#### 0x3f1
+
+#### 0x336 - text message
+
+#### 0x324 - text message
+
+#### 0x337 - text message
+
+#### 0x324 - text message
+
+#### 0x726 - TPMS request
+
+#### 0x72e - TPMS response
+
+#### 0x3b5 - TPMS broadcast
+
+#### 0x423 - Speed, RPM, on/off status
+
+#### 0x466 - GPS time data
+
+### Message sequences
 
 #### Initialization
 
