@@ -21,6 +21,15 @@ but it's not yet verified due to lack of test vehicles.
 FoDiMoCo is built on Arduino and components that could be found on AliExpress and/or your local
 DIY electronics store, so it should be easy to reproduce. PCB is available for order at Dirt Cheap PCBs.
 
+If you don't want to read this long text, there are steps you need to build your own FoDiMoCo:
+
+1. [Buy parts](#parts-list)
+2. Order or make PCB
+3. Solder
+4. Flash
+5. Configure
+6. Plug into the car
+
 ## Overview
 
 ### Current functionality
@@ -43,6 +52,7 @@ DIY electronics store, so it should be easy to reproduce. PCB is available for o
 
 ## Hardware part
 
+[Parts list](#parts-list)
 ### Parts list
 
 ### Schematics
