@@ -52,7 +52,6 @@ If you don't want to read this long text, there are steps you need to build your
 
 ## Hardware part
 
-[Parts list](#parts-list)
 ### Parts list
 
 ### Schematics
