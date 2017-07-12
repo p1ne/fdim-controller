@@ -8,6 +8,7 @@ module that enables your Ford USA vehicle top dash display (FDIM module)
 to display some useful information when stock head unit is removed.
 
 When this module is plugged in, your dash display looks like that
+
 ![](doc/images/hu_aftermarket.jpg)
 
 Module is tested on Ford Escapes (including Hybrid) and Mercury Mariners 2008-2012.
