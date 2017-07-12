@@ -1,0 +1,25 @@
+Arduino Pro Micro <-> CAN bus controller
+
+VCC - VCC
+GND - GND
+10 - CS
+14 - SO
+16 - SI
+15 - SCK
+7 - INT
+
+Arduino Pro Micro <-> RTC clock DS3231
+SCL - C
+SDA - D
+VCC - +
+GND - -
+
+Arduino Nano <-> CAN bus controller
+
+5V - VCC
+GND - GND
+D10 - CS
+D12 - SO
+D11 - SI
+D13 - SCK
+D2 - INT
