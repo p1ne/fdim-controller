@@ -1,22 +1,25 @@
 
-# Ford display module controller
+# FoDiMoCo - Ford display module (FDIM) controller
 
 ## What's this all about
 
-Long story short. This project primary goal is to create simple for DIY assembly
-module that enables your Ford USA vehicle top dash display (FDIM module)
-to display some useful information when stock head unit is removed.
+Long story short. FoDiMoCo is easy-to-build DIY controller for your Ford USA vehicle that
+enables top dash display to display some useful information when stock head unit is removed.
 
-When this module is plugged in, your dash display looks like that
+When this controller is plugged in, your dash display looks like that
 
 ![](doc/images/hu_aftermarket.jpg)
 
-Module is tested on Ford Escapes (including Hybrid) and Mercury Mariners 2008-2012.
+Module itself looks like that (one of hardware variants)
+
+![](doc/images/module_no_case.jpg)
+
+FoDiMoCo is tested on Ford Escapes (including Hybrid) and Mercury Mariners 2008-2012.
 Should work on other Fords of the same generation, including Mustang, Fiesta, F-150,
 but it's not yet verified due to lack of test vehicles.
 
-Module is built on Arduino and components that could be found on AliExpress and/or your local
-DIY electronics store.
+FoDiMoCo is built on Arduino and components that could be found on AliExpress and/or your local
+DIY electronics store, so it should be easy to reproduce. PCB is available for order at Dirt Cheap PCBs.
 
 ## Overview
 
