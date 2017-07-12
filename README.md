@@ -15,7 +15,12 @@ Module is tested on Ford Escapes (including Hybrid) and Mercury Mariners 2008-20
 Should work on other Fords of the same generation, including Mustang, Fiesta, F-150,
 but it's not yet verified due to lack of test vehicles.
 
-## Current functionality
+Module is built on Arduino and components that could be found on AliExpress and/or your local
+DIY electronics store.
+
+## Overview
+
+### Current functionality
 
 - display current speed, RPM, engine temperature, tires pressure, tires temperature, current time
 - configurable display units (km/miles for speed, Celsius/Fahrenheit for temperatures, psi/bars/kPa for pressure, 12h/24h for clock)
@@ -25,10 +30,68 @@ but it's not yet verified due to lack of test vehicles.
 - semi-configurable display layout for different head unit types
 - configuration made on the fly via serial terminal
 
-## Hardware versions
+### Hardware versions
 - no internal Real Time Clock (RTC) module, time is taken directly from your vehicle GPS module (model year 2009 and newer with 911 Assist)
 - with internal Real Time Clock module
 
-## Plugging into your vehicle options
+### Plugging into your vehicle options
 - directly behind your dash display module using DIY pass-through connector
 - into vehicle OBD connector
+
+## Hardware part
+
+### Parts list
+
+### Schematics
+
+### PCB
+
+### Soldering step-by-step
+
+### Plugging into car
+
+#### Behind FDIM
+
+#### Into OBD
+
+#### With separate ACC power wire
+
+## CAN bus structure part
+
+### Ford CAN buses: MS CAN and HS CAN
+
+### Messages for FDIM
+
+####
+
+### Message blocks
+
+#### Initialization
+
+#### Heartbeat
+
+#### Text output
+
+#### TPMS request
+
+## Software part
+
+### Source code structure
+
+### Flashing from Arduino IDE
+
+### Flashing from Platform IO/Atom
+
+### Flashing pre-built firmwares
+
+#### On Windows
+
+#### On Mac
+
+#### On Linux
+
+## Module configuration
+
+### Serial communication setup
+
+### Options
