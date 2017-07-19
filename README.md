@@ -56,7 +56,7 @@ If you don't want to read this long text, there are steps you need to build your
 
 ### Parts list
 - <details>
-    <summary>[Arduino Pro Micro](https://aliexpress.com/wholesale?SearchText=arduino+pro+micro)</summary> <p>![](doc/images/components/pro-micro.jpg)</p>
+    <summary>[Arduino Pro Micro with non-soldered pins (like in picture)](https://aliexpress.com/wholesale?SearchText=arduino+pro+micro)</summary> <p>![](doc/images/components/pro-micro.jpg)</p>
   </details>
 - <details>
     <summary>[CAN bus controller (MCP 2515 based)]((https://aliexpress.com/wholesale?SearchText=mcp2515+controller))</summary> <p>![](doc/images/components/mcp-can.jpg)</p>
@@ -70,10 +70,10 @@ If you don't want to read this long text, there are steps you need to build your
     <p>![](doc/images/components/7805.jpg) 7805 or similar with wide temperature range and thick heatsink. </p>
     </details>
 - <details>
-    <summary>[male pin headers straight (2.54mm pitch)](https://aliexpress.com/wholesale?SearchText=male+pin+headers+straight+2.54)</summary> <p>![](doc/images/components/pin-headers-straight.jpg)</p>
+    <summary>[male pin headers straight (2.54mm pitch)](https://aliexpress.com/wholesale?SearchText=male+pin+headers+straight+2.54)</summary> <p>![](doc/images/components/pin-headers-straight.jpg) You will need the following pieces: one 7 pins, one 4 pins, two 3 pins, two 2 pins, one 1 pin</p>
   </details>
 - <details>
-    <summary>[male pin headers angled (2.54mm pitch)](https://aliexpress.com/wholesale?SearchText=male+pin+headers+angled+2.54)</summary> <p>![](doc/images/components/pin-headers-angled.jpg)</p>
+    <summary>[male pin headers angled (2.54mm pitch)](https://aliexpress.com/wholesale?SearchText=male+pin+headers+angled+2.54)</summary> <p>![](doc/images/components/pin-headers-angled.jpg) You will need the following pieces: one 5 pins, one 2 pins</p>
   </details>
 - <details>
     <summary>PCB (prototype board or order at DirtCheap PCBs)</summary>
