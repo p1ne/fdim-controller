@@ -56,15 +56,15 @@ If you don't want to read this long text, there are steps you need to build your
 
 ### Parts list
 - <details>
-    <summary>[Arduino Pro Micro](https://aliexpress.com/wholesale?SearchText=arduino+pro+micro)</summary> <p>![](doc/images/components/promicro.png)</p>
+    <summary>[Arduino Pro Micro](https://aliexpress.com/wholesale?SearchText=arduino+pro+micro)</summary> <p>![](doc/images/components/pro-micro.jpg)</p>
   </details>
-- [CAN bus controller (MCP 2515 based)]((https://aliexpress.com/wholesale?SearchText=mcp2515+controller)) ![](doc/images/components/promicro.png)
-- [RTC clock module (DS 3231 based)]((https://aliexpress.com/wholesale?SearchText=ds3231+raspberry)) ![](doc/images/components/ds3231.png)
-- [male pin headers straight (2.54mm pitch)]((https://aliexpress.com/wholesale?SearchText=male+pin+headers+straight+2.54)) ![](doc/images/components/pin-headers-straight.png)
-- [male pin headers angled (2.54mm pitch)]((https://aliexpress.com/wholesale?SearchText=male+pin+headers+angled+2.54)) ![](doc/images/components/pin-headers-angled.png)
+- [CAN bus controller (MCP 2515 based)]((https://aliexpress.com/wholesale?SearchText=mcp2515+controller)) ![](doc/images/components/mcp-can.jpg)
+- [RTC clock module (DS 3231 based)]((https://aliexpress.com/wholesale?SearchText=ds3231+raspberry)) ![](doc/images/components/ds3231.jpg)
+- [male pin headers straight (2.54mm pitch)]((https://aliexpress.com/wholesale?SearchText=male+pin+headers+straight+2.54)) ![](doc/images/components/pin-headers-straight.jpg)
+- [male pin headers angled (2.54mm pitch)]((https://aliexpress.com/wholesale?SearchText=male+pin+headers+angled+2.54)) ![](doc/images/components/pin-headers-angled.jpg)
 - PCB (prototype board or order at DirtCheap PCBs)
-- (optional) [ELM327 enclosure]((https://aliexpress.com/wholesale?SearchText=elm327+case+enclosure))![](doc/images/components/elm327.jpg)
-- (optional) [long bi-sided pin strips-headers 2x6 (2.54mm pitch), can be cut from 2x7](https://aliexpress.com/wholesale?SearchText=pin+headers+long+2.54+2x6) ![](doc/images/components/pin-headers-long-2x7.png)
+- (optional) [ELM327 enclosure]((https://aliexpress.com/wholesale?SearchText=elm327+case+enclosure))![](doc/images/components/elm327-case.jpg)
+- (optional) [long bi-sided pin strips-headers 2x6 (2.54mm pitch), can be cut from 2x7](https://aliexpress.com/wholesale?SearchText=pin+headers+long+2.54+2x6) ![](doc/images/components/pin-headers-long-2x7.jpg)
 
 
 ### Schematics
