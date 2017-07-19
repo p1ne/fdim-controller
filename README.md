@@ -206,6 +206,22 @@ Header  | Length  | data byte 0  | data byte 1  | data byte 2  | data byte 3  | 
 
 #### 0x3b5 - TPMS broadcast
 
+**Description**: Current tires pressure value given in psi. Present on newer vehicles (possibly 2010+), not present on hybrids. TPMS request-response protocol is more widely used to get tire pressure, but TPMS broadcast is easier to implement. Minimal pressure level is 25 psi, all values below are still shown as 25.
+
+**Rate**: 1 Hz.
+
+**Format**
+
+Header  | Length  | data byte 0  | data byte 1  | data byte 2  | data byte 3  | data byte 4  | data byte 5   | data byte 6  | data byte 7
+--|---|---|---|---|---|---|---|---|--
+0x3b5  | 8  | front left  | front right  | rear left  | rear right  | 0x00  | 0x00  | 0x00  | 0x00
+
+**Example**
+
+Header  | Length  | data byte 0  | data byte 1  | data byte 2  | data byte 3  | data byte 4  | data byte 5   | data byte 6  | data byte 7
+--|---|---|---|---|---|---|---|---|--
+0x3b5  | 8  | 0x25  | 0x19  | 0x22  | 0x23  | 0x00  | 0x00  | 0x00  | 0x00
+
 #### 0x423 - Speed, RPM, on/off status
 
 #### 0x466 - GPS time data
