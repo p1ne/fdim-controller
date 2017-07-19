@@ -76,7 +76,7 @@ If you don't want to read this long text, there are steps you need to build your
     <p>Order details coming soon</p>
   </details>
 - <details>
-    <summary>(optional) [ELM327 enclosure](https://aliexpress.com/wholesale?SearchText=elm327+case+enclosure)<summary>
+    <summary>(optional) [ELM327 enclosure](https://aliexpress.com/wholesale?SearchText=elm327+case+enclosure)</summary>
     <p>![](doc/images/components/elm327-case.jpg)</p>
   </details>
 - <details>
