@@ -67,7 +67,9 @@ If you don't want to read this long text, there are steps you need to build your
   </details>
 - <details>
     <summary>5 volts voltage regulator</summary>
-    <p></p>
+    <p>7805 or similar with wide temperature range and thick heatsink.
+
+    ![](doc/images/components/7805.jpg)</p>
     </details>
 - <details>
     <summary>[male pin headers straight (2.54mm pitch)](https://aliexpress.com/wholesale?SearchText=male+pin+headers+straight+2.54)</summary> <p>![](doc/images/components/pin-headers-straight.jpg)</p>
@@ -100,6 +102,12 @@ Per components:
 - J_CAN is for in-car MS-CAN bus (pin 1 CAN H, pin 2 CAN L)
 - J_RESET is jumper pair to reset Arduino if needed
 - J_SERIAL is jumper pair to get serial data (e.g. to print musical tracks)
+
+SPI protocol is used to control CAN interface. SPI CS line is wired to Arduino pin 10. CAN messages received trigger interrupt bound to Arduino pin 7.
+
+I2C protocol is used to interact with Real-Time Clock module.
+
+Voltage regulator is used despite the fact that Arduino Pro Micro can handle power voltage up to 12 volts. Real vehicle voltage with engine running can be up to 14 volts, so usage of separate voltage regulator gives more guarantees.
 
 ![](doc/images/schematic.png)
 
