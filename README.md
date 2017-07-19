@@ -156,13 +156,39 @@ This section contains brief description of MS CAN messages used for FDIM display
 
 Header  | Length  | data byte 0  | data byte 1  | data byte 2  | data byte 3  | data byte 4  | data byte 5   | data byte 6  | data byte 7
 --|---|---|---|---|---|---|---|---|--
-0x50c  | 3  | 0x01  | 0x02  | 0x00  | -  | -  | -  | -  |
+0x50c  | 3  | 0x01  | 0x02  | 0x00  | -  | -  | -  | -  | -
 
 #### 0x3e8 - top line of FDIM module
 
 #### 0x3ef
 
 #### 0x3f2 - clock
+
+**Description**: Current time displayed. Time is given in [binary-coded decimal](https://en.wikipedia.org/wiki/Binary-coded_decimal) format.
+
+**Rate**: 20 Hz. Maybe possible to send less frequently.
+
+**Format**
+
+Header  | Length  | data byte 0  | data byte 1  | data byte 2  | data byte 3  | data byte 4  | data byte 5   | data byte 6  | data byte 7
+--|---|---|---|---|---|---|---|---|--
+0x3f2  | 8  | hour  | minute  | 0xFF  | 0xFF  | 0xFF  | 0xF0  | 0x00  | 0x00
+
+**Special cases**
+
+**Empty clock**
+
+Header  | Length  | data byte 0  | data byte 1  | data byte 2  | data byte 3  | data byte 4  | data byte 5   | data byte 6  | data byte 7
+--|---|---|---|---|---|---|---|---|--
+0x3f2  | 8  | 0xFF  | 0xFF  | 0xFF  | 0xFF  | 0xFF  | 0x00  | 0x00  | 0x00
+
+**Examples**
+
+**13:02**
+
+Header  | Length  | data byte 0  | data byte 1  | data byte 2  | data byte 3  | data byte 4  | data byte 5   | data byte 6  | data byte 7
+--|---|---|---|---|---|---|---|---|--
+0x3f2  | 8  | 0x13  | 0x02  | 0xFF  | 0xFF  | 0xFF  | 0xF0  | 0x00  | 0x00
 
 #### 0x3f1
 
