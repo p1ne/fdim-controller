@@ -143,10 +143,19 @@ On the image below one can see OBD2 socket pinout for MS CAN bus.
 
 ![](doc/images/mscan.jpg)
 
-
 ### Messages for FDIM
 
+This section contains brief description of MS CAN messages used for FDIM display control and/or getting basic vehicle telemetry data to display on FDIM. All the information is obtained from open sources or by reverse engineering of MS CAN protocol using vehicles available for the author. No Ford official documentation was used in the process, so exact meaning of message formats may be slightly inaccurate, incomplete or inapplicable for specific vehicle models. Information listed below is used to control FDIM modules on Ford Escapes 2008-2010 and Mercury Mariners 2009-2010, both hybrid and non-hybrid. It is theoretically possible to use those messages on Ford Mustangs 2008-2010, F-150s 2009-2010 and Fiestas 2010.
+
 #### 0x50c - heartbeat
+**Description**: Indicated the presence of ACM (Accessory Control Module) or headunit of the vehicle. FDIM display becomes inactive in the absence of the messages.
+
+**Rate**: 10 Hz
+
+**Format**
+Header  | Length  | data byte 0  | data byte 1  | data byte 2  | data byte 3  | data byte 4  | data byte 5   | data byte 6  | data byte 7
+--|---|---|---|---|---|---|---|---|--
+0x50c  | 3  | 0x01  | 0x02  | 0x00  | -  | -  | -  | -  |
 
 #### 0x3e8 - top line of FDIM module
 
