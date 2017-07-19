@@ -66,6 +66,10 @@ If you don't want to read this long text, there are steps you need to build your
     <p>![](doc/images/components/ds3231.jpg)</p>
   </details>
 - <details>
+    <summary>5 volts voltage regulator</summary>
+    <p></p>
+    </details>
+- <details>
     <summary>[male pin headers straight (2.54mm pitch)](https://aliexpress.com/wholesale?SearchText=male+pin+headers+straight+2.54)</summary> <p>![](doc/images/components/pin-headers-straight.jpg)</p>
   </details>
 - <details>
@@ -86,9 +90,22 @@ If you don't want to read this long text, there are steps you need to build your
 
 ### Schematics
 
+Schematics are more or less self-explanatory.
+Per components:
+- ARD1 is for Arduino
+- CAN is for CAN controller board
+- RTC is optional RTC module
+- VREG is voltage regulator to get stabilized 5 volts from in-car voltage
+- J_POWER is for in-car voltage (pin 1 +12V, pin 2 GND)
+- J_CAN is for in-car MS-CAN bus (pin 1 CAN H, pin 2 CAN L)
+- J_RESET is jumper pair to reset Arduino if needed
+- J_SERIAL is jumper pair to get serial data (e.g. to print musical tracks)
+
 ![](doc/images/schematic.png)
 
 ### PCB
+
+PCB is 2-layered with 3 inter-layer drills. DirtCheap PCB make them for you, other manufacturers may require extra wires soldering. Exact components placement is shown below in Soldering section.
 
 ![](doc/images/pcb_top.png)
 
@@ -98,11 +115,19 @@ If you don't want to read this long text, there are steps you need to build your
 
 ### Plugging into car
 
+There are 2 possible options to mount the module in the car:
+- into OBD2 connecttor - which allow easy removal of the modules
+- behind FDIM display module - which is more hidden installation
+
+If you do care on your battery current, it's also possible to get power for the module from ACC power line, which powers down the module when vehicle is off and powers it up when it's on and running. This installation option can be done easier when installed behind FDIM display, as additional wires can be hidded inside your dash.
+
 #### Behind FDIM
 
 ![](doc/images/fdim_rear_mount.jpg)
 
 #### Into OBD
+
+![](doc/images/fdim_elm_mount.jpg)
 
 #### With separate ACC power wire
 
