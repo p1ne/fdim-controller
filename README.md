@@ -67,9 +67,7 @@ If you don't want to read this long text, there are steps you need to build your
   </details>
 - <details>
     <summary>5 volts voltage regulator</summary>
-    <p>7805 or similar with wide temperature range and thick heatsink.
-
-    ![](doc/images/components/7805.jpg)</p>
+    <p>7805 or similar with wide temperature range and thick heatsink. ![](doc/images/components/7805.jpg)</p>
     </details>
 - <details>
     <summary>[male pin headers straight (2.54mm pitch)](https://aliexpress.com/wholesale?SearchText=male+pin+headers+straight+2.54)</summary> <p>![](doc/images/components/pin-headers-straight.jpg)</p>
