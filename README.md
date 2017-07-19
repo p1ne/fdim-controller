@@ -135,6 +135,15 @@ If you do care on your battery current, it's also possible to get power for the 
 
 ### Ford CAN buses: MS CAN and HS CAN
 
+By design Ford vehicles use two CAN buses - more standard HS CAN (high speed, 500 kbit/s) and Ford-specific MS CAN (medium speed, 125 kbit/s). Newer Fords have even more buses, but since I don't own one - I can't tell anything on this subject.
+
+FDIM display and most of less critical devices resides on MS CAN. It is possible to get access to MS CAN even from standard cheap ELM327 scanner by adding simple switch (modified ELM327 scanners with switch are already available on eBay or AliExpress). For more info refer to [FORScan forum](http://forscan.org/forum/viewtopic.php?f=4&t=4).
+
+On the image below one can see OBD2 socket pinout for MS CAN bus.
+
+![](doc/images/mscan.jpg)
+
+
 ### Messages for FDIM
 
 #### 0x50c - heartbeat
