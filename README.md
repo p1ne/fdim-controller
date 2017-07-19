@@ -237,6 +237,27 @@ Header  | Length  | data byte 0  | data byte 1  | data byte 2  | data byte 3  | 
 
 #### 0x423 - Speed, RPM, on/off status
 
+**Description**: Speed in km/h, RPMs and engine temperature. Also indicates when vehicle is in off position.
+
+**Rate**: Varies
+
+**Format**
+
+Header  | Length  | data byte 0  | data byte 1  | data byte 2  | data byte 3  | data byte 4  | data byte 5   | data byte 6  | data byte 7
+--|---|---|---|---|---|---|---|---|--
+0x423  | 8  | speed1  | speed2  | rpm1  | rpm2  | temperature  | 0x00  | 0x00  | 0x00
+
+Speed (in km/h) = (speed1 * 256 + speed2) / 100 - 100
+RPM = rpm1 * 256 + rpm2
+
+**Special cases**
+
+**Vehicle off**
+
+Header  | Length  | data byte 0  | data byte 1  | data byte 2  | data byte 3  | data byte 4  | data byte 5   | data byte 6  | data byte 7
+--|---|---|---|---|---|---|---|---|--
+0x423  | 8  | 0xFF  | 0xFE  | 0xFF  | 0xFE  | 0xFE  | 0x00  | 0x00  | 0x00
+
 #### 0x466 - GPS time data
 
 ### Message sequences
