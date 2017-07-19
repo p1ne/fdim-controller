@@ -153,6 +153,7 @@ This section contains brief description of MS CAN messages used for FDIM display
 **Rate**: 10 Hz
 
 **Format**
+
 Header  | Length  | data byte 0  | data byte 1  | data byte 2  | data byte 3  | data byte 4  | data byte 5   | data byte 6  | data byte 7
 --|---|---|---|---|---|---|---|---|--
 0x50c  | 3  | 0x01  | 0x02  | 0x00  | -  | -  | -  | -  |
