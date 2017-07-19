@@ -178,7 +178,14 @@ Header  | Length  | data byte 0  | data byte 1  | data byte 2  | data byte 3  | 
 
 Header  | Length  | data byte 0  | data byte 1  | data byte 2  | data byte 3  | data byte 4  | data byte 5   | data byte 6  | data byte 7
 --|---|---|---|---|---|---|---|---|--
-0x3f2  | 8  | hour  | minute  | 0xFF  | 0xFF  | 0xFF  | 0xF0  | 0x00  | 0x00
+0x3f2  | 8  | hour  | minute  | day  | month  | year  | flags  | 0x00  | 0x00
+
+flags:
+0x80 - time is adjusting (blink)
+0xA0 - AM
+0xC0 - PM
+0xE0 - 24 hours
+0xC0 - clock off
 
 **Special cases**
 
