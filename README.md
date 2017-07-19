@@ -55,7 +55,9 @@ If you don't want to read this long text, there are steps you need to build your
 ## Hardware
 
 ### Parts list
-- [Arduino Pro Micro](https://aliexpress.com/wholesale?SearchText=arduino+pro+micro) ![](doc/images/components/promicro.png)
+- <details>
+    <summary>[Arduino Pro Micro](https://aliexpress.com/wholesale?SearchText=arduino+pro+micro)</summary> <p>![](doc/images/components/promicro.png)</p>
+  </details>
 - [CAN bus controller (MCP 2515 based)]((https://aliexpress.com/wholesale?SearchText=mcp2515+controller)) ![](doc/images/components/promicro.png)
 - [RTC clock module (DS 3231 based)]((https://aliexpress.com/wholesale?SearchText=ds3231+raspberry)) ![](doc/images/components/ds3231.png)
 - [male pin headers straight (2.54mm pitch)]((https://aliexpress.com/wholesale?SearchText=male+pin+headers+straight+2.54)) ![](doc/images/components/pin-headers-straight.png)
