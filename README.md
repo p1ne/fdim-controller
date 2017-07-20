@@ -248,6 +248,7 @@ Header  | Length  | data byte 0  | data byte 1  | data byte 2  | data byte 3  | 
 0x423  | 8  | speed1  | speed2  | rpm1  | rpm2  | temperature  | 0x00  | 0x00  | 0x00
 
 Speed (in km/h) = (speed1 * 256 + speed2) / 100 - 100
+
 RPM = rpm1 * 256 + rpm2
 
 **Special cases**
@@ -271,10 +272,15 @@ Header  | Length  | data byte 0  | data byte 1  | data byte 2  | data byte 3  | 
 0x466  | 8  | h  | min  | s  | -  | d  | mon  | y  | 0x00
 
 Hour = ( h >> 3 ) & 0x1F
+
 Minute = ( min >> 2 ) & 0x3F
+
 Second = ( s >> 2 ) & 0x3F
+
 Day = ( d >> 2 ) & 0x3F
+
 Month = ( mon >> 4 ) & 0x0F
+
 Year = ( y >> 3 ) & 0x1F
 
 ### Message sequences
