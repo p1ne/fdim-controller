@@ -180,19 +180,33 @@ Header  | Length  | data byte 0  | data byte 1  | data byte 2  | data byte 3  | 
 **source** can have the following values:
 
 0x01 - AM
+
 0x02 - FM1
+
 0x03 - FM2
+
 0x04 - PHON
+
 0x05 - SYNC
+
 0x06 - DVD
+
 0x07 - AUX
+
 0x08 - CD
+
 0x09 - EMPTY
+
 0x0A - SAT1
+
 0x0B - SAT2
+
 0x0C - SAT3
+
 0x0D - PHON
+
 0xOE - LINE
+
 0x0F - 2 clocks if no text is printed, or one clock if text is present
 
 **volume** value change displays volume bar
