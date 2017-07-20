@@ -205,7 +205,7 @@ Header  | Length  | data byte 0  | data byte 1  | data byte 2  | data byte 3  | 
 
 0x0D - PHON
 
-0xOE - LINE
+0x0E - LINE
 
 0x0F - 2 clocks if no text is printed, or one clock if text is present
 
@@ -262,15 +262,23 @@ Header  | Length  | data byte 0  | data byte 1  | data byte 2  | data byte 3  | 
 --|---|---|---|---|---|---|---|---|--
 0x3f2  | 8  | 0x13  | 0x02  | 0xFF  | 0xFF  | 0xFF  | 0xF0  | 0x00  | 0x00
 
-#### 0x3f1
+#### 0x3f1 - unknown
+
+**Description**: Unknown. Sent only once in FDIM start-up message sequence.
+
+**Rate**: Not repeated
+
+**Format**
+
+Header  | Length  | data byte 0  | data byte 1  | data byte 2  | data byte 3  | data byte 4  | data byte 5   | data byte 6  | data byte 7
+--|---|---|---|---|---|---|---|---|--
+0x3f1  | 8  | 0xF5  | 0x90  | 0x00  | 0x00  | 0x00  | 0x00  | 0x00  | 0x00
+
+#### 0x324 - text message
 
 #### 0x336 - text message
 
-#### 0x324 - text message
-
 #### 0x337 - text message
-
-#### 0x324 - text message
 
 #### 0x726 - TPMS request
 
