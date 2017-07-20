@@ -260,6 +260,23 @@ Header  | Length  | data byte 0  | data byte 1  | data byte 2  | data byte 3  | 
 
 #### 0x466 - GPS time data
 
+**Description**: Current time obtained from GPS satellites, in GMT time zone
+
+**Rate**: 1 Hz
+
+**Format**
+
+Header  | Length  | data byte 0  | data byte 1  | data byte 2  | data byte 3  | data byte 4  | data byte 5   | data byte 6  | data byte 7
+--|---|---|---|---|---|---|---|---|--
+0x466  | 8  | h  | min  | s  | -  | d  | mon  | y  | 0x00
+
+Hour = ( h >> 3 ) & 0x1F
+Minute = ( min >> 2 ) & 0x3F
+Second = ( s >> 2 ) & 0x3F
+Day = ( d >> 2 ) & 0x3F
+Month = ( mon >> 4 ) & 0x0F
+Year = ( y >> 3 ) & 0x1F
+
 ### Message sequences
 
 #### Initialization
