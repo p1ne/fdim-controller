@@ -154,7 +154,8 @@ On the image below one can see OBD2 socket pinout for MS CAN bus.
 This section contains brief description of MS CAN messages used for FDIM display control and/or getting basic vehicle telemetry data to display on FDIM. All the information is obtained from open sources or by reverse engineering of MS CAN protocol using vehicles available for the author. No Ford official documentation was used in the process, so exact meaning of message formats may be slightly inaccurate, incomplete or inapplicable for specific vehicle models. Information listed below is used to control FDIM modules on Ford Escapes 2008-2010 and Mercury Mariners 2009-2010, both hybrid and non-hybrid. It is theoretically possible to use those messages on Ford Mustangs 2008-2010, F-150s 2009-2010 and Fiestas 2010.
 
 #### 0x50c - heartbeat
-**Description**: Indicated the presence of ACM (Accessory Control Module) or headunit of the vehicle. FDIM display becomes inactive in the absence of the messages.
+
+**Description**: Indicates the presence of ACM (Accessory Control Module) or headunit of the vehicle. FDIM display becomes inactive in the absence of the messages.
 
 **Rate**: 10 Hz
 
@@ -164,9 +165,53 @@ Header  | Length  | data byte 0  | data byte 1  | data byte 2  | data byte 3  | 
 --|---|---|---|---|---|---|---|---|--
 0x50c  | 3  | 0x01  | 0x02  | 0x00  | -  | -  | -  | -  | -
 
-#### 0x3e8 - top line of FDIM module
+#### 0x3e8 - top line of FDIM module and heartbeat
 
-#### 0x3ef
+**Description**: Sets sound source and indicates the presence of ACM (Accessory Control Module) together with 0x50c. FDIM display becomes inactive in the absence of the messages.
+
+**Rate**: 1 Hz
+
+**Format**
+
+Header  | Length  | data byte 0  | data byte 1  | data byte 2  | data byte 3  | data byte 4  | data byte 5   | data byte 6  | data byte 7
+--|---|---|---|---|---|---|---|---|--
+0x3e8  | 8  | source  | 0x00  | volume  | clock length?  | 0x00  | 0x00  | 0x00  | 0x00
+
+**source** can have the following values:
+
+0x01 - AM
+0x02 - FM1
+0x03 - FM2
+0x04 - PHON
+0x05 - SYNC
+0x06 - DVD
+0x07 - AUX
+0x08 - CD
+0x09 - EMPTY
+0x0A - SAT1
+0x0B - SAT2
+0x0C - SAT3
+0x0D - PHON
+0xOE - LINE
+0x0F - 2 clocks if no text is printed, or one clock if text is present
+
+**volume** value change displays volume bar
+
+**clock length** have values only 0x00 or 0x04, possibly sets number of digits in current clock display
+
+#### 0x3ef - unknown
+
+**Description**: Unknown. Sent on FDIM initialization and then with rate 1Hz with slightly different data
+
+**Rate**: 1 Hz
+
+**Format**
+
+Header  | Length  | data byte 0  | data byte 1  | data byte 2  | data byte 3  | data byte 4  | data byte 5   | data byte 6  | data byte 7
+--|---|---|---|---|---|---|---|---|--
+0x3ef  | 8  | 0x32  | 0x32  | 0x32  | 0x32  | 0x03  | 0x00  | 0x00  | init
+
+**init** value is 0x00 on 1st message sent and then 0x20 when module is activated
 
 #### 0x3f2 - clock
 
