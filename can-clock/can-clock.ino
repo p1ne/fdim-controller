@@ -304,6 +304,15 @@ void loop() {
         }
           break;
         case 0x72e: { // TPMS response
+          Serial.print(currentTpmsRequest);
+          Serial.print(" ");
+          Serial.print(rcvCanId, HEX);
+          Serial.print(" ");
+          for (i=0;i<8;i++) {
+            Serial.print(rcvBuf[i], HEX);
+            Serial.print(" ");
+          }
+          Serial.println();
 
           if ( currentSettings.displayPressure && currentSettings.tpmsRequest && (rcvBuf[0] == 7) && (rcvBuf[1] == 0x62) && (rcvBuf[2] == 0x41)) {
 
