@@ -1,6 +1,8 @@
 
 # FoDiMoCo - Ford display module (FDIM) controller
 
+[![Build Status](https://travis-ci.org/p1ne/fdim-controller.svg?branch=master)](https://travis-ci.org/p1ne/fdim-controller)
+
 ## What's this all about
 
 Long story short. FoDiMoCo is easy-to-build DIY controller for your Ford USA vehicle that
