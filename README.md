@@ -62,39 +62,83 @@ If you don't want to read this long text, there are steps you need to build your
 ### Parts list
 - <details markdown="1">
     <summary markdown="1">Arduino Pro Micro with non-soldered pins</summary> <p>
-    
+
     ![](doc/images/components/pro-micro.jpg)
 
     [Search AliExpress](https://aliexpress.com/wholesale?SearchText=arduino+pro+micro)
     </p>
   </details>
 - <details>
-    <summary>[CAN bus controller (MCP 2515 based)]((https://aliexpress.com/wholesale?SearchText=mcp2515+controller))</summary> <p>![](doc/images/components/mcp-can.jpg)</p>
+    <summary>CAN bus controller (MCP 2515 based)</summary> <p>
+
+    ![](doc/images/components/mcp-can.jpg)
+
+    [Search AliExpress](https://aliexpress.com/wholesale?SearchText=mcp2515+controller)
+    </p>
   </details>
 - <details>
-    <summary>[RTC clock module (DS 3231 based)](https://aliexpress.com/wholesale?SearchText=ds3231+raspberry)</summary>
-    <p>![](doc/images/components/ds3231.jpg)</p>
+    <summary>RTC clock module (DS 3231 based)</summary> <p>
+
+    ![](doc/images/components/ds3231.jpg)
+
+    [Search AliExpress](https://aliexpress.com/wholesale?SearchText=ds3231+raspberry)
+    </p>
   </details>
 - <details>
-    <summary>[5 volts voltage regulator](https://aliexpress.com/wholesale?SearchText=7805)</summary>
-    <p>![](doc/images/components/7805.jpg) 7805 or similar with wide temperature range and thick heatsink. </p>
+    <summary>5 volts voltage regulator</summary> <p>
+
+    ![](doc/images/components/7805.jpg)
+
+    7805 or similar with wide temperature range and thick heatsink.
+
+    [Search AliExpress](https://aliexpress.com/wholesale?SearchText=7805)
+    </p>
     </details>
 - <details>
-    <summary>[male pin headers straight (2.54mm pitch)](https://aliexpress.com/wholesale?SearchText=male+pin+headers+straight+2.54)</summary> <p>![](doc/images/components/pin-headers-straight.jpg) You will need the following pieces: one 7 pins, one 4 pins, two 3 pins, two 2 pins, one 1 pin</p>
+    <summary>Male pin headers straight (2.54mm pitch)</summary> <p>
+
+    ![](doc/images/components/pin-headers-straight.jpg)
+
+    You will need the following pieces: one 7 pins, one 4 pins, two 3 pins, two 2 pins, one 1 pin
+
+    [Search AliExpress](https://aliexpress.com/wholesale?SearchText=male+pin+headers+straight+2.54)
+    </p>
   </details>
 - <details>
-    <summary>[male pin headers angled (2.54mm pitch)](https://aliexpress.com/wholesale?SearchText=male+pin+headers+angled+2.54)</summary> <p>![](doc/images/components/pin-headers-angled.jpg) You will need the following pieces: one 5 pins, one 2 pins</p>
+    <summary>Male pin headers angled (2.54mm pitch)</summary> <p>
+
+    ![](doc/images/components/pin-headers-angled.jpg)
+
+    You will need the following pieces: one 5 pins, one 2 pins
+
+    [Search AliExpress](https://aliexpress.com/wholesale?SearchText=male+pin+headers+angled+2.54)
+    </p>
   </details>
 - <details>
-    <summary>PCB (prototype board or order at DirtCheap PCBs)</summary>
-    <p>Order details coming soon</p>
+    <summary>PCB (prototype board or order at DirtCheap PCBs)</summary> <p>
+
+    Order details coming soon
+    </p>
+  </details>
+
+And depending on mount type, choose one of the following options
+- <details>
+    <summary>ELM327 enclosure</summary> <p>
+
+    [Search on AliExpress](https://aliexpress.com/wholesale?SearchText=elm327+enclosure)
+
+    ![](doc/images/components/elm327-case.jpg)
+    </p>
   </details>
 - <details>
-    <summary>(optional) [ELM327 enclosure](https://aliexpress.com/wholesale?SearchText=elm327+case+enclosure)</summary>
-    <p>![](doc/images/components/elm327-case.jpg)</p>
-  </details>
-- <details>
-    <summary>(optional) [long bi-sided pin strips-headers 2x6 (2.54mm pitch), can be cut from 2x7](https://aliexpress.com/wholesale?SearchText=pin+headers+long+2.54+2x6)</summary> <p>![](doc/images/components/pin-headers-long-2x7.jpg)</p>
+    <summary>Long bi-sided pin strips-headers 2x6 (2.54mm pitch), can be cut from 2x7</summary> <p>
+
+    ![](doc/images/components/pin-headers-long-2x7.jpg)
+
+    Can be cut from 2x7 if no 2x6 are available.
+
+    [Search on AliExpress](https://aliexpress.com/wholesale?SearchText=pin+headers+long+2.54+2x6)
+    </p>
   </details>
 
 
