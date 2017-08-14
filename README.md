@@ -125,9 +125,9 @@ And depending on mount type, choose one of the following options
 - <details>
     <summary>ELM327 enclosure</summary> <p>
 
-    [Search on AliExpress](https://aliexpress.com/wholesale?SearchText=elm327+enclosure)
-
     ![](doc/images/components/elm327-case.jpg)
+
+    [Search on AliExpress](https://aliexpress.com/wholesale?SearchText=elm327+enclosure)
     </p>
   </details>
 - <details>
