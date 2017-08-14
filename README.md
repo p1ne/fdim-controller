@@ -62,6 +62,7 @@ If you don't want to read this long text, there are steps you need to build your
 ### Parts list
 - <details markdown="1">
     <summary markdown="1">Arduino Pro Micro with non-soldered pins</summary> <p>
+    
     ![](doc/images/components/pro-micro.jpg)
 
     [Search AliExpress](https://aliexpress.com/wholesale?SearchText=arduino+pro+micro)
