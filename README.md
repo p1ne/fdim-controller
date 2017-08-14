@@ -60,8 +60,12 @@ If you don't want to read this long text, there are steps you need to build your
 ## Hardware
 
 ### Parts list
-- <details markdown>
-    <summary markdown>[Arduino Pro Micro with non-soldered pins (like in picture)](https://aliexpress.com/wholesale?SearchText=arduino+pro+micro)</summary> <p>![](doc/images/components/pro-micro.jpg)</p>
+- <details markdown="1">
+    <summary markdown="1">Arduino Pro Micro with non-soldered pins</summary> <p>
+    ![](doc/images/components/pro-micro.jpg)
+
+    [Search AliExpress](https://aliexpress.com/wholesale?SearchText=arduino+pro+micro)
+    </p>
   </details>
 - <details>
     <summary>[CAN bus controller (MCP 2515 based)]((https://aliexpress.com/wholesale?SearchText=mcp2515+controller))</summary> <p>![](doc/images/components/mcp-can.jpg)</p>
