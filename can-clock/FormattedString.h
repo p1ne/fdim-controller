@@ -26,7 +26,7 @@ public:
   bool operator != (const FormattedString v) const { return (v != value); }
   bool operator != (const String v) const { return (v != value); }
 
-  String padZeros(byte length) const
+  String padZeros(uint8_t length) const
   {
     String str = value;
     str.trim();
@@ -37,7 +37,7 @@ public:
     return str;
   }
 
-  String padLeft(byte length) const
+  String padLeft(const uint8_t length) const
   {
     String str = value;
     str.trim();
@@ -48,7 +48,7 @@ public:
     return str;
   }
 
-  String padRight(byte length) const
+  String padRight(const uint8_t length) const
   {
     String str = value;
     str.trim();
@@ -59,7 +59,7 @@ public:
     return str;
   }
 
-  String padCenter(byte length) const
+  String padCenter(const uint8_t length) const
   {
     String str = value;
     str.trim();

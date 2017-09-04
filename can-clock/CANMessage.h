@@ -18,19 +18,19 @@ public:
   {
   }
 
-  CANMessage( uint16_t _started,
-              uint16_t _delayed,
-              uint16_t _repeated,
-              uint16_t _header,
-              uint8_t _len,
-              uint8_t _d0,
-              uint8_t _d1,
-              uint8_t _d2,
-              uint8_t _d3,
-              uint8_t _d4,
-              uint8_t _d5,
-              uint8_t _d6,
-              uint8_t _d7
+  CANMessage( const uint16_t _started,
+              const uint16_t _delayed,
+              const uint16_t _repeated,
+              const uint16_t _header,
+              const uint8_t _len,
+              const uint8_t _d0,
+              const uint8_t _d1,
+              const uint8_t _d2,
+              const uint8_t _d3,
+              const uint8_t _d4,
+              const uint8_t _d5,
+              const uint8_t _d6,
+              const uint8_t _d7
             )
   {
     started = _started;
@@ -48,20 +48,20 @@ public:
     data[7] = _d7;
   }
 
-  void set(
-            uint16_t _started,
-            uint16_t _delayed,
-            uint16_t _repeated,
-            uint16_t _header,
-            uint8_t _len,
-            uint8_t _d0,
-            uint8_t _d1,
-            uint8_t _d2,
-            uint8_t _d3,
-            uint8_t _d4,
-            uint8_t _d5,
-            uint8_t _d6,
-            uint8_t _d7)
+  void set( const uint16_t _started,
+            const uint16_t _delayed,
+            const uint16_t _repeated,
+            const uint16_t _header,
+            const uint8_t _len,
+            const uint8_t _d0,
+            const uint8_t _d1,
+            const uint8_t _d2,
+            const uint8_t _d3,
+            const uint8_t _d4,
+            const uint8_t _d5,
+            const uint8_t _d6,
+            const uint8_t _d7
+          )
   {
     started = _started;
     delayed = _delayed;

@@ -58,7 +58,7 @@ void MCP2515_ISR()
 }
 
 
-void printDebug(uint16_t timer, CANMessage msg)
+void printDebug(const uint16_t timer, const CANMessage msg)
 {
 #if defined (DEBUG)
     Serial.print(F("Time: "));
@@ -68,7 +68,7 @@ void printDebug(uint16_t timer, CANMessage msg)
 #endif
 }
 
-void displayText(uint8_t strNo, String str)
+void displayText(const uint8_t strNo, const String str)
 {
   uint8_t curLine, curChar, numChars;
 
@@ -117,12 +117,12 @@ void displayText(uint8_t strNo, String str)
   }
 }
 
-FormattedString getPressure(uint8_t pressure)
+FormattedString getPressure(const uint8_t pressure)
 {
   return (pressure > 25) ? String(round(pressure * (currentSettings.pressureUnits == PRESSURE_PSI ? 1 : 6.89476 ) ) / ( currentSettings.pressureUnits == PRESSURE_BARS ? 100.0 : 1 )) : pressureLow;
 }
 
-FormattedString getTemperature(uint8_t t)
+FormattedString getTemperature(const uint8_t t)
 {
   return String((uint8_t)round((t-40) * (currentSettings.unitsMetric ? 1 : 1.8) + (currentSettings.unitsMetric ? 0 : 32)));
 }
@@ -304,16 +304,6 @@ void loop() {
         }
           break;
         case 0x72e: { // TPMS response
-          Serial.print(currentTpmsRequest);
-          Serial.print(" ");
-          Serial.print(rcvCanId, HEX);
-          Serial.print(" ");
-          for (i=0;i<8;i++) {
-            Serial.print(rcvBuf[i], HEX);
-            Serial.print(" ");
-          }
-          Serial.println();
-
           if ( currentSettings.displayPressure && currentSettings.tpmsRequest && (rcvBuf[0] == 7) && (rcvBuf[1] == 0x62) && (rcvBuf[2] == 0x41)) {
 
             switch (rcvBuf[3]) {  // checking front are rear tires response
