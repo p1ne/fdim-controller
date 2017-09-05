@@ -179,23 +179,23 @@ PCB is 2-layered with 3 inter-layer drills. DirtCheap PCB make them for you, oth
 
 ![](doc/images/soldering/03_straight_pin_soldering.jpg)
 
-![](doc/images/soldering/.jpg)
+![](doc/images/soldering/04_rtc_pins_soldering.jpg)
 
-![](doc/images/soldering/.jpg)
+![](doc/images/soldering/05_power_pins_soldering.jpg)
 
-![](doc/images/soldering/01_.jpg)
+![](doc/images/soldering/06_power_regulator.jpg)
 
-![](doc/images/soldering/01_.jpg)
+![](doc/images/soldering/07_arduino.jpg)
 
-![](doc/images/soldering/01_.jpg)
+![](doc/images/soldering/08_can_board.jpg)
 
-![](doc/images/soldering/01_.jpg)
+![](doc/images/soldering/09_full_assembly.jpg)
 
-![](doc/images/soldering/01_.jpg)
+![](doc/images/soldering/10_connector_male_side.jpg)
 
-![](doc/images/soldering/01_.jpg)
+![](doc/images/soldering/11_connector_female_side.jpg)
 
-![](doc/images/soldering/01_.jpg)
+![](doc/images/soldering/12_full_assembly_wires.jpg)
 
 ### Plugging into car
 
