@@ -12,6 +12,15 @@ This README is yet unfinished, nearest plans are to give more details on configu
 
 If you're too far away from the subject, there is introductory [presentation](presentation) I made on one of DIY meetups
 
+If you don't want to read this long text but just want to get info on building your own FDIM controller, there are steps you need to build your own FoDiMoCo:
+
+1. [Buy parts](#parts-list)
+2. [Order or make PCB](#pcb)
+3. [Solder](#soldering-step-by-step)
+4. [Flash](#flashing-pre-built-firmwares)
+5. [Configure](#configuration)
+6. [Plug into the car](#plugging-into-car)
+
 Table of Contents
 =================
 
@@ -77,15 +86,6 @@ but it's not yet verified due to lack of test vehicles.
 
 FoDiMoCo is built on Arduino and components that could be found on AliExpress and/or your local
 DIY electronics store, so it should be easy to reproduce. PCB is available for order at Dirt Cheap PCBs.
-
-If you don't want to read this long text, there are steps you need to build your own FoDiMoCo:
-
-1. [Buy parts](#parts-list)
-2. [Order or make PCB](#pcb)
-3. [Solder](#soldering-step-by-step)
-4. [Flash](#flashing-pre-built-firmwares)
-5. [Configure](#configuration)
-6. [Plug into the car](#plugging-into-car)
 
 ### Functionality
 
