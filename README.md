@@ -1,15 +1,67 @@
 
 # FoDiMoCo - Ford display module (FDIM) controller [![Build Status](https://travis-ci.org/p1ne/fdim-controller.svg?branch=master)](https://travis-ci.org/p1ne/fdim-controller)
 
+
 ## What's this all about
 
 Long story short. FoDiMoCo is easy-to-build DIY controller for your Ford USA vehicle that
 enables top dash display to display some useful information when stock head unit is removed.
 Initial name of the project was can-clock, as all I wanted to do it to print clock on dash display. Later it evolved, but name is still in the code.
 
-This README is yet unfinished, nearest plans is to put photo process of soldering and finalize messages description.
+This README is yet unfinished, nearest plans are to give more details on configuration and finalize messages description.
 
 If you're too far away from the subject, there is introductory [presentation](presentation) I made on one of DIY meetups
+
+Table of Contents
+=================
+
+  * [Overview](#overview)
+    * [Functionality](#functionality)
+    * [Hardware options](#hardware-options)
+    * [Plugging into your vehicle options](#plugging-into-your-vehicle-options)
+  * [Hardware](#hardware)
+    * [Parts list](#parts-list)
+    * [Schematics](#schematics)
+    * [PCB](#pcb)
+    * [Soldering step\-by\-step](#soldering-step-by-step)
+    * [Plugging into car](#plugging-into-car)
+      * [Behind FDIM](#behind-fdim)
+      * [Into OBD](#into-obd)
+      * [With separate ACC power wire](#with-separate-acc-power-wire)
+  * [CAN bus structure](#can-bus-structure)
+    * [Ford CAN buses: MS CAN and HS CAN](#ford-can-buses-ms-can-and-hs-can)
+    * [Messages for FDIM](#messages-for-fdim)
+      * [0x50c \- heartbeat](#0x50c---heartbeat)
+      * [0x3e8 \- top line of FDIM module and heartbeat](#0x3e8---top-line-of-fdim-module-and-heartbeat)
+      * [0x3ef \- unknown](#0x3ef---unknown)
+      * [0x3f2 \- clock](#0x3f2---clock)
+      * [0x3f1 \- unknown](#0x3f1---unknown)
+      * [0x324 \- text message](#0x324---text-message)
+      * [0x336 \- text message](#0x336---text-message)
+      * [0x337 \- text message](#0x337---text-message)
+      * [0x726 \- TPMS request](#0x726---tpms-request)
+      * [0x72e \- TPMS response](#0x72e---tpms-response)
+      * [0x3b5 \- TPMS broadcast](#0x3b5---tpms-broadcast)
+      * [0x423 \- Speed, RPM, on/off status](#0x423---speed-rpm-onoff-status)
+      * [0x466 \- GPS time data](#0x466---gps-time-data)
+    * [Message sequences](#message-sequences)
+      * [Initialization](#initialization)
+      * [Heartbeat](#heartbeat)
+      * [Text output](#text-output)
+      * [TPMS request](#tpms-request)
+  * [Software](#software)
+    * [Source code structure](#source-code-structure)
+    * [Flashing from Arduino IDE](#flashing-from-arduino-ide)
+    * [Flashing from Platform IO/Atom](#flashing-from-platform-ioatom)
+    * [Flashing pre\-built firmwares](#flashing-pre-built-firmwares)
+      * [On Windows](#on-windows)
+      * [On Mac](#on-mac)
+      * [On Linux](#on-linux)
+  * [Configuration](#configuration)
+    * [Serial communication setup](#serial-communication-setup)
+    * [Options](#options)
+
+## Overview
 
 When this controller is plugged in, your dash display looks like that
 
@@ -34,8 +86,6 @@ If you don't want to read this long text, there are steps you need to build your
 4. [Flash](#flashing-pre-built-firmwares)
 5. [Configure](#configuration)
 6. [Plug into the car](#plugging-into-car)
-
-## Overview
 
 ### Functionality
 
