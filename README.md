@@ -14,12 +14,13 @@ If you're too far away from the subject, there is introductory [presentation](pr
 
 If you don't want to read this long text but just want to get info on building your own FDIM controller, there are steps you need to build your own FoDiMoCo:
 
-1. [Buy parts](#parts-list)
-2. [Order or make PCB](#pcb)
-3. [Solder](#soldering-step-by-step)
-4. [Flash](#flashing-pre-built-firmwares)
-5. [Configure](#configuration)
-6. [Plug into the car](#plugging-into-car)
+1. [Enjoy nice display photos and get feature overview](#overview)
+2. [Buy parts](#parts-list)
+3. [Order or make PCB](#pcb)
+4. [Solder](#soldering-step-by-step)
+5. [Flash](#flashing-pre-built-firmwares)
+6. [Configure](#configuration)
+7. [Plug into the car](#plugging-into-car)
 
 Table of Contents
 =================
