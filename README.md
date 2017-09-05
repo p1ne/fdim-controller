@@ -37,7 +37,7 @@ Table of Contents
       * [Behind FDIM](#behind-fdim)
       * [Into OBD](#into-obd)
       * [With separate ACC power wire](#with-separate-acc-power-wire)
-  * [CAN bus structure](#can-bus-structure)
+  * [CAN bus operation](#can-bus-operation)
     * [Ford CAN buses: MS CAN and HS CAN](#ford-can-buses-ms-can-and-hs-can)
     * [Messages for FDIM](#messages-for-fdim)
       * [0x50c \- heartbeat](#0x50c---heartbeat)
