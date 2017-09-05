@@ -3,7 +3,7 @@ G04 TopMask.GTS*
 %MOIN*%
 G04 #@! TF.FileFunction,Soldermask,Top*
 G04 #@! TF.Part,Single*
-%ADD17C,0.05937*%
+%ADD18C,0.05937*%
 %FSLAX26Y26*%
 G04*
 G70*
@@ -12,7 +12,7 @@ G75*
 G01*
 G04 TopMask*
 %LPD*%
-D17*
+D18*
 X1193701Y893701D3*
 X593701Y793701D3*
 X693701D3*

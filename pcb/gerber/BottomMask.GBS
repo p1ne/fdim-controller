@@ -3,7 +3,7 @@ G04 BottomMask.GBS*
 %MOIN*%
 G04 #@! TF.FileFunction,Soldermask,Bot*
 G04 #@! TF.Part,Single*
-%ADD17C,0.05937*%
+%ADD18C,0.05937*%
 %FSLAX26Y26*%
 G04*
 G70*
@@ -12,7 +12,7 @@ G75*
 G01*
 G04 BotMask*
 %LPD*%
-D17*
+D18*
 X1193701Y893701D3*
 X593701Y793701D3*
 X693701D3*
