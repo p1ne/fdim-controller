@@ -240,29 +240,41 @@ If you do care on your battery current, it's also possible to get power for the 
 
 ### Soldering step-by-step
 
-![Take PCB](doc/images/soldering/01_take_pcb.jpg)
+![](doc/images/soldering/01_take_pcb.jpg)
+*Take PCB*
 
-![Place pin headers on breadboard to simplify soldering](doc/images/soldering/02_prepare_pins_on_breadboard.jpg)
+![](doc/images/soldering/02_prepare_pins_on_breadboard.jpg)
+*Place pin headers on breadboard to simplify soldering*
 
-![Put PCB over pins and solder it](doc/images/soldering/03_straight_pin_soldering.jpg)
+![](doc/images/soldering/03_straight_pin_soldering.jpg)
+*Put PCB over pins and solder it*
 
-![Solder angled pins for RTC as shown if needed](doc/images/soldering/04_rtc_pins_soldering.jpg)
+![](doc/images/soldering/04_rtc_pins_soldering.jpg)
+*Solder angled pins for RTC as shown if needed*
 
-![Rotate PCB and solder angled pins for power connection](doc/images/soldering/05_power_pins_soldering.jpg)
+![](doc/images/soldering/05_power_pins_soldering.jpg)
+*Rotate PCB and solder angled pins for power connection*
 
-![Bend power regulator pins and solder it as follows](doc/images/soldering/06_power_regulator.jpg)
+![](doc/images/soldering/06_power_regulator.jpg)
+*Bend power regulator pins and solder it as follows*
 
-![Rotate PCB and solder Arduino Pro Micro. Check that proper PCB pins are soldered to proper Arduino in/outs ](doc/images/soldering/07_arduino.jpg)
+![](doc/images/soldering/07_arduino.jpg)
+*Rotate PCB and solder Arduino Pro Micro. Check that proper PCB pins are soldered to proper Arduino in/outs*
 
-![Solder MCP2515 CAN board - start with side pins, then solder others. Soldering is better than socket here to improve vibration stability](doc/images/soldering/08_can_board.jpg)
+![](doc/images/soldering/08_can_board.jpg)
+*Solder MCP2515 CAN board - start with side pins, then solder others. Soldering is better than socket here to improve vibration stability*
 
-![Plug RTC module if needed. Fully assembled module looks like that](doc/images/soldering/09_full_assembly.jpg)
+![](doc/images/soldering/09_full_assembly.jpg)
+*Plug RTC module if needed. Fully assembled module looks like that*
 
-![Solder CAN and power wires to pass-through connection as follows](doc/images/soldering/10_connector_male_side.jpg)
+![](doc/images/soldering/10_connector_male_side.jpg)
+*Solder CAN and power wires to pass-through connection as follows*
 
-![Other side of connector](doc/images/soldering/11_connector_female_side.jpg)
+![](doc/images/soldering/11_connector_female_side.jpg)
+*Other side of connector*
 
-![Fully assembled unit with pass-through connector](doc/images/soldering/12_full_assembly_wires.jpg)
+![](doc/images/soldering/12_full_assembly_wires.jpg)
+*Fully assembled unit with pass-through connector*
 
 If ELM327 enclosure option is preferred, solder to ELM327 pins as per section above
 
