@@ -191,7 +191,6 @@ And depending on mount type, choose one of the following options
     </p>
   </details>
 
-
 ### Schematics
 
 Schematics are more or less self-explanatory.
@@ -221,32 +220,6 @@ PCB is 2-layered with 3 inter-layer drills. DirtCheap PCB make them for you, oth
 
 ![](doc/images/pcb_bottom.png)
 
-### Soldering step-by-step
-
-![](doc/images/soldering/01_take_pcb.jpg)
-
-![](doc/images/soldering/02_prepare_pins_on_breadboard.jpg)
-
-![](doc/images/soldering/03_straight_pin_soldering.jpg)
-
-![](doc/images/soldering/04_rtc_pins_soldering.jpg)
-
-![](doc/images/soldering/05_power_pins_soldering.jpg)
-
-![](doc/images/soldering/06_power_regulator.jpg)
-
-![](doc/images/soldering/07_arduino.jpg)
-
-![](doc/images/soldering/08_can_board.jpg)
-
-![](doc/images/soldering/09_full_assembly.jpg)
-
-![](doc/images/soldering/10_connector_male_side.jpg)
-
-![](doc/images/soldering/11_connector_female_side.jpg)
-
-![](doc/images/soldering/12_full_assembly_wires.jpg)
-
 ### Plugging into car
 
 There are 2 possible options to mount the module in the car:
@@ -265,7 +238,35 @@ If you do care on your battery current, it's also possible to get power for the 
 
 #### With separate ACC power wire
 
-## CAN bus structure
+### Soldering step-by-step
+
+![Take PCB](doc/images/soldering/01_take_pcb.jpg)
+
+![Place pin headers on breadboard to simplify soldering](doc/images/soldering/02_prepare_pins_on_breadboard.jpg)
+
+![Put PCB over pins and solder it](doc/images/soldering/03_straight_pin_soldering.jpg)
+
+![Solder angled pins for RTC as shown if needed](doc/images/soldering/04_rtc_pins_soldering.jpg)
+
+![Rotate PCB and solder angled pins for power connection](doc/images/soldering/05_power_pins_soldering.jpg)
+
+![Bend power regulator pins and solder it as follows](doc/images/soldering/06_power_regulator.jpg)
+
+![Rotate PCB and solder Arduino Pro Micro. Check that proper PCB pins are soldered to proper Arduino in/outs ](doc/images/soldering/07_arduino.jpg)
+
+![Solder MCP2515 CAN board - start with side pins, then solder others. Soldering is better than socket here to improve vibration stability](doc/images/soldering/08_can_board.jpg)
+
+![Plug RTC module if needed. Fully assembled module looks like that](doc/images/soldering/09_full_assembly.jpg)
+
+![Solder CAN and power wires to pass-through connection as follows](doc/images/soldering/10_connector_male_side.jpg)
+
+![Other side of connector](doc/images/soldering/11_connector_female_side.jpg)
+
+![Fully assembled unit with pass-through connector](doc/images/soldering/12_full_assembly_wires.jpg)
+
+If ELM327 enclosure option is preferred, solder to ELM327 pins as per section above
+
+## CAN bus operation
 
 ### Ford CAN buses: MS CAN and HS CAN
 
