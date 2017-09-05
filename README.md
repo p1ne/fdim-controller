@@ -115,9 +115,9 @@ If you don't want to read this long text, there are steps you need to build your
     </p>
   </details>
 - <details>
-    <summary>PCB (prototype board or order at DirtCheap PCBs)</summary> <p>
+    <summary>PCB</summary> <p>
 
-    Order details coming soon
+    Take [Gerber files](pcb/gerber) and order on [DirtCheap PCB](http://dirtypcbs.com). Or make your own board
     </p>
   </details>
 
@@ -172,6 +172,30 @@ PCB is 2-layered with 3 inter-layer drills. DirtCheap PCB make them for you, oth
 ![](doc/images/pcb_bottom.png)
 
 ### Soldering step-by-step
+
+![](doc/images/soldering/01_take_pcb.jpg)
+
+![](doc/images/soldering/02_prepare_pins_on_breadboard.jpg)
+
+![](doc/images/soldering/03_straight_pin_soldering.jpg)
+
+![](doc/images/soldering/.jpg)
+
+![](doc/images/soldering/.jpg)
+
+![](doc/images/soldering/01_.jpg)
+
+![](doc/images/soldering/01_.jpg)
+
+![](doc/images/soldering/01_.jpg)
+
+![](doc/images/soldering/01_.jpg)
+
+![](doc/images/soldering/01_.jpg)
+
+![](doc/images/soldering/01_.jpg)
+
+![](doc/images/soldering/01_.jpg)
 
 ### Plugging into car
 
