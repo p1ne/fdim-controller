@@ -4,9 +4,7 @@
 
 ## What's this all about
 
-Long story short. FoDiMoCo is easy-to-build DIY controller for your Ford USA vehicle that
-enables top dash display to display some useful information when stock head unit is removed.
-Initial name of the project was can-clock, as all I wanted to do it to print clock on dash display. Later it evolved, but name is still in the code.
+Long story short. FoDiMoCo is easy-to-build DIY controller for your Ford USA vehicle that enables top dash display to show some useful information when stock head unit is removed. Initial name of the project was can-clock, as all I wanted is to have clock on dash display. Later it evolved, but name is still in the code.
 
 This README is yet unfinished, nearest plans are to give more details on configuration and finalize messages description.
 
