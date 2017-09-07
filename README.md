@@ -20,6 +20,10 @@ If you don't want to read this long text but just want to get info on building y
 6. [Configure](#configuration)
 7. [Plug into the car](#plugging-into-car)
 
+If you like this project and want to support it, here is PayPal donate button. Project is non-profit, but I still need to buy parts to improve it and continue RnD.
+
+[![](https://www.paypalobjects.com/en_US/i/btn/btn_donate_SM.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=48BA4JNT3BEDC&lc=RU&item_name=p1ne&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_SM%2egif%3aNonHosted)
+
 Table of Contents
 =================
 
@@ -236,6 +240,8 @@ If you do care on your battery current, it's also possible to get power for the 
 ![](doc/images/fdim_elm_mount.jpg)
 
 #### With separate ACC power wire
+
+TBD
 
 ### Soldering step-by-step
 
