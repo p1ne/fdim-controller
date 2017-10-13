@@ -83,6 +83,12 @@ Module itself looks like that (one of hardware variants)
 
 ![](doc/images/module_no_case.jpg)
 
+Video presentation of the project
+
+[![Ford Dash display controller](https://img.youtube.com/vi/-I74TlkUXiY/0.jpg)](https://www.youtube.com/watch?v=-I74TlkUXiY)
+
+[Hackaday.io project page](https://hackaday.io/project/27184-ford-dash-display-fdim-controller)
+
 FoDiMoCo is tested on Ford Escapes (including Hybrid) and Mercury Mariners 2008-2012.
 Should work on other Fords of the same generation, including Mustang, Fiesta, F-150,
 but it's not yet verified due to lack of test vehicles.
