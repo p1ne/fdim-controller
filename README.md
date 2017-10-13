@@ -10,6 +10,12 @@ This README is yet unfinished, nearest plans are to give more details on configu
 
 If you're too far away from the subject, there is introductory [presentation](presentation) I made on one of DIY meetups
 
+Or enjoy video presentation of the project
+
+[![Ford Dash display controller](https://img.youtube.com/vi/-I74TlkUXiY/0.jpg)](https://www.youtube.com/watch?v=-I74TlkUXiY)
+
+[Hackaday.io project page](https://hackaday.io/project/27184-ford-dash-display-fdim-controller)
+
 If you don't want to read this long text but just want to get info on building your own FDIM controller, there are steps you need to build your own FoDiMoCo:
 
 1. [Enjoy nice display photos and get feature overview](#overview)
@@ -82,12 +88,6 @@ When this controller is plugged in, your dash display looks like that
 Module itself looks like that (one of hardware variants)
 
 ![](doc/images/module_no_case.jpg)
-
-Video presentation of the project
-
-[![Ford Dash display controller](https://img.youtube.com/vi/-I74TlkUXiY/0.jpg)](https://www.youtube.com/watch?v=-I74TlkUXiY)
-
-[Hackaday.io project page](https://hackaday.io/project/27184-ford-dash-display-fdim-controller)
 
 FoDiMoCo is tested on Ford Escapes (including Hybrid) and Mercury Mariners 2008-2012.
 Should work on other Fords of the same generation, including Mustang, Fiesta, F-150,
