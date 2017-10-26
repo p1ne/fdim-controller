@@ -126,9 +126,9 @@ FormattedString getPressure(const uint8_t pressure)
   return (pressure > 25) ? String(round(pressure * (currentSettings.pressureUnits == PRESSURE_PSI ? 1 : 6.89476 ) ) / ( currentSettings.pressureUnits == PRESSURE_BARS ? 100.0 : 1 )) : pressureLow;
 }
 
-FormattedString getTemperature(const uint8_t t)
+FormattedString getTemperature(const int8_t t)
 {
-  return String((uint8_t)round((t-40) * (currentSettings.unitsMetric ? 1 : 1.8) + (currentSettings.unitsMetric ? 0 : 32)));
+  return String((int8_t)round((t-40) * (currentSettings.unitsMetric ? 1 : 1.8) + (currentSettings.unitsMetric ? 0 : 32)));
 }
 
 void sendStartSequence()
