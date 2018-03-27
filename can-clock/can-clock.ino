@@ -2,10 +2,8 @@
 #include <SPI.h>
 #include <Wire.h>
 
-#if !defined(ESP32)
-  #include <SoftwareSerial.h>
-  #include <avr/pgmspace.h>
-#endif
+#include <SoftwareSerial.h>
+#include <avr/pgmspace.h>
 
 #include "mcp_can.h"
 #include "mcp_can_dfs.h"
@@ -27,7 +25,7 @@ const uint8_t SPI_CS_PIN = 10;
 uint8_t second, minute, hour;
 uint8_t i,filtNo;
 
-#if !defined(__AVR_ATmega32U4__) && !defined(ESP32) // not Arduino Pro Micro
+#if !defined(__AVR_ATmega32U4__) // not Arduino Pro Micro
   SoftwareSerial mySerial(8, 9); // RX, TX
 #endif
 
@@ -186,7 +184,7 @@ void detachCAN()
 void setup() {
   Serial.begin(115200);
 
-  #if !defined(__AVR_ATmega32U4__) && !defined(ESP32) // Arduino Pro Micro - use hw serial for input, others - software serial
+  #if !defined(__AVR_ATmega32U4__) // Arduino Pro Micro - use hw serial for input, others - software serial
     mySerial.begin(9600);
   #endif
 
@@ -420,7 +418,7 @@ void loop() {
 
     inSerialData = "";
 
-#if defined(__AVR_ATmega32U4__) || defined (ESP32)// Arduino Pro Micro - input connected to pins TX,RX
+#if defined(__AVR_ATmega32U4__) // Arduino Pro Micro - input connected to pins TX,RX
     while (Serial.available() > 0) {
         char recieved = Serial.read();
         inSerialData += recieved;

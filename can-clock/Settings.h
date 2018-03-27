@@ -2,7 +2,6 @@
 #define __SETTINGS_H_
 
 #include <Arduino.h>
-//#include <avr/pgmspace.h>
 #include "mcp_can.h"
 #include "mcp_can_dfs.h"
 #include "Sodaq_DS3231.h"
