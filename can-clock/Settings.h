@@ -75,6 +75,7 @@ boolean wantClock() {
 
 void printCurrentRTCTime()
 {
+  rtc.begin();
   DateTime now = rtc.now();
   Serial.println(F("Current RTC time: "));
   Serial.println(String(now.hour()) + F(":") + String(now.minute()) + F(":") + String(now.second()));
@@ -189,6 +190,7 @@ void settingsMenu() {
     if (!input.equals("")) {
       byte minute = input.substring(3,5).toInt();
       byte hour = input.substring(0,2).toInt();
+
       rtc.setDateTime(DateTime(2011, 11, 10, hour, minute, 0, 5));
       delay(1000);
       printCurrentRTCTime();

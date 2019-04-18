@@ -183,6 +183,7 @@ void detachCAN()
 
 void setup() {
   Serial.begin(115200);
+  Wire.begin();
 
   #if !defined(__AVR_ATmega32U4__) // Arduino Pro Micro - use hw serial for input, others - software serial
     mySerial.begin(9600);
@@ -202,10 +203,6 @@ void setup() {
       readSettings();
       break;
     }
-  }
-
-  if (currentSettings.useRTC) {
-    Wire.begin();
   }
 
   initStartMessages();
