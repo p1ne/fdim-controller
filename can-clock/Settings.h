@@ -33,7 +33,7 @@ typedef struct __attribute__((__packed__)) {
   bool displayPressure;
   bool unitsMetric;
   uint8_t clockMode;
-  uint8_t tz;
+  int8_t tz;
   bool tpmsRequest;
   uint8_t huType;
   bool spare2;
