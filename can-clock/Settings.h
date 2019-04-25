@@ -172,7 +172,7 @@ void settingsMenu() {
     currentSettings.huType = HU_CHINESE_WITH_CAN_EXTENDED;
   }
 
-  Serial.println(F("Select time source\n1 - 911 Assist GPS (2010+)\n2 - controller real time clock\n"));
+  Serial.println(F("\n\nSelect time source\n1 - 911 Assist GPS (2010+)\n2 - controller real time clock\n"));
 
   input = readSerialString();
 
@@ -184,7 +184,7 @@ void settingsMenu() {
 
   if (currentSettings.useRTC) {
     printCurrentRTCTime();
-    Serial.println(F("Enter local time in 24h format (HH:MM) or Enter to keep as is"));
+    Serial.println(F("\n\nEnter local time in 24h format (HH:MM) or Enter to keep as is"));
     input = readSerialString();
     Serial.println(input);
     if (!input.equals("")) {
@@ -196,12 +196,12 @@ void settingsMenu() {
       printCurrentRTCTime();
     }
   } else {
-    Serial.println(F("Enter timezone (+- hours)\n"));
+    Serial.println(F("\n\nEnter timezone (+- hours)\n"));
     input = readSerialString();
     currentSettings.tz = input.toInt();
   }
 
-  Serial.println(F("Set clock mode\n1 - Hide\n2 - 12h\n3 - 24h"));
+  Serial.println(F("\n\nSet clock mode\n1 - Hide\n2 - 12h\n3 - 24h"));
   input = readSerialString();
   if (input.equals("1")) {
     currentSettings.clockMode = CLOCK_HIDE;
@@ -211,7 +211,7 @@ void settingsMenu() {
     currentSettings.clockMode = CLOCK_24;
   }
 
-  Serial.println(F("Select speed/temperature units\n1 - Metric\n2 - American\n"));
+  Serial.println(F("\n\nSelect speed/temperature units\n1 - Metric\n2 - American\n"));
   input = readSerialString();
 
   if (input.equals("1")) {
@@ -220,7 +220,7 @@ void settingsMenu() {
     currentSettings.unitsMetric = false;
   }
 
-  Serial.println(F("Display tires pressure\n1 - Yes\n2 - No\n"));
+  Serial.println(F("\n\nDisplay tires pressure\n1 - Yes\n2 - No\n"));
   input = readSerialString();
 
   if (input.equals("1")) {
@@ -230,7 +230,7 @@ void settingsMenu() {
   }
 
   if (currentSettings.displayPressure) {
-    Serial.println(F("Pressure units\n1 - Psi\n2 - kPa\n3 - Bars\n"));
+    Serial.println(F("\n\nPressure units\n1 - Psi\n2 - kPa\n3 - Bars\n"));
 
     input = readSerialString();
 
@@ -243,7 +243,7 @@ void settingsMenu() {
     }
   }
 
-  Serial.println(F("Set TPMS interaction mode\n1 - Request\n2 - Broadcast"));
+  Serial.println(F("\n\nSet TPMS interaction mode\n1 - Request\n2 - Broadcast"));
   input = readSerialString();
   if (input.equals("1")) {
     currentSettings.tpmsRequest = true;
@@ -251,7 +251,7 @@ void settingsMenu() {
     currentSettings.tpmsRequest = false;
   }
 
-  Serial.println(F("Saving settings...\n\n"));
+  Serial.println(F("\n\nSaving settings...\n\n"));
   saveSettings();
   Serial.println(F("Settings saved, getting back to operation mode"));
 }
