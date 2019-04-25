@@ -384,6 +384,9 @@ void loop() {
       gotClock = true;
     }
 
+    if (hour == 0 && currentSettings.clockMode == CLOCK_12)
+      hour = 12;
+
     for (uint16_t currentCycle = 0; currentCycle < MSG_COUNT; currentCycle++ ) {
       if ( ( (timer >= cycle[currentCycle].started ) || (!firstCycle) ) && ((timer % cycle[currentCycle].repeated) - cycle[currentCycle].delayed) == 0) {
 
