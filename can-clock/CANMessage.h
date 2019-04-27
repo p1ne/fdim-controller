@@ -81,18 +81,18 @@ public:
   void print()
   {
     Serial.print(started);
-    Serial.print("| ");
+    Serial.print(F("| "));
     Serial.print(delayed);
-    Serial.print(" ");
+    Serial.print(F(" "));
     Serial.print(repeated);
-    Serial.print(" | ");
+    Serial.print(F(" | "));
     Serial.print(header, HEX);
-    Serial.print(" | ");
+    Serial.print(F(" | "));
     Serial.print(len);
-    Serial.print(" > ");
+    Serial.print(F(" > "));
 
     for (uint8_t i=0;i<len;i++) {
-      Serial.print(" ");
+      Serial.print(F(" "));
       Serial.print(data[i], HEX);
     }
     Serial.println();

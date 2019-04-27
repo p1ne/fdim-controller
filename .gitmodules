@@ -4,3 +4,6 @@
 [submodule "lib/Sodaq_DS3231"]
 	path = lib/Sodaq_DS3231
 	url = https://github.com/SodaqMoja/Sodaq_DS3231.git
+[submodule "lib/webusb"]
+	path = lib/webusb
+	url = https://github.com/webusb/arduino.git

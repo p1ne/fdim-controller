@@ -1,14 +1,13 @@
 #include <Arduino.h>
 #include <SPI.h>
 #include <Wire.h>
+#include <EEPROM.h>
 
-#include <SoftwareSerial.h>
 #include <avr/pgmspace.h>
 
 #include "mcp_can.h"
 #include "mcp_can_dfs.h"
 #include "Sodaq_DS3231.h"
-#include <EEPROM.h>
 
 #include "CANMessage.h"
 #include "FordMessages.h"
@@ -16,7 +15,7 @@
 #include "Service.h"
 #include "Settings.h"
 
-#undef DEBUG
+#define DEBUG 1
 #undef MQ135_CONNECTED
 
 const uint8_t TIMER_STEP = 25;
@@ -24,10 +23,6 @@ const uint8_t SPI_CS_PIN = 10;
 
 uint8_t second, minute, hour;
 uint8_t i,filtNo;
-
-#if !defined(__AVR_ATmega32U4__) // not Arduino Pro Micro
-  SoftwareSerial mySerial(8, 9); // RX, TX
-#endif
 
 FormattedString tirePressure[TIRES], message, rpm, carSpeed, temperature, tireTemperature, hourString, minuteString, clockMessage, temperatureMessage;
 
@@ -181,29 +176,38 @@ void detachCAN()
   #endif
 }
 
-void setup() {
-  Serial.begin(115200);
-  Wire.begin();
+void webUSBConfiguration() {
+  String inSerialData;
+  while (WebUSBSerial.available() > 0) {
+    int recieved = WebUSBSerial.read();
+    inSerialData += char(recieved);
 
-  #if !defined(__AVR_ATmega32U4__) // Arduino Pro Micro - use hw serial for input, others - software serial
-    mySerial.begin(9600);
-  #endif
-
-  readSettings();
-
-  delay(2000);
-  for (i=5;i>0;i--) {
-    Serial.print(F("Press any key to enter settings menu... "));
-    Serial.println(String(i));
-    delay(1000);
-    if (Serial.available() > 0) {
-      Serial.read();
-      Serial.println();
-      settingsMenu();
-      readSettings();
-      break;
+    if (recieved == '\n') {
+      String message = inSerialData;
+      inSerialData = F("");
+#ifdef DEBUG
+      Serial.print(message);
+#endif
+      if (message == F("LOAD\n")) {
+        inSerialData = "";
+        printCurrentSettings();
+      }
+      if (message.startsWith(F("SAVE"))) {
+        String receivedSettings;
+        inSerialData = "";
+        receivedSettings = message.substring(4);
+      }
     }
   }
+}
+
+
+void setup() {
+  Serial.begin(115200);
+  WebUSBSerial.begin(9600);
+  Wire.begin();
+
+  readSettings();
 
   initStartMessages();
   initCycleMessages();
@@ -235,15 +239,12 @@ void setup() {
     printCurrentSettings();
 #endif
 
-#if defined(MQ135_CONNECTED)
-  pinMode(A4, INPUT);
-#endif
-
 START_INIT:
   if(CAN_OK == CAN.begin(MCP_STDEXT, CAN_125KBPS, MCP_8MHZ)) {
     Serial.println(F("CAN ok!"));
   } else {
     Serial.println(F("CAN fail"));
+    webUSBConfiguration();
     delay(100);
     goto START_INIT;
   }
@@ -287,7 +288,6 @@ START_INIT:
 }
 
 void loop() {
-  String inSerialData;
   if (rcvFlag) {
     rcvFlag = false;
     while (CAN_MSGAVAIL == CAN.checkReceive()) {
@@ -336,8 +336,6 @@ void loop() {
           rpm = String((unsigned int)round(( ( rcvBuf[2] << 8 ) + rcvBuf[3] ) / 4));
           carSpeed = String(round(((((rcvBuf[0] << 8) + rcvBuf[1])/100) - 100) * (currentSettings.unitsMetric ? 1 : 0.621371)), 0);
           temperature = getTemperature(rcvBuf[4]);
-
-          //Serial.println("sendingNow: " + String(sendingNow) + " buf0 " + String(rcvBuf[0],HEX));
 
           if ( sendingNow && (rcvBuf[0] == 0xFF)) { // got 423 message for ignition off
             sendingNow = false;
@@ -413,38 +411,7 @@ void loop() {
       printDebug(timer, tpms[currentTpmsRequest]);
     }
 
-    inSerialData = "";
-
-#if defined(__AVR_ATmega32U4__) // Arduino Pro Micro - input connected to pins TX,RX
-    while (Serial.available() > 0) {
-        char recieved = Serial.read();
-        inSerialData += recieved;
-
-        if (recieved == '\n')
-        {
-          message = inSerialData;
-          inSerialData = F("");
-        }
-    }
-#else // Other Arduinos (Nano in my case) - input connected to pins 8,9
-    while (mySerial.available() > 0) {
-        char recieved = mySerial.read();
-        inSerialData += recieved;
-
-        if (recieved == '\n')
-        {
-          message = inSerialData;
-          inSerialData = F("");
-        }
-    }
-#endif
-
-#if defined(MQ135_CONNECTED)    // For MQ135
-    uint8_t sensorValue = analogRead(4);
-    message = String(sensorValue, DEC);
-#endif // MQ135_CONNECTED
-
-    if (message == F("%MTRACK")) message = F(""); // FIXME: to mask Media Utilities variable
+    webUSBConfiguration();
 
     if ( ( (timer >= text[currentText].started ) || (!firstCycle) ) && ((timer % text[currentText].repeated) - text[currentText].delayed) == 0) {
       if (currentText == 0) {
