@@ -5,6 +5,9 @@
     let connectButton = document.querySelector("#connect");
     let statusDisplay = document.querySelector('#status');
     let readConfigButton = document.querySelector('#readConfigButton')
+    let writeConfigButton = document.querySelector('#writeConfigButton')
+    let getCurrentTimeButton = document.querySelector('#getCurrentTimeButton')
+
     let configString = document.querySelector('#configString');
 
     let configVersion = document.querySelector("#configVersion");
@@ -63,8 +66,14 @@
       clockMode.value + '|' +
       displayPressure.value + '|' +
       pressureUnits.value + '|' +
-      tpmsRequest.value;
+      tpmsRequest.value + '|';
     };
+
+    function onGetCurrentTime() {
+      var today = new Date();
+
+      rtcClock.value = today.getHours() + ":" + today.getMinutes();
+    }
 
     function onReadConfig() {
       if (!port) {
@@ -97,6 +106,8 @@
 
     readConfigButton.addEventListener('click', onReadConfig);
     writeConfigButton.addEventListener('click', onWriteConfig);
+    getCurrentTimeButton.addEventListener('click', onGetCurrentTime);
+
 
     connectButton.addEventListener('click', function() {
       if (port) {
