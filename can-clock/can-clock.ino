@@ -22,7 +22,7 @@
 const uint8_t TIMER_STEP = 25;
 const uint8_t SPI_CS_PIN = 10;
 
-uint8_t second, minute, hour;
+uint8_t second, minute, hour, day, month, year;
 uint8_t i,filtNo;
 
 #if !defined(__AVR_ATmega32U4__) // not Arduino Pro Micro
@@ -47,6 +47,7 @@ uint16_t sentOnTick = 0;
 
 bool firstCycle = true;
 bool gotClock = false;
+bool AM = true;
 
 uint8_t currentText = 0;
 
@@ -357,9 +358,12 @@ void loop() {
           break;
         case 0x466: {  // GPS clock
             if (!currentSettings.useRTC && (currentSettings.clockMode != CLOCK_HIDE)) {
-              hour = (((rcvBuf[0] & 0xF8) >> 3) + currentSettings.tz ) % currentSettings.clockMode;
+              hour = (((rcvBuf[0] & 0xF8) >> 3) + currentSettings.tz );
               minute = (rcvBuf[1] & 0xFC) >> 2;
               second = (rcvBuf[2] & 0xFC) >> 2;
+              day = (rcvBuf[4] & 0xFC) >> 2;
+              month = (rcvBuf[5] & 0xFC) >> 2;
+              year = (rcvBuf[6] & 0xF0) >> 4;
               gotClock = true;
             }
         }
@@ -376,13 +380,23 @@ void loop() {
 
     if (currentSettings.useRTC && (currentSettings.clockMode != CLOCK_HIDE)) {
       DateTime now = rtc.now();
-      hour = now.hour() % currentSettings.clockMode;
+      year = now.year();
+      month = now.month();
+      day = now.day();
+      hour = now.hour();
       minute = now.minute();
       hourString = String(hour);
       minuteString = String(minute);
       clockMessage = hourString.padZeros(2) + F(":") + minuteString.padZeros(2);
       gotClock = true;
     }
+
+    if ((hour < 12) && currentsettings.clockMode == CLOCK_12)
+      AM = true;
+    else if ((hour >= 12) && currentsettings.clockMode == CLOCK_12)
+      AM = false;
+
+    hour = hour % currentSettings.clockMode
 
     if (hour == 0 && currentSettings.clockMode == CLOCK_12)
       hour = 12;
@@ -399,6 +413,15 @@ void loop() {
                // init functions if stock head unit is used, so no extra checks
           cycle[currentCycle].data[0] = decToBcd(hour);
           cycle[currentCycle].data[1] = decToBcd(minute);
+          cycle[currentCycle].data[2] = day;
+          cycle[currentCycle].data[3] = month;
+          cycle[currentCycle].data[4] = year;
+          
+          if (AM && (currentsettings.clockMode == CLOCK_12))
+            cycle[currentCycle].data[5] = 0xA0;
+          
+          if (!AM && (currentsettings.clockMode == CLOCK_12))
+            cycle[currentCycle].data[5] = 0xC0;
         }
 
         if (sentOnTick == timer) delay(TIMER_STEP/2);
