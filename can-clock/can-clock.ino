@@ -411,9 +411,9 @@ void loop() {
                // init functions if stock head unit is used, so no extra checks
           cycle[currentCycle].data[0] = decToBcd(hour);
           cycle[currentCycle].data[1] = decToBcd(minute);
-          cycle[currentCycle].data[2] = date;
-          cycle[currentCycle].data[3] = month;
-          cycle[currentCycle].data[4] = year;
+          cycle[currentCycle].data[2] = decToBcd(date);
+          cycle[currentCycle].data[3] = decToBcd(month);
+          cycle[currentCycle].data[4] = decToBcd(year);
           
           if (currentSettings.clockMode == CLOCK_12) {
             cycle[currentCycle].data[5] = (0xC0 - (32 * AM));
