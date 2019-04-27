@@ -391,7 +391,7 @@ void loop() {
       gotClock = true;
     }
 
-    if (currentsettings.clockMode == CLOCK_12) {
+    if (currentSettings.clockMode == CLOCK_12) {
       AM = (hour < 12);
       hour = hour % currentSettings.clockMode;
       if (hour == 0) {
@@ -415,7 +415,7 @@ void loop() {
           cycle[currentCycle].data[3] = month;
           cycle[currentCycle].data[4] = year;
           
-          if (currentsettings.clockMode == CLOCK_12) {
+          if (currentSettings.clockMode == CLOCK_12) {
             cycle[currentCycle].data[5] = (0xA0 + (32 * AM));
           }
         }
