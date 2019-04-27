@@ -382,7 +382,7 @@ void loop() {
       DateTime now = rtc.now();
       year = now.year();
       month = now.month();
-      date = now.day();
+      date = now.date();
       hour = now.hour();
       minute = now.minute();
       hourString = String(hour);
