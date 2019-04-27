@@ -416,7 +416,7 @@ void loop() {
           cycle[currentCycle].data[4] = year;
           
           if (currentSettings.clockMode == CLOCK_12) {
-            cycle[currentCycle].data[5] = (0xA0 + (32 * AM));
+            cycle[currentCycle].data[5] = (0xC0 - (32 * AM));
           }
         }
 
