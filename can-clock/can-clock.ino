@@ -22,7 +22,7 @@
 const uint8_t TIMER_STEP = 25;
 const uint8_t SPI_CS_PIN = 10;
 
-uint8_t second, minute, hour, day, month, year;
+uint8_t second, minute, hour, date, month, year;
 uint8_t i,filtNo;
 
 #if !defined(__AVR_ATmega32U4__) // not Arduino Pro Micro
@@ -361,7 +361,7 @@ void loop() {
               hour = (((rcvBuf[0] & 0xF8) >> 3) + currentSettings.tz );
               minute = (rcvBuf[1] & 0xFC) >> 2;
               second = (rcvBuf[2] & 0xFC) >> 2;
-              day = (rcvBuf[4] & 0xFC) >> 2;
+              date = (rcvBuf[4] & 0xFC) >> 2;
               month = (rcvBuf[5] & 0xFC) >> 2;
               year = (rcvBuf[6] & 0xF0) >> 4;
               gotClock = true;
@@ -382,7 +382,7 @@ void loop() {
       DateTime now = rtc.now();
       year = now.year();
       month = now.month();
-      day = now.day();
+      date = now.day();
       hour = now.hour();
       minute = now.minute();
       hourString = String(hour);
@@ -391,15 +391,13 @@ void loop() {
       gotClock = true;
     }
 
-    if ((hour < 12) && currentsettings.clockMode == CLOCK_12)
-      AM = true;
-    else if ((hour >= 12) && currentsettings.clockMode == CLOCK_12)
-      AM = false;
-
-    hour = hour % currentSettings.clockMode
-
-    if (hour == 0 && currentSettings.clockMode == CLOCK_12)
-      hour = 12;
+    if (currentsettings.clockMode == CLOCK_12) {
+      AM = (hour < 12);
+      hour = hour % currentSettings.clockMode;
+      if (hour == 0) {
+        hour = 12;
+      }
+    }
 
     for (uint16_t currentCycle = 0; currentCycle < MSG_COUNT; currentCycle++ ) {
       if ( ( (timer >= cycle[currentCycle].started ) || (!firstCycle) ) && ((timer % cycle[currentCycle].repeated) - cycle[currentCycle].delayed) == 0) {
@@ -413,15 +411,13 @@ void loop() {
                // init functions if stock head unit is used, so no extra checks
           cycle[currentCycle].data[0] = decToBcd(hour);
           cycle[currentCycle].data[1] = decToBcd(minute);
-          cycle[currentCycle].data[2] = day;
+          cycle[currentCycle].data[2] = date;
           cycle[currentCycle].data[3] = month;
           cycle[currentCycle].data[4] = year;
           
-          if (AM && (currentsettings.clockMode == CLOCK_12))
-            cycle[currentCycle].data[5] = 0xA0;
-          
-          if (!AM && (currentsettings.clockMode == CLOCK_12))
-            cycle[currentCycle].data[5] = 0xC0;
+          if (currentsettings.clockMode == CLOCK_12) {
+            cycle[currentCycle].data[5] = (0xA0 + (32 * AM));
+          }
         }
 
         if (sentOnTick == timer) delay(TIMER_STEP/2);
