@@ -395,8 +395,8 @@ flags:
 0x80 - time is adjusting (blink)
 0xA0 - AM
 0xC0 - PM
-0xE0 - 24 hours
-0xC0 - clock off
+0xF0 - 24 hours
+0x00 - clock off
 
 **Special cases**
 
