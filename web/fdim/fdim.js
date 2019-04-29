@@ -30,8 +30,7 @@
 
         port.onReceive = data => {
           let textDecoder = new TextDecoder();
-          configString.value = textDecoder.decode(data);
-          parseConfigString(configString.value);
+          parseConfigString(textDecoder.decode(data));
         }
         port.onReceiveError = error => {
           console.error(error);
@@ -42,31 +41,33 @@
     }
 
     function parseConfigString(configString) {
-      let valuesArr = configString.split("|");
 
-      configVersion.innerText = valuesArr[0];
-      huType.value = valuesArr[1];
-      unitsMetric.value = valuesArr[2];
-      useRTC.value = valuesArr[3];
-      rtcClock.value = valuesArr[4];
-      timeZone.value = valuesArr[5];
-      clockMode.value = valuesArr[6];
-      displayPressure.value = valuesArr[7];
-      pressureUnits.value = valuesArr[8];
-      tpmsRequest.value = valuesArr[9];
+      configVersion.innerText = configString.charCodeAt(0);
+      huType.value = configString.charCodeAt(1);
+      unitsMetric.value = configString.charCodeAt(2);
+      useRTC.value = configString.charCodeAt(3);
+      rtcClock.value = configString.charCodeAt(4) + ":" + configString.charCodeAt(5);
+      timeZone.value = configString.charCodeAt(6);
+      clockMode.value = configString.charCodeAt(7);
+      displayPressure.value = configString.charCodeAt(8);
+      pressureUnits.value = configString.charCodeAt(9);
+      tpmsRequest.value = configString.charCodeAt(10);
     };
 
     function constructConfigString() {
-      configString.value = configVersion.innerText + '|' +
-      huType.value + '|' +
-      unitsMetric.value + '|' +
-      useRTC.value + '|' +
-      rtcClock.value + '|' +
-      timeZone.value + '|' +
-      clockMode.value + '|' +
-      displayPressure.value + '|' +
-      pressureUnits.value + '|' +
-      tpmsRequest.value + '|';
+      var rtcClockArr = rtcClock.value.split(":");
+
+      configString.value = String.fromCharCode(configVersion.innerText) +
+      String.fromCharCode(huType.value) +
+      String.fromCharCode(unitsMetric.value) +
+      String.fromCharCode(useRTC.value) +
+      String.fromCharCode(rtcClockArr[0]) +
+      String.fromCharCode(rtcClockArr[1]) +
+      String.fromCharCode(timeZone.value) +
+      String.fromCharCode(clockMode.value) +
+      String.fromCharCode(displayPressure.value) +
+      String.fromCharCode(pressureUnits.value) +
+      String.fromCharCode(tpmsRequest.value);
     };
 
     function onGetCurrentTime() {

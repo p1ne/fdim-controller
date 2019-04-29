@@ -47,6 +47,8 @@ uint8_t currentText = 0;
 
 uint8_t currentTpmsRequest = TPMS_INIT;
 
+String inSerialData = "";
+
 MCP_CAN CAN(SPI_CS_PIN);
 
 void MCP2515_ISR()
@@ -177,7 +179,6 @@ void detachCAN()
 }
 
 void webUSBConfiguration() {
-  String inSerialData;
   while (WebUSBSerial.available() > 0) {
     int recieved = WebUSBSerial.read();
     inSerialData += char(recieved);
@@ -189,13 +190,12 @@ void webUSBConfiguration() {
       Serial.print(message);
 #endif
       if (message == F("LOAD\n")) {
-        inSerialData = "";
         printCurrentSettings();
       }
       if (message.startsWith(F("SAVE"))) {
         String receivedSettings;
-        inSerialData = "";
         receivedSettings = message.substring(4);
+        saveReceivedSettings(receivedSettings);
       }
     }
   }

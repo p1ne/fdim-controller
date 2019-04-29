@@ -12,7 +12,7 @@
 #include "Service.h"
 
 #define CONFIG_START 32
-#define CONFIG_VERSION 5
+#define CONFIG_VERSION 6
 
 #define PRESSURE_PSI 0
 #define PRESSURE_BARS 1
@@ -36,7 +36,7 @@ typedef struct __attribute__((__packed__)) {
   bool displayPressure;
   bool unitsMetric;
   uint8_t clockMode;
-  uint8_t tz;
+  int8_t tz;
   bool tpmsRequest;
   uint8_t huType;
   bool spare2;
@@ -78,9 +78,10 @@ boolean wantClock() {
   return ((currentSettings.clockMode != CLOCK_HIDE) && (currentSettings.huType == HU_AFTERMARKET));
 }
 
-void printParam(String param) {
-  WebUSBSerial.print(param);
-  WebUSBSerial.print(F("|"));
+void printParam(int8_t param) {
+  WebUSBSerial.print(char(param));
+  Serial.print(char(param));
+//  WebUSBSerial.print(F("|"));
 }
 
 void printCurrentRTCTime()
@@ -88,37 +89,49 @@ void printCurrentRTCTime()
   if (currentSettings.useRTC) {
     rtc.begin();
     DateTime now = rtc.now();
-    printParam(String(now.hour()) + F(":") + String(now.minute()) + F(":") + String(now.second()));
+    printParam(int8_t(now.hour()));
+    printParam(int8_t(now.minute()));
   } else {
-    printParam("");
+    printParam(int8_t(32));
+    printParam(int8_t(64));
   }
 }
 
+void saveRTCTime(uint8_t hour, uint8_t minute) {
+   rtc.setDateTime(DateTime(2011, 11, 10, hour, minute, 0, 5));
+}
+
 void printCurrentSettings() {
-  printParam(String(currentSettings.configVersion));
-  printParam(String(currentSettings.huType));
-  printParam(String(currentSettings.unitsMetric));
-  printParam(String(currentSettings.useRTC));
+  printParam(int8_t(currentSettings.configVersion));
+  printParam(int8_t(currentSettings.huType));
+  printParam(int8_t(currentSettings.unitsMetric));
+  printParam(int8_t(currentSettings.useRTC));
   printCurrentRTCTime();
-  printParam(String(currentSettings.tz));
-  printParam(String(currentSettings.clockMode));
-  printParam(String(currentSettings.displayPressure));
-  printParam(String(currentSettings.pressureUnits));
-  printParam(String(currentSettings.tpmsRequest));
+  printParam(int8_t(currentSettings.tz));
+  printParam(int8_t(currentSettings.clockMode));
+  printParam(int8_t(currentSettings.displayPressure));
+  printParam(int8_t(currentSettings.pressureUnits));
+  printParam(int8_t(currentSettings.tpmsRequest));
   WebUSBSerial.flush();
 }
 
+void saveReceivedSettings(String settingsString) {
 
 
-void settingsMenu() {
-
-  String input;
-  readSettings();
-  printCurrentSettings();
-
-  input = readSerialString();
+  currentSettings.configVersion = uint8_t(settingsString.c_str()[0]);
+  currentSettings.huType = uint8_t(settingsString.c_str()[1]);
+  currentSettings.unitsMetric = bool(settingsString.c_str()[2]);
+  currentSettings.useRTC = bool(settingsString.c_str()[3]);
+  saveRTCTime(uint8_t(settingsString.c_str()[4]), uint8_t(settingsString.c_str()[5]));
+  currentSettings.tz = int8_t(settingsString.c_str()[6]);
+  currentSettings.clockMode = uint8_t(settingsString.c_str()[7]);
+  currentSettings.displayPressure = bool(settingsString.c_str()[8]);
+  currentSettings.pressureUnits = uint8_t(settingsString.c_str()[9]);
+  currentSettings.tpmsRequest = bool(settingsString.c_str()[10]);
 
   saveSettings();
 }
+
+
 
 #endif // __SETTINGS_H_
