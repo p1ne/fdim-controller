@@ -30,4 +30,11 @@ String readSerialString()
   return(inSerialData);
 }
 
+unit8_t Day_of_Week(const unit8_t y, const unit8_t m, const unit8_t d)
+{
+  uint8_t t[] = {0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4};
+  y -= m < 3;
+  return( (y + y/4 - y/100 + y/400 + t[m-1] + d) % 7 );
+}
+
 #endif // __SERVICE_H_
