@@ -391,12 +391,14 @@ void loop() {
       gotClock = true;
     }
 
-    dow = Day_of_Week(year, month, day)
-    if (dow == 0 && month == 3 && date >= 8 && hour > 1 && currentSettings.DST == false)  //DST on for US, +1 after 2nd Sunday of March @ 2 AM
+    dow = Day_of_Week(year, month, date);
+    
+    if (dow == 0 && month == 3 && date >= 8 && hour > 1 && currentSettings.DST == false)  //set DST on for US, +1 after 2nd Sunday of March @ 2 AM
       EEPROM.update(CONFIG_START + 10, true);
-    else if (dow == 0 && month == 11 && hour > 1 && currentSettings.DST == true)  //DST off for US, +0 after 1st Sunday of November @ 2 AM
+    
+    else if (dow == 0 && month == 11 && hour > 1 && currentSettings.DST == true)  //set DST off for US, +0 after 1st Sunday of November @ 2 AM
       EEPROM.update(CONFIG_START + 10, false);
-      
+    
     hour = hour + currentSettings.DST;  //Add DST hour if needed
 
     if (currentSettings.clockMode == CLOCK_12) {
