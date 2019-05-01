@@ -36,7 +36,7 @@ typedef struct __attribute__((__packed__)) {
   int8_t tz;
   bool tpmsRequest;
   uint8_t huType;
-  bool spare2;
+  bool DST;
   bool spare3;
 } Settings;
 
@@ -50,7 +50,7 @@ Settings currentSettings = {
   3,              // tz
   true,           // tpmsRequest
   HU_AFTERMARKET, // huType
-  false,          // spare2
+  false,          // DST
   false           // spare3
 };
 
