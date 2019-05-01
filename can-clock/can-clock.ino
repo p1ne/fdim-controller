@@ -22,7 +22,7 @@
 const uint8_t TIMER_STEP = 25;
 const uint8_t SPI_CS_PIN = 10;
 
-uint8_t second, minute, hour, date, month, year;
+uint8_t second, minute, hour, date, dow, month, year;
 uint8_t i,filtNo;
 
 #if !defined(__AVR_ATmega32U4__) // not Arduino Pro Micro
@@ -390,6 +390,14 @@ void loop() {
       clockMessage = hourString.padZeros(2) + F(":") + minuteString.padZeros(2);
       gotClock = true;
     }
+
+    dow = Day_of_Week(year, month, day)
+    if (dow == 0 && month == 3 && date >= 8 && hour > 1 && currentSettings.DST == false)  //DST on for US, +1 after 2nd Sunday of March @ 2 AM
+      EEPROM.update(CONFIG_START + 10, true);
+    else if (dow == 0 && month == 11 && hour > 1 && currentSettings.DST == true)  //DST off for US, +0 after 1st Sunday of November @ 2 AM
+      EEPROM.update(CONFIG_START + 10, false);
+      
+    hour = hour + currentSettings.DST;  //Add DST hour if needed
 
     if (currentSettings.clockMode == CLOCK_12) {
       AM = (hour < 12);
