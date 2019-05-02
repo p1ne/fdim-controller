@@ -62,7 +62,7 @@ void readSettings() {
 
 void saveSettings() {
   for (unsigned int t=0; t<sizeof(currentSettings); t++)
-   EEPROM.write(CONFIG_START + t, *((char*)&currentSettings + t));
+   EEPROM.update(CONFIG_START + t, *((char*)&currentSettings + t));
 
   isConfigured = true;
 }
