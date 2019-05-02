@@ -518,13 +518,13 @@ Year = ( y >> 3 ) & 0x1F
 
 ### Flashing from Arduino IDE
 
-- Clone source code, open file can-clock/can-clock.info
+- Clone source code, open file can-clock/can-clock.ino
 - Select proper hardware (SparkFun Pro Micro, 5V)
 - Compile and upload
 
 ### Flashing from Platform IO/Atom
 
-- Clone source code, open file can-clock/can-clock.info
+- Clone source code, open file can-clock/can-clock.ino
 - Open PlatformIO project
 - Run task PIO Build (sparkfun_micro16)
 - Run task PIO Upload (sparkfun_micro16)
