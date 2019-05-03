@@ -359,7 +359,7 @@ void loop() {
           break;
         case 0x466: {  // GPS clock
             if (!currentSettings.useRTC && (currentSettings.clockMode != CLOCK_HIDE)) {
-              hour = ((rcvBuf[0] & 0xF8) >> 3) + currentSettings.tz;
+              hour = (((rcvBuf[0] & 0xF8) >> 3) + currentSettings.tz) % 24;
               minute = (rcvBuf[1] & 0xFC) >> 2;
               second = (rcvBuf[2] & 0xFC) >> 2;
               date = (rcvBuf[4] & 0xFC) >> 2; // FIXME: needs tz correction
