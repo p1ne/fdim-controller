@@ -22,7 +22,8 @@
 const uint8_t TIMER_STEP = 25;
 const uint8_t SPI_CS_PIN = 10;
 
-uint8_t second, minute, hour, date, dow, month, year;
+uint8_t second, minute, hour, date, dow, month;
+uint16_t year;
 uint8_t i,filtNo;
 
 #if !defined(__AVR_ATmega32U4__) // not Arduino Pro Micro
@@ -358,12 +359,13 @@ void loop() {
           break;
         case 0x466: {  // GPS clock
             if (!currentSettings.useRTC && (currentSettings.clockMode != CLOCK_HIDE)) {
-              hour = (((rcvBuf[0] & 0xF8) >> 3) + currentSettings.tz );
+              hour = ((rcvBuf[0] & 0xF8) >> 3) + currentSettings.tz;
               minute = (rcvBuf[1] & 0xFC) >> 2;
               second = (rcvBuf[2] & 0xFC) >> 2;
-              date = (rcvBuf[4] & 0xFC) >> 2;
-              month = (rcvBuf[5] & 0xFC) >> 2;
-              year = (rcvBuf[6] & 0xF0) >> 4;
+              date = (rcvBuf[4] & 0xFC) >> 2; // FIXME: needs tz correction
+              month = (rcvBuf[5] & 0xFC) >> 2; //FIXME: needs tz correction
+              year = ((rcvBuf[6] & 0xF0) >> 4) + 2010; //FIXME: not sure if + 2010 is correct & needs tz correction
+              if (hour < 0) hour = hour + 24; // fixed for negative tz
               gotClock = true;
             }
         }
@@ -404,9 +406,7 @@ void loop() {
     if (currentSettings.clockMode == CLOCK_12) {
       AM = (hour < 12);
       hour = hour % currentSettings.clockMode;
-      if (hour == 0) {
-        hour = 12;
-      }
+      if (hour == 0) hour = 12;
     }
 
     for (uint16_t currentCycle = 0; currentCycle < MSG_COUNT; currentCycle++ ) {
