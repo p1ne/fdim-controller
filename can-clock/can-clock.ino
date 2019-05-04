@@ -361,13 +361,12 @@ void loop() {
           break;
         case 0x466: {  // GPS clock
             if (!currentSettings.useRTC && (currentSettings.clockMode != CLOCK_HIDE)) {
-              hour = (((rcvBuf[0] & 0xF8) >> 3) + currentSettings.tz) % 24;
+              hour = (((rcvBuf[0] & 0xF8) >> 3) + currentSettings.tz);
               minute = (rcvBuf[1] & 0xFC) >> 2;
               second = (rcvBuf[2] & 0xFC) >> 2;
-              date = (rcvBuf[4] & 0xFC) >> 2; // FIXME: needs tz correction
-              month = (rcvBuf[5] & 0xFC) >> 2; //FIXME: needs tz correction
+              date = (rcvBuf[4] & 0xFC) >> 2;
+              month = (rcvBuf[5] & 0xFC) >> 2;
               year = ((rcvBuf[6] & 0xF0) >> 4) + 2010; //FIXME: not sure if + 2010 is correct & needs tz correction
-              if (hour < 0) hour = hour + 24; // fixed for negative tz
               gotClock = true;
               
               if (year % 4 == 0)       // need to account for leapyear, good until the year 2100
