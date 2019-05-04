@@ -22,8 +22,10 @@
 const uint8_t TIMER_STEP = 25;
 const uint8_t SPI_CS_PIN = 10;
 
-uint8_t second, minute, hour, date, dow, month;
+int8_t hour, date, month;
+uint8_t second, minute,  dow;
 uint16_t year;
+uint8_t mdays[] = {0,31,28,31,30,31,30,31,31,30,31,30,31};
 uint8_t i,filtNo;
 
 #if !defined(__AVR_ATmega32U4__) // not Arduino Pro Micro
@@ -367,6 +369,37 @@ void loop() {
               year = ((rcvBuf[6] & 0xF0) >> 4) + 2010; //FIXME: not sure if + 2010 is correct & needs tz correction
               if (hour < 0) hour = hour + 24; // fixed for negative tz
               gotClock = true;
+              
+              if (year % 4 == 0)       // need to account for leapyear, good until the year 2100
+                mdays[2] = 29;
+              else
+                mdays[2] = 28;
+
+              if (hour < 0) {  //tz put us before midnight
+                hour += 24;
+                date--;
+                if (date == 0) {
+                  month--;
+                  if (month == 0) {
+                    month = 12;
+                    year--;
+                  }
+                  date = mdays[month];
+                }
+              }
+              else if (hour > 24) {  //tz put us after midnight
+                hour %= 24;
+                date++;
+                if (date > mdays[month]) {
+                  date = 1;
+                  month++;
+                  if (month == 13) {
+                    year++;
+                    month = 1;
+                  }
+                }
+              }
+              
             }
         }
           break;
