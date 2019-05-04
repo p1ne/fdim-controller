@@ -32,9 +32,11 @@ String readSerialString()
 
 uint8_t Day_of_Week(const uint16_t yr, const uint8_t m, const uint8_t d)
 {
+  uint8_t weekday;
   uint8_t t[] = {0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4};
   uint16_t y = yr - m < 3;
-  return( (y + y/4 - y/100 + y/400 + t[m-1] + d) % 7 );
+  weekday = (y + y/4 - y/100 + y/400 + t[m-1] + d) % 7;
+  return(weekday);
 }
 
 #endif // __SERVICE_H_
