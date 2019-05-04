@@ -434,11 +434,11 @@ void loop() {
     else if (dow == 0 && month == 11 && hour > 1 && currentSettings.DST == true)  //set DST off for US, +0 after 1st Sunday of November @ 2 AM
       EEPROM.update(CONFIG_START + 9, false);
     
-    hour = hour + currentSettings.DST;  //Add DST hour if needed
+    hour += currentSettings.DST;  //Add DST hour if needed
 
-    if (currentSettings.clockMode == CLOCK_12) {
+    if (currentSettings.clockMode == CLOCK_12) {  //Change to 12 hour display
       AM = (hour < 12);
-      hour = hour % currentSettings.clockMode;
+      hour %= 12;
       if (hour == 0) hour = 12;
     }
 
