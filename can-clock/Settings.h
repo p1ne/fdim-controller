@@ -89,11 +89,11 @@ void printCurrentRTCTime()
   if (currentSettings.useRTC) {
     rtc.begin();
     DateTime now = rtc.now();
-    printParam(int8_t(now.hour()));
-    printParam(int8_t(now.minute()));
+    printParam(uint8_t(now.hour()));
+    printParam(uint8_t(now.minute()));
   } else {
-    printParam(int8_t(32));
-    printParam(int8_t(64));
+    printParam(uint8_t(32));
+    printParam(uint8_t(64));
   }
 }
 
@@ -102,16 +102,16 @@ void saveRTCTime(uint8_t hour, uint8_t minute) {
 }
 
 void printCurrentSettings() {
-  printParam(int8_t(currentSettings.configVersion));
-  printParam(int8_t(currentSettings.huType));
-  printParam(int8_t(currentSettings.unitsMetric));
-  printParam(int8_t(currentSettings.useRTC));
+  printParam(uint8_t(currentSettings.configVersion));
+  printParam(uint8_t(currentSettings.huType));
+  printParam(uint8_t(currentSettings.unitsMetric));
+  printParam(uint8_t(currentSettings.useRTC));
   printCurrentRTCTime();
-  printParam(int8_t(currentSettings.tz));
-  printParam(int8_t(currentSettings.clockMode));
-  printParam(int8_t(currentSettings.displayPressure));
-  printParam(int8_t(currentSettings.pressureUnits));
-  printParam(int8_t(currentSettings.tpmsRequest));
+  printParam(currentSettings.tz >=0 ? uint8_t(currentSettings.tz) : uint8_t(currentSettings.tz + 255))`;
+  printParam(uint8_t(currentSettings.clockMode));
+  printParam(uint8_t(currentSettings.displayPressure));
+  printParam(uint8_t(currentSettings.pressureUnits));
+  printParam(uint8_t(currentSettings.tpmsRequest));
   WebUSBSerial.flush();
 }
 
@@ -123,7 +123,11 @@ void saveReceivedSettings(String settingsString) {
   currentSettings.unitsMetric = bool(settingsString.c_str()[2]);
   currentSettings.useRTC = bool(settingsString.c_str()[3]);
   saveRTCTime(uint8_t(settingsString.c_str()[4]), uint8_t(settingsString.c_str()[5]));
-  currentSettings.tz = int8_t(settingsString.c_str()[6]);
+  if (uint8_t(settingsString.c_str()[6]) < 128) {
+    currentSettings.tz = uint8_t(settingsString.c_str()[6]);
+  } else {
+    currentSettings.tz = int8_t(uint8_t(settingsString.c_str()[6]) - 255);
+  }
   currentSettings.clockMode = uint8_t(settingsString.c_str()[7]);
   currentSettings.displayPressure = bool(settingsString.c_str()[8]);
   currentSettings.pressureUnits = uint8_t(settingsString.c_str()[9]);

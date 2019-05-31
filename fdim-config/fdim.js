@@ -30,6 +30,7 @@
 
         port.onReceive = data => {
           let textDecoder = new TextDecoder();
+          configString.value = textDecoder.decode(data);
           parseConfigString(textDecoder.decode(data));
         }
         port.onReceiveError = error => {
@@ -40,35 +41,34 @@
       });
     }
 
-    function parseConfigString(configString) {
-
-      configVersion.innerText = configString.charCodeAt(0);
-      huType.value = configString.charCodeAt(1);
-      unitsMetric.value = configString.charCodeAt(2);
-      useRTC.value = configString.charCodeAt(3);
-      rtcClock.value = configString.charCodeAt(4) + ":" + configString.charCodeAt(5);
-      timeZone.value = configString.charCodeAt(6);
-      clockMode.value = configString.charCodeAt(7);
-      displayPressure.value = configString.charCodeAt(8);
-      pressureUnits.value = configString.charCodeAt(9);
-      tpmsRequest.value = configString.charCodeAt(10);
-    };
-
     function constructConfigString() {
       var rtcClockArr = rtcClock.value.split(":");
-
       configString.value = String.fromCharCode(configVersion.innerText) +
       String.fromCharCode(huType.value) +
       String.fromCharCode(unitsMetric.value) +
       String.fromCharCode(useRTC.value) +
       String.fromCharCode(rtcClockArr[0]) +
       String.fromCharCode(rtcClockArr[1]) +
-      String.fromCharCode(timeZone.value) +
+      String.fromCharCode(parseInt(timeZone.value) >=0 ? parseInt(timeZone.value) : (255 + parseInt(timeZone.value))) +
       String.fromCharCode(clockMode.value) +
       String.fromCharCode(displayPressure.value) +
       String.fromCharCode(pressureUnits.value) +
       String.fromCharCode(tpmsRequest.value);
     };
+
+    function parseConfigString(configString) {
+      configVersion.innerText = configString.charCodeAt(0);
+      huType.value = configString.charCodeAt(1);
+      unitsMetric.value = configString.charCodeAt(2);
+      useRTC.value = configString.charCodeAt(3);
+      rtcClock.value = configString.charCodeAt(4) + ":" + configString.charCodeAt(5);
+      timeZone.value = parseInt(configString.charCodeAt(6)) < 127 ? configString.charCodeAt(6) : String(parseInt(configString.charCodeAt(6)) - 255);
+      clockMode.value = configString.charCodeAt(7);
+      displayPressure.value = configString.charCodeAt(8);
+      pressureUnits.value = configString.charCodeAt(9);
+      tpmsRequest.value = configString.charCodeAt(10);
+    };
+
 
     function onGetCurrentTime() {
       var today = new Date();
@@ -95,7 +95,6 @@
       }
 
       constructConfigString();
-
       let toSend = "SAVE" + configString.value + "\n";
       var i;
       let view = new Uint8Array(toSend.length);

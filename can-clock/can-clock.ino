@@ -180,7 +180,7 @@ void detachCAN()
 
 void webUSBConfiguration() {
   while (WebUSBSerial.available() > 0) {
-    int recieved = WebUSBSerial.read();
+    byte recieved = WebUSBSerial.read();
     inSerialData += char(recieved);
 
     if (recieved == '\n') {
@@ -195,6 +195,7 @@ void webUSBConfiguration() {
       if (message.startsWith(F("SAVE"))) {
         String receivedSettings;
         receivedSettings = message.substring(4);
+        Serial.println(receivedSettings);
         saveReceivedSettings(receivedSettings);
       }
     }
@@ -240,10 +241,7 @@ void setup() {
 #endif
 
 START_INIT:
-  if(CAN_OK == CAN.begin(MCP_STDEXT, CAN_125KBPS, MCP_8MHZ)) {
-    Serial.println(F("CAN ok!"));
-  } else {
-    Serial.println(F("CAN fail"));
+  if(CAN_OK != CAN.begin(MCP_STDEXT, CAN_125KBPS, MCP_8MHZ)) {
     webUSBConfiguration();
     delay(100);
     goto START_INIT;
