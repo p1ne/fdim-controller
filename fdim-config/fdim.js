@@ -8,7 +8,7 @@
     let writeConfigButton = document.querySelector('#writeConfigButton')
     let getCurrentTimeButton = document.querySelector('#getCurrentTimeButton')
 
-    let configString = document.querySelector('#configString');
+    let printConfigString = document.querySelector('#printConfigString');
 
     let configVersion = document.querySelector("#configVersion");
     let huType = document.querySelector("#huType");
@@ -17,11 +17,24 @@
     let rtcClock = document.querySelector("#rtcClock");
     let timeZone = document.querySelector("#timeZone");
     let clockMode = document.querySelector("#clockMode");
-    let displayPressure = document.querySelector("#displayPressure");
-    let pressureUnits = document.querySelector("#pressureUnits");
-    let tpmsRequest = document.querySelector("#tpmsRequest");
+    let tpmsDisplay = document.querySelector("#tpmsDisplay");
+    let tpmsMode = document.querySelector("#tpmsMode");
 
     let port;
+
+    let rawConfig;
+
+    function hexEncode(str) {
+      var hex, i;
+
+      var result = "";
+      for (i=0; i<str.length; i++) {
+        hex = str.charCodeAt(i).toString(16);
+        result += ("00" + hex + " ").slice(-3);
+      }
+
+      return result
+    };
 
     function connect() {
       port.connect().then(() => {
@@ -30,7 +43,8 @@
 
         port.onReceive = data => {
           let textDecoder = new TextDecoder();
-          configString.value = textDecoder.decode(data);
+          rawConfig = textDecoder.decode(data);
+          printConfigString.innerText = hexEncode(rawConfig);
           parseConfigString(textDecoder.decode(data));
         }
         port.onReceiveError = error => {
@@ -41,19 +55,24 @@
       });
     }
 
-    function constructConfigString() {
+    function constructRawConfigString() {
       var rtcClockArr = rtcClock.value.split(":");
-      configString.value = String.fromCharCode(configVersion.innerText) +
-      String.fromCharCode(huType.value) +
-      String.fromCharCode(unitsMetric.value) +
-      String.fromCharCode(useRTC.value) +
-      String.fromCharCode(rtcClockArr[0]) +
-      String.fromCharCode(rtcClockArr[1]) +
-      String.fromCharCode(parseInt(timeZone.value) >=0 ? parseInt(timeZone.value) : (255 + parseInt(timeZone.value))) +
-      String.fromCharCode(clockMode.value) +
-      String.fromCharCode(displayPressure.value) +
-      String.fromCharCode(pressureUnits.value) +
-      String.fromCharCode(tpmsRequest.value);
+
+      let currentRawConfig = String.fromCharCode(parseInt(configVersion.innerText, 10)) +
+      String.fromCharCode(parseInt(huType.value, 10)) +
+      String.fromCharCode(parseInt(unitsMetric.value, 10)) +
+      String.fromCharCode(parseInt(useRTC.value, 10)) +
+      String.fromCharCode(parseInt(rtcClockArr[0], 10)) +
+      String.fromCharCode(parseInt(rtcClockArr[1], 10)) +
+      String.fromCharCode(parseInt(Math.abs(timeZone.value, 10))) +
+      String.fromCharCode(parseInt(timeZone.value, 10) > 0 ? 1 : 0) +
+      String.fromCharCode(parseInt(clockMode.value, 10)) +
+      String.fromCharCode(parseInt(tpmsDisplay.value, 10)) +
+      String.fromCharCode(parseInt(tpmsMode.value, 10));
+
+      printConfigString.innerText = hexEncode(currentRawConfig);
+
+      return(currentRawConfig)
     };
 
     function parseConfigString(configString) {
@@ -62,25 +81,18 @@
       unitsMetric.value = configString.charCodeAt(2);
       useRTC.value = configString.charCodeAt(3);
       rtcClock.value = configString.charCodeAt(4) + ":" + configString.charCodeAt(5);
-      timeZone.value = parseInt(configString.charCodeAt(6)) < 127 ? configString.charCodeAt(6) : String(parseInt(configString.charCodeAt(6)) - 255);
-      clockMode.value = configString.charCodeAt(7);
-      displayPressure.value = configString.charCodeAt(8);
-      pressureUnits.value = configString.charCodeAt(9);
-      tpmsRequest.value = configString.charCodeAt(10);
+      timeZone.value = parseInt(configString.charCodeAt(6), 10);
+      timeZone.value = parseInt(timeZone.value, 10) * ((parseInt(configString.charCodeAt(7), 10) > 0) ? 1 : -1);
+      clockMode.value = configString.charCodeAt(8);
+      tpmsDisplay.value = configString.charCodeAt(9);
+      tpmsMode.value = configString.charCodeAt(10);
     };
-
-
-    function onGetCurrentTime() {
-      var today = new Date();
-
-      rtcClock.value = today.getHours() + ":" + today.getMinutes();
-    }
 
     function onReadConfig() {
       if (!port) {
         return;
       }
-      let toSend = "LOAD\n";
+      let toSend = "L\n";
       var i;
       let view = new Uint8Array(toSend.length);
       for (i = 0; i < toSend.length; i++) {
@@ -93,15 +105,29 @@
       if (!port) {
         return;
       }
+      
+      let toSend = "S" + constructRawConfigString() + "\n";
 
-      constructConfigString();
-      let toSend = "SAVE" + configString.value + "\n";
       var i;
       let view = new Uint8Array(toSend.length);
       for (i = 0; i < toSend.length; i++) {
-        view[i] = parseInt(toSend.charCodeAt(i));
+        view[i] = parseInt(toSend.charCodeAt(i), 10);
       }
       port.send(view);
+
+/*      var i;
+      let view = new Uint8Array(1);
+      for (i = 0; i < toSend.length; i++) {
+        view[0] = parseInt(toSend.charCodeAt(i), 10);
+        port.send(view);
+      }
+*/
+    };
+
+    function onGetCurrentTime(control) {
+      var today = new Date();
+      var time = ("0" + today.getHours()).slice(-2) + ":" + ("0" + today.getMinutes()).slice(-2);
+      rtcClock.value = time;
     };
 
     readConfigButton.addEventListener('click', onReadConfig);

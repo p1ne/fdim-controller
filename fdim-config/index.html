@@ -2,141 +2,143 @@
 <html>
   <head>
     <title>FDIM configurator</title>
+    <script src="commons.js"></script>
     <script src="serial.js"></script>
     <script src="fdim.js"></script>
   </head>
   <body>
-    <p>
-      <button id="connect">Connect</button> <span id="status"></span>
-    </p>
-    <p>
-      <button id="readConfigButton">Read Config</button>
-    </p>
-    <p>
-      <button id="writeConfigButton">Write Config</button>
-    </p>
-    <input type="text" id="configString" size="80" />
+      <p>
+        <button id="connect">Connect</button> <span id="status"></span>
+      </p>
+      <p>
+        <button id="readConfigButton">Read Config</button>
+      </p>
+      <p>
+        <button id="writeConfigButton">Write Config</button>
+      </p>
+      <p><span id="printConfigString"/></p>
 
-<!-- 5|1|1|0||3|1|24|1|1| -->
+  <!-- 5|1|1|0||3|1|24|1|1| -->
 
-    <table>
-      <tr>
-        <td>Config version</td>
-        <td><div id="configVersion" size="80"/></td>
-      </tr>
-      <tr>
-        <td>Headunit type</td>
-        <td>
-          <select id="huType">
-            <option value=""></option>
-            <option value="1">HU_AFTERMARKET</option>
-            <option value="2">HU_STOCK</option>
-            <option value="3">HU_CHINESE_WITH_CAN_SIMPLE</option>
-            <option value="4">HU_CHINESE_WITH_CAN_EXTENDED</option>
-          </select>
-        </td>
-      </tr>
-      <tr>
-        <td>Units</td>
-        <td>
-          <select id="unitsMetric">
-            <option value=""></option>
-            <option value="1">Metric</option>
-            <option value="0">Imperial</option>
-          </select>
-        </td>
-      </tr>
-      <tr>
-        <td>Time source</td>
-        <td>
-          <select id="useRTC">
-            <option value=""></option>
-            <option value="1">RTC clock module</option>
-            <option value="0">GPS (GPSM module)</option>
-          </select>
-        </td>
-      </tr>
-      <tr>
-        <td>Time</td>
-        <td>
-          <input type="text" id="rtcClock"/>
-          <button id="getCurrentTimeButton">Get current time</button>
-        </td>
-      </tr>
-      <tr>
-        <td>Time zone</td>
-        <td>
-          <select id="timeZone">
-            <option value="-12">-12</option>
-            <option value="-11">-11</option>
-            <option value="-10">-10</option>
-            <option value="-9">-9</option>
-            <option value="-8">-8</option>
-            <option value="-7">-7</option>
-            <option value="-6">-6</option>
-            <option value="-5">-5</option>
-            <option value="-4">-4</option>
-            <option value="-3">-3</option>
-            <option value="-2">-2</option>
-            <option value="-1">-1</option>
-            <option value="0" selected>0</option>
-            <option value="1">+1</option>
-            <option value="2">+2</option>
-            <option value="3">+3</option>
-            <option value="4">+4</option>
-            <option value="5">+5</option>
-            <option value="6">+6</option>
-            <option value="7">+7</option>
-            <option value="8">+8</option>
-            <option value="9">+9</option>
-            <option value="10">+10</option>
-            <option value="11">+11</option>
-            <option value="12">+12</option>
-          </select>
-        </td>
-      </tr>
-      <tr>
-        <td>Time display</td>
-        <td>
-          <select id="clockMode">
-            <option value=""></option>
-            <option value="0">Off</option>
-            <option value="12">12 hours</option>
-            <option value="24">24 hours</option>
-          </select>
-        </td>
-      </tr>
-      <tr>
-        <td>Display pressure</td>
-        <td>
-          <select id="displayPressure">
-            <option value=""></option>
-            <option value="1">Yes</option>
-            <option value="0">No</option>
-          </select>
-        </td>
-      </tr>
-      <tr>
-        <td>Pressure units</td>
-        <td>
-          <select id="pressureUnits">
-            <option value=""></option>
-            <option value="0">Psi</option>
-            <option value="1">Bar</option>
-            <option value="2">kPa</option>
-          </select>
-        </td>
-      </tr>
-      <tr>
-        <td>TPMS mode</td>
-        <td>
-          <select id="tpmsRequest">
-            <option value=""></option>
-            <option value="0">Broadcast</option>
-            <option value="1">Request</option>
-          </select>
-        </td>
-      </tr>
-    </table>
+      <table>
+        <tr>
+          <td>Config version</td>
+          <td><div id="configVersion" size="80"/></td>
+        </tr>
+        <tr>
+          <td>Headunit type</td>
+          <td>
+            <select id="huType">
+              <option value=""></option>
+              <option value="1">Aftermarket</option>
+              <option value="2">Stock (support is very limited)</option>
+              <option value="3">Aftermarket with simple CAN module</option>
+              <option value="4">Aftermarket with extended CAN module</option>
+            </select>
+          </td>
+        </tr>
+        <tr>
+          <td>Units</td>
+          <td>
+            <select id="unitsMetric">
+              <option value=""></option>
+              <option value="1">Metric</option>
+              <option value="0">Imperial</option>
+            </select>
+          </td>
+        </tr>
+        <tr>
+          <td>Time source</td>
+          <td>
+            <select id="useRTC">
+              <option value=""></option>
+              <option value="1">RTC clock module</option>
+              <option value="0">GPS (GPSM module)</option>
+            </select>
+          </td>
+        </tr>
+        <tr>
+          <td>Time</td>
+          <td>
+            <input type="text" id="rtcClock"/>
+            <button id="getCurrentTimeButton">Get current time</button>
+          </td>
+        </tr>
+        <tr>
+          <td>Time zone</td>
+          <td>
+            <select id="timeZone">
+              <option value="-12">-12</option>
+              <option value="-11">-11</option>
+              <option value="-10">-10</option>
+              <option value="-9">-9</option>
+              <option value="-8">-8</option>
+              <option value="-7">-7</option>
+              <option value="-6">-6</option>
+              <option value="-5">-5</option>
+              <option value="-4">-4</option>
+              <option value="-3">-3</option>
+              <option value="-2">-2</option>
+              <option value="-1">-1</option>
+              <option value="0" selected>0</option>
+              <option value="1">+1</option>
+              <option value="2">+2</option>
+              <option value="3">+3</option>
+              <option value="4">+4</option>
+              <option value="5">+5</option>
+              <option value="6">+6</option>
+              <option value="7">+7</option>
+              <option value="8">+8</option>
+              <option value="9">+9</option>
+              <option value="10">+10</option>
+              <option value="11">+11</option>
+              <option value="12">+12</option>
+            </select>
+          </td>
+        </tr>
+        <tr>
+          <td>Time display</td>
+          <td>
+            <select id="clockMode">
+              <option value=""></option>
+              <option value="0">Off</option>
+              <option value="12">12 hours</option>
+              <option value="24">24 hours</option>
+            </select>
+          </td>
+        </tr>
+        <tr>
+          <td>Tires pressure display</td>
+          <td>
+            <select id="tpmsDisplay">
+              <option value=""></option>
+              <option value="0">Off</option>
+              <option value="1">Psi</option>
+              <option value="2">Bar</option>
+              <option value="3">kPa</option>
+            </select>
+          </td>
+        </tr>
+        <tr>
+          <td>TPMS mode</td>
+          <td>
+            <select id="tpmsMode">
+              <option value=""></option>
+              <option value="0">Broadcast</option>
+              <option value="1">Request</option>
+            </select>
+          </td>
+        </tr>
+      </table>
+
+    <script language="JavaScript">
+      let connectButton = document.querySelector("#connect");
+      let statusDisplay = document.querySelector('#status');
+      if (!getChromeVersion() || (parseInt(getChromeVersion()) < 61)) {
+        connectButton.disabled = true;
+        statusDisplay.innerText = 'Works only on Chrome/Chromium > 61.0, please use supported browser';
+      }
+    </script>
+
   </body>
 </html>

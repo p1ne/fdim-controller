@@ -78,7 +78,7 @@ public:
     data[7] = _d7;
   }
 
-  void print()
+  void print() const
   {
     Serial.print(started);
     Serial.print(F("| "));

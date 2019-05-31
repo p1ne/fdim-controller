@@ -12,11 +12,12 @@
 #include "Service.h"
 
 #define CONFIG_START 32
-#define CONFIG_VERSION 6
+#define CONFIG_VERSION 7
 
-#define PRESSURE_PSI 0
-#define PRESSURE_BARS 1
-#define PRESSURE_KPA 2
+#define PRESSURE_OFF 0
+#define PRESSURE_PSI 1
+#define PRESSURE_BARS 2
+#define PRESSURE_KPA 3
 
 #define CLOCK_HIDE 1
 #define CLOCK_12 12
@@ -31,33 +32,33 @@ bool isConfigured = false;
 
 typedef struct __attribute__((__packed__)) {
   uint8_t configVersion;
-  bool useRTC;
-  uint8_t pressureUnits;
-  bool displayPressure;
-  bool unitsMetric;
-  uint8_t clockMode;
-  int8_t tz;
-  bool tpmsRequest;
   uint8_t huType;
+  bool unitsMetric;
+  bool useRTC;
+  uint8_t tz;
+  bool tzPositive;
+  uint8_t clockMode;
+  uint8_t tpmsDisplay;
+  bool tpmsRequest;
+  bool spare1;
   bool spare2;
-  bool spare3;
 } Settings;
 
 Settings currentSettings = {
   CONFIG_VERSION, // version
-  false,          // useRTC
-  PRESSURE_PSI,   // pressureUnits
-  true,           // displayPressure
-  true,           // unitsMetric
-  CLOCK_24,       // clockMode
-  3,              // tz
-  true,           // tpmsRequest
   HU_AFTERMARKET, // huType
+  true,           // unitsMetric
+  false,          // useRTC
+  3,              // tz
+  true,           // tzPositive
+  CLOCK_24,       // clockMode
+  PRESSURE_PSI,   // tpmsDisplay
+  true,           // tpmsRequest
+  false,          // spare1
   false,          // spare2
-  false           // spare3
 };
 
-WebUSB WebUSBSerial(255, "http://localhost:8080/fdim");
+WebUSB WebUSBSerial(255, "http://localhost:8080/fdim-config/");
 
 void readSettings() {
   if (EEPROM.read(CONFIG_START + 0) == CONFIG_VERSION)
@@ -80,7 +81,7 @@ boolean wantClock() {
 
 void printParam(int8_t param) {
   WebUSBSerial.print(char(param));
-  Serial.print(char(param));
+  Serial.print(char(param), HEX);
 //  WebUSBSerial.print(F("|"));
 }
 
@@ -89,16 +90,21 @@ void printCurrentRTCTime()
   if (currentSettings.useRTC) {
     rtc.begin();
     DateTime now = rtc.now();
-    printParam(uint8_t(now.hour()));
-    printParam(uint8_t(now.minute()));
-  } else {
-    printParam(uint8_t(32));
-    printParam(uint8_t(64));
+    if ((now.hour() >= 0) && (now.hour() < 24) && (now.minute() >= 0) && (now.minute() < 60)) {
+      printParam(uint8_t(now.hour()));
+      printParam(uint8_t(now.minute()));
+      return;
+    }
   }
+
+  printParam(uint8_t(32));
+  printParam(uint8_t(64));
 }
 
 void saveRTCTime(uint8_t hour, uint8_t minute) {
-   rtc.setDateTime(DateTime(2011, 11, 10, hour, minute, 0, 5));
+  if (currentSettings.useRTC) {
+    rtc.setDateTime(DateTime(2011, 11, 10, hour, minute, 0, 5));
+  }
 }
 
 void printCurrentSettings() {
@@ -107,30 +113,24 @@ void printCurrentSettings() {
   printParam(uint8_t(currentSettings.unitsMetric));
   printParam(uint8_t(currentSettings.useRTC));
   printCurrentRTCTime();
-  printParam(currentSettings.tz >=0 ? uint8_t(currentSettings.tz) : uint8_t(currentSettings.tz + 255))`;
+  printParam(uint8_t(currentSettings.tz));
+  printParam(uint8_t(currentSettings.tzPositive));
   printParam(uint8_t(currentSettings.clockMode));
-  printParam(uint8_t(currentSettings.displayPressure));
-  printParam(uint8_t(currentSettings.pressureUnits));
+  printParam(uint8_t(currentSettings.tpmsDisplay));
   printParam(uint8_t(currentSettings.tpmsRequest));
   WebUSBSerial.flush();
 }
 
 void saveReceivedSettings(String settingsString) {
-
-
   currentSettings.configVersion = uint8_t(settingsString.c_str()[0]);
   currentSettings.huType = uint8_t(settingsString.c_str()[1]);
   currentSettings.unitsMetric = bool(settingsString.c_str()[2]);
   currentSettings.useRTC = bool(settingsString.c_str()[3]);
   saveRTCTime(uint8_t(settingsString.c_str()[4]), uint8_t(settingsString.c_str()[5]));
-  if (uint8_t(settingsString.c_str()[6]) < 128) {
-    currentSettings.tz = uint8_t(settingsString.c_str()[6]);
-  } else {
-    currentSettings.tz = int8_t(uint8_t(settingsString.c_str()[6]) - 255);
-  }
-  currentSettings.clockMode = uint8_t(settingsString.c_str()[7]);
-  currentSettings.displayPressure = bool(settingsString.c_str()[8]);
-  currentSettings.pressureUnits = uint8_t(settingsString.c_str()[9]);
+  currentSettings.tz = uint8_t(settingsString.c_str()[6]);
+  currentSettings.tzPositive = bool(settingsString.c_str()[7]);
+  currentSettings.clockMode = uint8_t(settingsString.c_str()[8]);
+  currentSettings.tpmsDisplay = uint8_t(settingsString.c_str()[9]);
   currentSettings.tpmsRequest = bool(settingsString.c_str()[10]);
 
   saveSettings();

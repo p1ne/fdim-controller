@@ -18,6 +18,9 @@
 #define DEBUG 1
 #undef MQ135_CONNECTED
 
+String SAVE_MSG = "S";
+String LOAD_MSG = "L\n";
+
 const uint8_t TIMER_STEP = 25;
 const uint8_t SPI_CS_PIN = 10;
 
@@ -118,7 +121,19 @@ void displayText(const uint8_t strNo, const String str)
 
 FormattedString getPressure(const uint8_t pressure)
 {
-  return (pressure > 25) ? String(round(pressure * (currentSettings.pressureUnits == PRESSURE_PSI ? 1 : 6.89476 ) ) / ( currentSettings.pressureUnits == PRESSURE_BARS ? 100.0 : 1 )) : pressureLow;
+  if (currentSettings.tpmsDisplay == PRESSURE_OFF) return(String(F("")));
+
+  return (pressure > 25) ? 
+            String(round(pressure * (currentSettings.tpmsDisplay == PRESSURE_PSI ? 
+                                      1 
+                                      : 
+                                      6.89476 ) ) / 
+                                    ( currentSettings.tpmsDisplay == PRESSURE_BARS ? 
+                                      100.0 
+                                      : 
+                                      1 )) 
+            : 
+            pressureLow;
 }
 
 FormattedString getTemperature(const int8_t t)
@@ -187,15 +202,21 @@ void webUSBConfiguration() {
       String message = inSerialData;
       inSerialData = F("");
 #ifdef DEBUG
-      Serial.print(message);
+      Serial.println(message);
 #endif
-      if (message == F("LOAD\n")) {
+      if (message == LOAD_MSG) {
         printCurrentSettings();
       }
-      if (message.startsWith(F("SAVE"))) {
+      if (message.startsWith(SAVE_MSG)) {
+#ifdef DEBUG
+        Serial.println(message);
+        Serial.println(message.length());
+        for (unsigned int i=0;i<message.length();i++) {
+          Serial.println(message.charAt(i), HEX);
+        }
+#endif
         String receivedSettings;
-        receivedSettings = message.substring(4);
-        Serial.println(receivedSettings);
+        receivedSettings = message.substring(SAVE_MSG.length());
         saveReceivedSettings(receivedSettings);
       }
     }
@@ -204,7 +225,7 @@ void webUSBConfiguration() {
 
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(9600);
   WebUSBSerial.begin(9600);
   Wire.begin();
 
@@ -215,7 +236,7 @@ void setup() {
   initTextMessages();
   initTpmsMessages();
 
-  if (currentSettings.pressureUnits == PRESSURE_PSI) {
+  if ((currentSettings.tpmsDisplay == PRESSURE_PSI) || (currentSettings.tpmsDisplay == PRESSURE_OFF)) {
     pressurePadding = 2;
     pressureLow = F("LO");
     rpmMessage = F(" RPM:");
@@ -260,7 +281,7 @@ START_INIT:
 
   CAN.init_Filt(filtNo++, CAN_STDID, 0x04230000);   // Speed data
 
-  if (currentSettings.displayPressure) {
+  if (currentSettings.tpmsDisplay > 0) {
     if (currentSettings.tpmsRequest) {
       CAN.init_Filt(filtNo++, CAN_STDID, 0x072E0000);    // TPMS response
     } else {
@@ -294,14 +315,14 @@ void loop() {
 
       switch (rcvCanId) {
         case 0x3b5: { // TPMS Broadcast
-            if ( currentSettings.displayPressure && !currentSettings.tpmsRequest) {
+            if ( (currentSettings.tpmsDisplay > 0) && !currentSettings.tpmsRequest) {
               for (i=TIRE_FL;i<TIRES;i++)
                 tirePressure[i] = getPressure(rcvBuf[i]);
             }
         }
           break;
         case 0x72e: { // TPMS response
-          if ( currentSettings.displayPressure && currentSettings.tpmsRequest && (rcvBuf[0] == 7) && (rcvBuf[1] == 0x62) && (rcvBuf[2] == 0x41)) {
+          if ( (currentSettings.tpmsDisplay > 0) && currentSettings.tpmsRequest && (rcvBuf[0] == 7) && (rcvBuf[1] == 0x62) && (rcvBuf[2] == 0x41)) {
 
             switch (rcvBuf[3]) {  // checking front are rear tires response
               case 0x40: {  // front tires
@@ -320,7 +341,7 @@ void loop() {
           }
 
           // Tires temperature
-          if ( currentSettings.displayPressure && currentSettings.tpmsRequest && (rcvBuf[0] == 6) && (rcvBuf[1] == 0x62) && (rcvBuf[2] == 0x41) && (rcvBuf[3] == 0x60)) {
+          if ( (currentSettings.tpmsDisplay > 0) && currentSettings.tpmsRequest && (rcvBuf[0] == 6) && (rcvBuf[1] == 0x62) && (rcvBuf[2] == 0x41) && (rcvBuf[3] == 0x60)) {
             if (rcvBuf[4] != 0 ) {  // cut-off for zero tires temperature
               tireTemperature = getTemperature(rcvBuf[4]);
             } else {
@@ -353,7 +374,7 @@ void loop() {
           break;
         case 0x466: {  // GPS clock
             if (!currentSettings.useRTC && (currentSettings.clockMode != CLOCK_HIDE)) {
-              hour = (((rcvBuf[0] & 0xF8) >> 3) + currentSettings.tz ) % currentSettings.clockMode;
+              hour = (((rcvBuf[0] & 0xF8) >> 3) + currentSettings.tz * ( currentSettings.tzPositive ? 1 : -1 ) ) % currentSettings.clockMode;
               minute = (rcvBuf[1] & 0xFC) >> 2;
               second = (rcvBuf[2] & 0xFC) >> 2;
               gotClock = true;
