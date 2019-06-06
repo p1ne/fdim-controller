@@ -56,6 +56,7 @@
     }
 
     function constructRawConfigString() {
+      var rtcClockArr;
       if (rtcClock.value != "") {
         let rtcClockArr = rtcClock.value.split(":");
       } else {
