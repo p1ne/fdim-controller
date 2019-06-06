@@ -56,11 +56,11 @@
     }
 
     function constructRawConfigString() {
-      var rtcClockArr;
+      let rtcClockArr;
       if (rtcClock.value != "") {
-        let rtcClockArr = rtcClock.value.split(":");
+        rtcClockArr = rtcClock.value.split(":");
       } else {
-        let rtcClockArr = [0x20, 0x40];
+        rtcClockArr = [0x20, 0x40];
       }
       let configVersionValue = (parseInt(configVersion.innerText, 10) > 7) ? parseInt(configVersion.innerText, 10) : 7;
 
