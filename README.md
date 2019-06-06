@@ -1,6 +1,7 @@
 
 # FoDiMoCo - Ford display module (FDIM) controller [![Build Status](https://travis-ci.org/p1ne/fdim-controller.svg?branch=master)](https://travis-ci.org/p1ne/fdim-controller)
 
+[Configurator](https://p1ne.github.io/fdim-controller/fdim-config/)
 
 ## What's this all about
 
