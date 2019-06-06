@@ -56,10 +56,10 @@
     }
 
     function constructRawConfigString() {
-      var rtcClockArr = rtcClock.value.split(":");
-      var configVersion = (parseInt(configVersion.innerText, 10) > 7) ? parseInt(configVersion.innerText, 10) : 7;
+      let rtcClockArr = rtcClock.value.split(":");
+      let configVersionValue = (parseInt(configVersion.innerText, 10) > 7) ? parseInt(configVersion.innerText, 10) : 7;
 
-      let currentRawConfig = String.fromCharCode(configVersion) +
+      let currentRawConfig = String.fromCharCode(configVersionValue) +
       String.fromCharCode(parseInt(huType.value, 10)) +
       String.fromCharCode(parseInt(unitsMetric.value, 10)) +
       String.fromCharCode(parseInt(useRTC.value, 10)) +
