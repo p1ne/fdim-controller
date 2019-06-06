@@ -7,8 +7,11 @@
     <script src="fdim.js"></script>
   </head>
   <body>
+      <h1>FDIM display controller configurator</h1>
+      <span id="error"/>
+      <span id="configParams">
       <p>
-        <button id="connect">Connect</button> <span id="status"></span>
+        <button id="connect">Connect</button> <span id="status"/>
       </p>
       <p>
         <button id="readConfigButton">Read Config</button>
@@ -16,10 +19,8 @@
       <p>
         <button id="writeConfigButton">Write Config</button>
       </p>
+
       <p><span id="printConfigString"/></p>
-
-  <!-- 5|1|1|0||3|1|24|1|1| -->
-
       <table>
         <tr>
           <td>Config version</td>
@@ -130,13 +131,13 @@
           </td>
         </tr>
       </table>
-
+    </span>
     <script language="JavaScript">
       let connectButton = document.querySelector("#connect");
       let statusDisplay = document.querySelector('#status');
       if (!getChromeVersion() || (parseInt(getChromeVersion()) < 61)) {
-        connectButton.disabled = true;
-        statusDisplay.innerText = 'Works only on Chrome/Chromium > 61.0, please use supported browser';
+        configParams.hidden = true;
+        error.innerHTML = '<font color="red">Works only on Chrome/Chromium > 61.0, please use supported browser</font>';
       }
     </script>
 
