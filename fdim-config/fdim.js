@@ -59,7 +59,7 @@
       if (rtcClock.value != "") {
         let rtcClockArr = rtcClock.value.split(":");
       } else {
-        let rtcClockArr = [20, 40];
+        let rtcClockArr = [0x20, 0x40];
       }
       let configVersionValue = (parseInt(configVersion.innerText, 10) > 7) ? parseInt(configVersion.innerText, 10) : 7;
 
@@ -85,7 +85,7 @@
       huType.value = configString.charCodeAt(1);
       unitsMetric.value = configString.charCodeAt(2);
       useRTC.value = configString.charCodeAt(3);
-      if ((configString.charCodeAt(4) == 20) && (configString.charCodeAt(5) == 40)) {
+      if ((configString.charCodeAt(4) == 0x20) && (configString.charCodeAt(5) == 0x40)) {
         rtcClock.value = "";
       } else {
         rtcClock.value = configString.charCodeAt(4) + ":" + configString.charCodeAt(5);
