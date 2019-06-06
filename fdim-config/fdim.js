@@ -56,7 +56,11 @@
     }
 
     function constructRawConfigString() {
-      let rtcClockArr = rtcClock.value.split(":");
+      if (rtcClock.value != "") {
+        let rtcClockArr = rtcClock.value.split(":");
+      } else {
+        let rtcClockArr = [20, 40];
+      }
       let configVersionValue = (parseInt(configVersion.innerText, 10) > 7) ? parseInt(configVersion.innerText, 10) : 7;
 
       let currentRawConfig = String.fromCharCode(configVersionValue) +
@@ -81,7 +85,11 @@
       huType.value = configString.charCodeAt(1);
       unitsMetric.value = configString.charCodeAt(2);
       useRTC.value = configString.charCodeAt(3);
-      rtcClock.value = configString.charCodeAt(4) + ":" + configString.charCodeAt(5);
+      if ((configString.charCodeAt(4) == 20) && (configString.charCodeAt(5) == 40)) {
+        rtcClock.value = "";
+      } else {
+        rtcClock.value = configString.charCodeAt(4) + ":" + configString.charCodeAt(5);
+      }
       timeZone.value = parseInt(configString.charCodeAt(6), 10);
       timeZone.value = parseInt(timeZone.value, 10) * ((parseInt(configString.charCodeAt(7), 10) > 0) ? 1 : -1);
       clockMode.value = configString.charCodeAt(8);
