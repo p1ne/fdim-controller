@@ -55,7 +55,7 @@ Settings currentSettings = {
   PRESSURE_PSI,   // tpmsDisplay
   true,           // tpmsRequest
   false,          // spare1
-  false,          // spare2
+  false x          // spare2
 };
 
 WebUSB WebUSBSerial(255, "https://p1ne.github.io/fdim-controller/fdim-config/");
@@ -103,7 +103,8 @@ void printCurrentRTCTime()
 
 void saveRTCTime(uint8_t hour, uint8_t minute) {
   if (currentSettings.useRTC) {
-    rtc.setDateTime(DateTime(2011, 11, 10, hour, minute, 0, 5));
+   rtc.begin();
+   rtc.setDateTime(DateTime(2011, 11, 10, hour, minute, 0, 5));
   }
 }
 
