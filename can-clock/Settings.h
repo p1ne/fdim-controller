@@ -55,7 +55,7 @@ Settings currentSettings = {
   PRESSURE_PSI,   // tpmsDisplay
   true,           // tpmsRequest
   false,          // spare1
-  false x          // spare2
+  false           // spare2
 };
 
 WebUSB WebUSBSerial(255, "https://p1ne.github.io/fdim-controller/fdim-config/");

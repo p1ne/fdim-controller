@@ -81,16 +81,6 @@
       return(currentRawConfig)
     };
 
-    huType.onChange = constructRawConfigString();
-    unitsMetric.onChange  = constructRawConfigString();
-    useRTC.onChange  = constructRawConfigString();
-    rtcClock.onChange  = constructRawConfigString();
-    timeZone.onChange  = constructRawConfigString();
-    clockMode.onChange  = constructRawConfigString();
-    tpmsDisplay.onChange  = constructRawConfigString();
-    tpmsMode.onChange  = constructRawConfigString();
-  
-
     function parseConfigString(configString) {
       configVersion.innerText = configString.charCodeAt(0);
       huType.value = configString.charCodeAt(1);

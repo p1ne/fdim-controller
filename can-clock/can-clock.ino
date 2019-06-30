@@ -15,7 +15,7 @@
 #include "Service.h"
 #include "Settings.h"
 
-#define DEBUG 1
+#define DEBUG 0
 #undef MQ135_CONNECTED
 
 String SAVE_MSG = "S";
