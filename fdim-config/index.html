@@ -29,7 +29,7 @@
         <tr>
           <td>Headunit type</td>
           <td>
-            <select id="huType" onchange="constructRawConfigString();">
+            <select id="huType">
               <option value=""></option>
               <option value="1">Aftermarket</option>
               <option value="2">Stock (support is very limited)</option>
@@ -41,7 +41,7 @@
         <tr>
           <td>Units</td>
           <td>
-            <select id="unitsMetric" onchange="constructRawConfigString();">
+            <select id="unitsMetric">
               <option value=""></option>
               <option value="1">Metric</option>
               <option value="0">Imperial</option>
@@ -51,7 +51,7 @@
         <tr>
           <td>Time source</td>
           <td>
-            <select id="useRTC" onchange="constructRawConfigString();">
+            <select id="useRTC">
               <option value=""></option>
               <option value="1">RTC clock module</option>
               <option value="0">GPS (GPSM module)</option>
@@ -61,14 +61,14 @@
         <tr>
           <td>Time</td>
           <td>
-            <input type="text" id="rtcClock" onchange="constructRawConfigString();"/>
-            <button id="getCurrentTimeButton" onclick="constructRawConfigString();">Get current time</button>
+            <input type="text" id="rtcClock"/>
+            <button id="getCurrentTimeButton">Get current time</button>
           </td>
         </tr>
         <tr>
           <td>Time zone</td>
           <td>
-            <select id="timeZone" onchange="constructRawConfigString();">
+            <select id="timeZone">
               <option value="-12">-12</option>
               <option value="-11">-11</option>
               <option value="-10">-10</option>
@@ -100,7 +100,7 @@
         <tr>
           <td>Time display</td>
           <td>
-            <select id="clockMode" onchange="constructRawConfigString();">
+            <select id="clockMode">
               <option value=""></option>
               <option value="0">Off</option>
               <option value="12">12 hours</option>
@@ -111,7 +111,7 @@
         <tr>
           <td>Tires pressure display</td>
           <td>
-            <select id="tpmsDisplay" onchange="constructRawConfigString();">
+            <select id="tpmsDisplay">
               <option value=""></option>
               <option value="0">Off</option>
               <option value="1">Psi</option>
@@ -123,7 +123,7 @@
         <tr>
           <td>TPMS mode</td>
           <td>
-            <select id="tpmsMode" onchange="constructRawConfigString();">
+            <select id="tpmsMode">
               <option value=""></option>
               <option value="0">Broadcast</option>
               <option value="1">Request</option>
