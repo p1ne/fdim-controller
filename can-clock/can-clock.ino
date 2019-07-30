@@ -16,10 +16,12 @@
 #include "Settings.h"
 
 #undef DEBUG
+#undef WEBUSB_DEBUG
+
 #undef MQ135_CONNECTED
 
-String SAVE_MSG = "S";
-String LOAD_MSG = "L\n";
+char SAVE_MSG = 'S';
+char LOAD_MSG = 'L';
 
 const uint8_t TIMER_STEP = 25;
 const uint8_t SPI_CS_PIN = 10;
@@ -50,7 +52,8 @@ uint8_t currentText = 0;
 
 uint8_t currentTpmsRequest = TPMS_INIT;
 
-String inSerialData = "";
+byte inSerialData[256];
+byte dataIdx = 0;
 
 MCP_CAN CAN(SPI_CS_PIN);
 
@@ -196,29 +199,22 @@ void detachCAN()
 void webUSBConfiguration() {
   while (WebUSBSerial.available() > 0) {
     byte recieved = WebUSBSerial.read();
-    inSerialData += char(recieved);
+    inSerialData[dataIdx] = recieved;
+    dataIdx++;
 
-    if (recieved == '\n') {
-      String message = inSerialData;
-      inSerialData = F("");
-#ifdef DEBUG
-      Serial.println(message);
-#endif
-      if (message == LOAD_MSG) {
+    if (char(recieved) == '\n') {
+      if (inSerialData[0] == LOAD_MSG) {
         printCurrentSettings();
       }
-      if (message.startsWith(SAVE_MSG)) {
-#ifdef DEBUG
-        Serial.println(message);
-        Serial.println(message.length());
-        for (unsigned int i=0;i<message.length();i++) {
-          Serial.println(message.charAt(i), HEX);
+      if (inSerialData[0] == SAVE_MSG) {
+#ifdef WEBUSB_DEBUG
+        for (unsigned int i=0;i<dataIdx;i++) {
+          Serial.println(inSerialData[i], HEX);
         }
 #endif
-        String receivedSettings;
-        receivedSettings = message.substring(SAVE_MSG.length());
-        saveReceivedSettings(receivedSettings);
+        saveReceivedSettings(inSerialData, dataIdx);
       }
+      dataIdx = 0;
     }
   }
 }
@@ -256,7 +252,7 @@ void setup() {
       tirePressure[i] = F("   ");
   }
 
-#if defined (DEBUG)
+#if defined (WEBUSB_DEBUG)
     delay(5000);
     printCurrentSettings();
 #endif
@@ -266,6 +262,8 @@ START_INIT:
     webUSBConfiguration();
     delay(100);
     goto START_INIT;
+  } else {
+    Serial.println("CAN OK");
   }
 
   attachCAN();
@@ -302,7 +300,6 @@ START_INIT:
 
   timer = 0;
   delay(500);
-
   //CAN.sendMsgBuf(metric.header, 0, metric.len, metric.data);
 }
 
@@ -385,9 +382,11 @@ void loop() {
     }
   }
 
-#if defined (DEBUG)
+#if defined (DEBUG) || defined(WEBUSB_DEBUG)
   sendingNow = true;
 #endif
+
+  webUSBConfiguration();
 
   if (sendingNow) {
 
@@ -429,8 +428,6 @@ void loop() {
       sentOnTick = timer;
       printDebug(timer, tpms[currentTpmsRequest]);
     }
-
-    webUSBConfiguration();
 
     if ( ( (timer >= text[currentText].started ) || (!firstCycle) ) && ((timer % text[currentText].repeated) - text[currentText].delayed) == 0) {
       if (currentText == 0) {

@@ -28,8 +28,6 @@
 #define HU_CHINESE_WITH_CAN_SIMPLE 3
 #define HU_CHINESE_WITH_CAN_EXTENDED 4
 
-bool isConfigured = false;
-
 typedef struct __attribute__((__packed__)) {
   uint8_t configVersion;
   uint8_t huType;
@@ -60,6 +58,8 @@ Settings currentSettings = {
 
 WebUSB WebUSBSerial(255, "https://p1ne.github.io/fdim-controller/fdim-config/");
 
+//WebUSB WebUSBSerial(255, "http://localhost:8080/fdim-config/");
+
 void readSettings() {
   if (EEPROM.read(CONFIG_START + 0) == CONFIG_VERSION)
    for (unsigned int t=0; t<sizeof(currentSettings); t++)
@@ -69,8 +69,6 @@ void readSettings() {
 void saveSettings() {
   for (unsigned int t=0; t<sizeof(currentSettings); t++)
    EEPROM.write(CONFIG_START + t, *((char*)&currentSettings + t));
-
-  isConfigured = true;
 }
 
 boolean wantClock() {
@@ -81,8 +79,11 @@ boolean wantClock() {
 
 void printParam(int8_t param) {
   WebUSBSerial.print(char(param));
+
+#if defined (WEBUSB_DEBUG)
   Serial.print(char(param), HEX);
-//  WebUSBSerial.print(F("|"));
+  Serial.print("|");
+#endif
 }
 
 void printCurrentRTCTime()
@@ -97,8 +98,8 @@ void printCurrentRTCTime()
     }
   }
 
-  printParam(uint8_t(32));
-  printParam(uint8_t(64));
+  printParam(uint8_t(0));
+  printParam(uint8_t(0));
 }
 
 void saveRTCTime(uint8_t hour, uint8_t minute) {
@@ -113,27 +114,27 @@ void printCurrentSettings() {
   printParam(uint8_t(currentSettings.huType));
   printParam(uint8_t(currentSettings.unitsMetric));
   printParam(uint8_t(currentSettings.useRTC));
-  printCurrentRTCTime();
   printParam(uint8_t(currentSettings.tz));
   printParam(uint8_t(currentSettings.tzPositive));
   printParam(uint8_t(currentSettings.clockMode));
   printParam(uint8_t(currentSettings.tpmsDisplay));
   printParam(uint8_t(currentSettings.tpmsRequest));
+  printCurrentRTCTime();
   WebUSBSerial.flush();
 }
 
-void saveReceivedSettings(String settingsString) {
-  currentSettings.configVersion = uint8_t(settingsString.c_str()[0]);
-  currentSettings.huType = uint8_t(settingsString.c_str()[1]);
-  currentSettings.unitsMetric = bool(settingsString.c_str()[2]);
-  currentSettings.useRTC = bool(settingsString.c_str()[3]);
-  saveRTCTime(uint8_t(settingsString.c_str()[4]), uint8_t(settingsString.c_str()[5]));
-  currentSettings.tz = uint8_t(settingsString.c_str()[6]);
-  currentSettings.tzPositive = bool(settingsString.c_str()[7]);
-  currentSettings.clockMode = uint8_t(settingsString.c_str()[8]);
-  currentSettings.tpmsDisplay = uint8_t(settingsString.c_str()[9]);
-  currentSettings.tpmsRequest = bool(settingsString.c_str()[10]);
-
+void saveReceivedSettings(byte settingsString[], byte length) {
+  currentSettings.configVersion = uint8_t(settingsString[1]);
+  currentSettings.huType = uint8_t(settingsString[2]);
+  currentSettings.unitsMetric = bool(settingsString[3]);
+  currentSettings.useRTC = bool(settingsString[4]);
+  currentSettings.tz = uint8_t(settingsString[5]);
+  currentSettings.tzPositive = bool(settingsString[6]);
+  currentSettings.clockMode = uint8_t(settingsString[7]);
+  currentSettings.tpmsDisplay = uint8_t(settingsString[8]);
+  currentSettings.tpmsRequest = bool(settingsString[9]);
+  saveRTCTime(uint8_t(settingsString[10]), uint8_t(settingsString[11]));
+  printCurrentSettings();
   saveSettings();
 }
 

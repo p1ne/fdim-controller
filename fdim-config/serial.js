@@ -12,6 +12,7 @@ var serial = {};
   serial.requestPort = function() {
     const filters = [
       { 'vendorId': 0x1b4f, 'productId': 0x9203 }, // ProMicro
+      { 'vendorId': 0x1b4f, 'productId': 0x9206 }, // ProMicro
 
     ];
     return navigator.usb.requestDevice({ 'filters': filters }).then(

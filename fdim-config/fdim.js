@@ -55,47 +55,21 @@
       });
     }
 
-    function constructRawConfigString() {
-      let rtcClockArr;
-      if (rtcClock.value != "") {
-        rtcClockArr = rtcClock.value.split(":");
-      } else {
-        rtcClockArr = [0x20, 0x40];
-      }
-      let configVersionValue = (parseInt(configVersion.innerText, 10) > 7) ? parseInt(configVersion.innerText, 10) : 7;
-
-      let currentRawConfig = String.fromCharCode(configVersionValue) +
-      String.fromCharCode(parseInt(huType.value, 10)) +
-      String.fromCharCode(parseInt(unitsMetric.value, 10)) +
-      String.fromCharCode(parseInt(useRTC.value, 10)) +
-      String.fromCharCode(parseInt(rtcClockArr[0], 10)) +
-      String.fromCharCode(parseInt(rtcClockArr[1], 10)) +
-      String.fromCharCode(parseInt(Math.abs(timeZone.value, 10))) +
-      String.fromCharCode(parseInt(timeZone.value, 10) > 0 ? 1 : 0) +
-      String.fromCharCode(parseInt(clockMode.value, 10)) +
-      String.fromCharCode(parseInt(tpmsDisplay.value, 10)) +
-      String.fromCharCode(parseInt(tpmsMode.value, 10));
-
-      printConfigString.innerText = hexEncode(currentRawConfig);
-
-      return(currentRawConfig)
-    };
-
     function parseConfigString(configString) {
       configVersion.innerText = configString.charCodeAt(0);
       huType.value = configString.charCodeAt(1);
       unitsMetric.value = configString.charCodeAt(2);
       useRTC.value = configString.charCodeAt(3);
-      if ((configString.charCodeAt(4) == 0x20) && (configString.charCodeAt(5) == 0x40)) {
+      timeZone.value = parseInt(configString.charCodeAt(4), 10);
+      timeZone.value = parseInt(timeZone.value, 10) * ((parseInt(configString.charCodeAt(5), 10) > 0) ? 1 : -1);
+      clockMode.value = configString.charCodeAt(6);
+      tpmsDisplay.value = configString.charCodeAt(7);
+      tpmsMode.value = configString.charCodeAt(8);
+      if (configString.charCodeAt(3)) {
         rtcClock.value = "";
       } else {
-        rtcClock.value = configString.charCodeAt(4) + ":" + configString.charCodeAt(5);
+        rtcClock.value = configString.charCodeAt(9) + ":" + configString.charCodeAt(10);
       }
-      timeZone.value = parseInt(configString.charCodeAt(6), 10);
-      timeZone.value = parseInt(timeZone.value, 10) * ((parseInt(configString.charCodeAt(7), 10) > 0) ? 1 : -1);
-      clockMode.value = configString.charCodeAt(8);
-      tpmsDisplay.value = configString.charCodeAt(9);
-      tpmsMode.value = configString.charCodeAt(10);
     };
 
     function onReadConfig() {
@@ -116,22 +90,50 @@
         return;
       }
       
-      let toSend = "S" + constructRawConfigString() + "\n";
-
-      var i;
-      let view = new Uint8Array(toSend.length);
-      for (i = 0; i < toSend.length; i++) {
-        view[i] = parseInt(toSend.charCodeAt(i), 10);
+      var rtcClockArr = [];
+      if (rtcClock.value != "") {
+        rtcClockArr = rtcClock.value.split(":");
+      } else {
+        rtcClockArr[0] = 0;
+        rtcClockArr[1] = 0;
       }
-      port.send(view);
+      let configVersionValue = (parseInt(configVersion.innerText, 10) > 7) ? parseInt(configVersion.innerText, 10) : 7;
 
-/*      var i;
-      let view = new Uint8Array(1);
-      for (i = 0; i < toSend.length; i++) {
-        view[0] = parseInt(toSend.charCodeAt(i), 10);
-        port.send(view);
+      let view = new Uint8Array(13);
+
+      let i = 0;
+
+      view[i++] = parseInt("S".charCodeAt("0"), 10);
+      view[i++] = configVersionValue
+      view[i++] = parseInt(huType.value, 10);
+      view[i++] = parseInt(unitsMetric.value, 10);
+      view[i++] = parseInt(useRTC.value, 10);
+      view[i++] = parseInt(Math.abs(timeZone.value, 10));
+      view[i++] = parseInt(timeZone.value, 10) > 0 ? 1 : 0;
+      view[i++] = parseInt(clockMode.value, 10);
+      view[i++] = parseInt(tpmsDisplay.value, 10);
+      view[i++] = parseInt(tpmsMode.value, 10);
+      view[i++] = parseInt(rtcClockArr[0], 10);
+      view[i++] = parseInt(rtcClockArr[1], 10);
+      view[i++] = parseInt("\n".charCodeAt(0), 10);
+
+      //printConfigString.innerText = hexEncode(currentRawConfig);
+
+      //var i;
+      //let view = new Uint8Array(13);
+      //for (i = 0; i < toSend.length; i++) {
+      //  view[i] = parseInt(toSend.charCodeAt(i), 10);
+      //}
+
+      //port.send(view);
+
+      var j;
+      let send = new Uint8Array(1);
+      for (j = 0; j < i; j++) {
+        send[0] = view[j];
+        port.send(send);
+
       }
-*/
     };
 
     function onGetCurrentTime(control) {
