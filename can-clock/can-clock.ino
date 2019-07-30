@@ -141,7 +141,7 @@ FormattedString getPressure(const uint8_t pressure)
 
 FormattedString getTemperature(const int8_t t)
 {
-  return String((int8_t)round((t-40) * (currentSettings.unitsMetric ? 1 : 1.8) + (currentSettings.unitsMetric ? 0 : 32)));
+  return String((int16_t)round((t-40) * (currentSettings.unitsMetric ? 1 : 1.8) + (currentSettings.unitsMetric ? 0 : 32)));
 }
 
 void sendStartSequence()
