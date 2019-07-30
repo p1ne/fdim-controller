@@ -350,7 +350,7 @@ void loop() {
           break;
         case 0x423: { // Speed, RPM
           rpm = String((unsigned int)round(( ( rcvBuf[2] << 8 ) + rcvBuf[3] ) / 4));
-          carSpeed = String(round(((((rcvBuf[0] << 8) + rcvBuf[1])/100) - 100) * (currentSettings.unitsMetric ? 1 : 0.621371)), 0);
+          carSpeed = String ( (unsigned int)round((( ( (rcvBuf[0] << 8) + rcvBuf[1])/100 ) - 100) * (currentSettings.unitsMetric ? 1 : 0.621371)));
           temperature = getTemperature(rcvBuf[4]);
 
           if ( sendingNow && (rcvBuf[0] == 0xFF)) { // got 423 message for ignition off
