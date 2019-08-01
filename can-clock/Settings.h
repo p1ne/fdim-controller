@@ -56,9 +56,9 @@ Settings currentSettings = {
   false           // spare2
 };
 
-WebUSB WebUSBSerial(255, "https://p1ne.github.io/fdim-controller/fdim-config/");
+//WebUSB WebUSBSerial(255, "https://p1ne.github.io/fdim-controller/fdim-config/");
 
-//WebUSB WebUSBSerial(255, "http://localhost:8080/fdim-config/");
+WebUSB WebUSBSerial(255, "http://localhost:8080/fdim-config/");
 
 void readSettings() {
   if (EEPROM.read(CONFIG_START + 0) == CONFIG_VERSION)

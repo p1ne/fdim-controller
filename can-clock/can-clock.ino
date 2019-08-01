@@ -213,25 +213,14 @@ void webUSBConfiguration() {
         }
 #endif
         saveReceivedSettings(inSerialData, dataIdx);
+        initScreenConfiguration();
       }
       dataIdx = 0;
     }
   }
 }
 
-
-void setup() {
-  Serial.begin(9600);
-  WebUSBSerial.begin(9600);
-  Wire.begin();
-
-  readSettings();
-
-  initStartMessages();
-  initCycleMessages();
-  initTextMessages();
-  initTpmsMessages();
-
+void initScreenConfiguration() {
   if ((currentSettings.tpmsDisplay == PRESSURE_PSI) || (currentSettings.tpmsDisplay == PRESSURE_OFF)) {
     pressurePadding = 2;
     pressureLow = F("LO");
@@ -251,6 +240,20 @@ void setup() {
     for (i=TIRE_FL;i<TIRES;i++)
       tirePressure[i] = F("   ");
   }
+}
+
+void setup() {
+  Serial.begin(9600);
+  WebUSBSerial.begin(9600);
+  Wire.begin();
+
+  readSettings();
+
+  initStartMessages();
+  initCycleMessages();
+  initTextMessages();
+  initTpmsMessages();
+  initScreenConfiguration();
 
 #if defined (WEBUSB_DEBUG)
     delay(5000);
@@ -461,7 +464,7 @@ void loop() {
             // 32     E: 83      32
             temperatureMessage = "E:" + temperature.padRight(3);
             displayText(1, tirePressure[TIRE_FL].padRight(pressurePadding) + clockMessage.padCenter(textMsgLength+2) + tirePressure[TIRE_FR].padRight(pressurePadding));
-            displayText(2, tirePressure[TIRE_FL].padRight(pressurePadding) + temperatureMessage.padCenter(textMsgLength+2) + tirePressure[TIRE_FR].padRight(pressurePadding));
+            displayText(2, tirePressure[TIRE_RL].padRight(pressurePadding) + temperatureMessage.padCenter(textMsgLength+2) + tirePressure[TIRE_RR].padRight(pressurePadding));
             break;
 
           case HU_CHINESE_WITH_CAN_EXTENDED:

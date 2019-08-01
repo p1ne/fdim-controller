@@ -66,9 +66,9 @@
       tpmsDisplay.value = configString.charCodeAt(7);
       tpmsMode.value = configString.charCodeAt(8);
       if (configString.charCodeAt(3)) {
-        rtcClock.value = "";
-      } else {
         rtcClock.value = configString.charCodeAt(9) + ":" + configString.charCodeAt(10);
+      } else {
+        rtcClock.value = "";
       }
     };
 
