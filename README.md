@@ -545,8 +545,9 @@ Since USB support for Arduino Leonardo/Spark Fun Pro Micro on Catalina is broken
 - go to where *Vagrantfile* is stored
 - run `vagrant up` - everything should be downloaded and then uploaded to Arduino, ending with messages 
 
-```    default: avrdude done.  Thank you.
-    default: ========================= [SUCCESS] Took XXX seconds =========================
+```    
+default: avrdude done.  Thank you.
+default: ========================= [SUCCESS] Took XXX seconds =========================
 ```
 
 ## Configuration
