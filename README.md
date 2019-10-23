@@ -533,7 +533,7 @@ Year = ( y >> 3 ) & 0x1F
 ### Flashing from Platform IO command line
 
 - Clone source code
-- Run '''platformio run --target upload'''
+- Run `platformio run --target upload`
 
 ### Flashing on Mac OS X 10.15 Catalina
 
@@ -543,11 +543,11 @@ Since USB support for Arduino Leonardo/Spark Fun Pro Micro on Catalina is broken
 - Install [VirtualBox](https://www.virtualbox.org)
 - Install Oracle VM VirtualBox Extension Pack
 - go to where *Vagrantfile* is stored
-- run '''vagrant up''' - everything should be downloaded and then uploaded to Arduino, ending with messages 
+- run `vagrant up` - everything should be downloaded and then uploaded to Arduino, ending with messages 
 
-'''    default: avrdude done.  Thank you.
+```    default: avrdude done.  Thank you.
     default: ========================= [SUCCESS] Took XXX seconds =========================
-'''
+```
 
 ## Configuration
 
