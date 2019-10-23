@@ -530,98 +530,27 @@ Year = ( y >> 3 ) & 0x1F
 - Run task PIO Build (sparkfun_micro16)
 - Run task PIO Upload (sparkfun_micro16)
 
-### Flashing pre-built firmwares
+### Flashing from Platform IO command line
 
-#### On Windows
+- Clone source code
+- Run '''platformio run --target upload'''
 
-#### On Mac
+### Flashing on Mac OS X 10.15 Catalina
 
-#### On Linux
+Since USB support for Arduino Leonardo/Spark Fun Pro Micro on Catalina is broken, I've prepared Vagrantfile to use VirtualBox to flash
+
+- Install [Vagrant](https://www.vagrantup.com/)
+- Install [VirtualBox](https://www.virtualbox.org)
+- Install Oracle VM VirtualBox Extension Pack
+- go to where *Vagrantfile* is stored
+- run '''vagrant up''' - everything should be downloaded and then uploaded to Arduino, ending with messages 
+
+'''    default: avrdude done.  Thank you.
+    default: ========================= [SUCCESS] Took XXX seconds =========================
+'''
 
 ## Configuration
 
 ### Serial communication setup
 
-### Options
-
-```
-Press any key to enter settings menu... 5
-
-Current settings
-
-Config version: 5
-HU type: Aftermarket
-Units: Metric
-Time source: GPS
-Time zone: 3
-Clock mode: 24h
-Pressure units: Psi
-Display pressure: Yes
-TPMS interaction mode: Request
-
-FORD FDIM Controller configuration
-
-Select HU type
-1 - Aftermarket
-2 - Stock
-3 - Aftermarket with CAN (simple info)
-4 - Aftermarket with CAN (extended info)
-
-
-> 3
-Select time source
-1 - 911 Assist GPS (2010+)
-2 - controller real time clock
-
-
->
-2
-Current RTC time: 15:24:46
-
-Enter current local time in 24h format (HH:MM) or Enter to keep as is
-
->
-
-
-Set clock mode
-1 - Hide
-2 - 12h
-3 - 24h
-
->
-3
-Select speed/temperature units
-1 - Metric
-2 - American
-
-
->
-1
-Display tires pressure
-1 - Yes
-2 - No
-
-
->
-1
-Pressure units
-1 - Psi
-2 - kPa
-3 - Bars
-
-
->
-3
-Set TPMS interaction mode
-1 - Request
-2 - Broadcast
-
->
-1
-Saving settings...
-
-
-Settings saved, getting back to operation mode
-CAN ok!
-
-```
+### Using WebUSB
