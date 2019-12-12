@@ -141,7 +141,7 @@ FormattedString getPressure(const uint8_t pressure)
 
 FormattedString getTemperature(const int8_t t)
 {
-  return String((int16_t)round((t-40) * (currentSettings.unitsMetric ? 1 : 1.8) + (currentSettings.unitsMetric ? 0 : 32)));
+  return String((int8_t)round((t-40) * (currentSettings.unitsMetric ? 1 : 1.8) + (currentSettings.unitsMetric ? 0 : 32)));
 }
 
 void sendStartSequence()
@@ -445,7 +445,7 @@ void loop() {
             // 32          T: 40 32
             displayText(0, carSpeed.padRight(3));
             displayText(1, tirePressure[TIRE_FL].padRight(pressurePadding) + rpmMessage + rpm.padRight(4) + F(" E:") + temperature.padRight(3) + " " + tirePressure[TIRE_FR].padRight(pressurePadding));
-            displayText(2, tirePressure[TIRE_RL].padRight(pressurePadding) + tireTempMessage + tireTemperature.padRight(3) + " " + tirePressure[TIRE_RR].padRight(pressurePadding));
+            displayText(2, tirePressure[TIRE_RR].padRight(pressurePadding) + tireTempMessage + tireTemperature.padRight(3) + " " + tirePressure[TIRE_RL].padRight(pressurePadding));
             break;
           case HU_STOCK:
             // 2.1 R:1234 E: 83 2.1
