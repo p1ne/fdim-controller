@@ -18,8 +18,8 @@ const uint8_t TPMS_INIT       = 3;
 
 const uint8_t TIRE_FL         = 0;
 const uint8_t TIRE_FR         = 1;
-const uint8_t TIRE_RL         = 3;
-const uint8_t TIRE_RR         = 2;
+const uint8_t TIRE_RL         = 2;
+const uint8_t TIRE_RR         = 3;
 const uint8_t TIRES           = 4;
 
 uint8_t START_COUNT           = 0;
