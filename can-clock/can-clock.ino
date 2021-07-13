@@ -27,9 +27,11 @@ const uint8_t TIMER_STEP = 25;
 const uint8_t SPI_CS_PIN = 10;
 
 uint8_t second, minute, hour;
+uint8_t day, month, year;
 uint8_t i,filtNo;
 
 FormattedString tirePressure[TIRES], message, rpm, carSpeed, temperature, tireTemperature, hourString, minuteString, clockMessage, temperatureMessage;
+FormattedString dayString, monthString, yearString;
 
 uint8_t pressurePadding;
 String rpmMessage, spdMessage, tireTempMessage, pressureLow;
@@ -377,6 +379,9 @@ void loop() {
               hour = (((rcvBuf[0] & 0xF8) >> 3) + currentSettings.tz * ( currentSettings.tzPositive ? 1 : -1 ) ) % currentSettings.clockMode;
               minute = (rcvBuf[1] & 0xFC) >> 2;
               second = (rcvBuf[2] & 0xFC) >> 2;
+              day = (rcvBuf[4] & 0xFC) >> 2;
+              month = (rcvBuf[5] & 0xF0) >> 4;
+              year = (rcvBuf[6] & 0xF8) >> 3;
               gotClock = true;
             }
         }
@@ -403,10 +408,16 @@ void loop() {
       gotClock = true;
     }
 
+    if (!currentSettings.useRTC && (currentSettings.clockMode != CLOCK_HIDE)) {
+      dayString = String(day);
+      monthString = String(month);
+      yearString = String(year);
+    }
+
     for (uint16_t currentCycle = 0; currentCycle < MSG_COUNT; currentCycle++ ) {
       if ( ( (timer >= cycle[currentCycle].started ) || (!firstCycle) ) && ((timer % cycle[currentCycle].repeated) - cycle[currentCycle].delayed) == 0) {
 
-        if ((currentSettings.huType == HU_AFTERMARKET) &&
+        if (((currentSettings.huType == HU_AFTERMARKET) || (currentSettings.huType == HU_AFTERMARKET_WITH_GPS_DATE)) &&
             wantClock() &&
             (cycle[currentCycle].header == 0x3f2) &&
             gotClock
@@ -446,6 +457,18 @@ void loop() {
             displayText(0, carSpeed.padRight(3));
             displayText(1, tirePressure[TIRE_FL].padRight(pressurePadding) + rpmMessage + rpm.padRight(4) + F(" E:") + temperature.padRight(3) + " " + tirePressure[TIRE_FR].padRight(pressurePadding));
             displayText(2, tirePressure[TIRE_RR].padRight(pressurePadding) + tireTempMessage + tireTemperature.padRight(3) + " " + tirePressure[TIRE_RL].padRight(pressurePadding));
+            break;
+          case HU_AFTERMARKET_WITH_GPS_DATE:
+            //     80       12:00
+            // 2.1 R:1234 E: 83 2.1
+            // 2.1   01-05-21   2.1
+
+            //     80       12:00
+            // 32 RPM:1234 E: 83 32
+            // 32          T: 40 32
+            displayText(0, carSpeed.padRight(3));
+            displayText(1, tirePressure[TIRE_FL].padRight(pressurePadding) + rpmMessage + rpm.padRight(4) + F(" E:") + temperature.padRight(3) + " " + tirePressure[TIRE_FR].padRight(pressurePadding));
+            displayText(2, tirePressure[TIRE_RR].padRight(pressurePadding) + "  " + dayString.padZeros(2) + "-" + monthString.padZeros(2) + "-" + yearString.padZeros(2) + "  " + tirePressure[TIRE_RL].padRight(pressurePadding));
             break;
           case HU_STOCK:
             // 2.1 R:1234 E: 83 2.1

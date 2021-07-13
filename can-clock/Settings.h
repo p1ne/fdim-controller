@@ -27,6 +27,7 @@
 #define HU_STOCK 2
 #define HU_CHINESE_WITH_CAN_SIMPLE 3
 #define HU_CHINESE_WITH_CAN_EXTENDED 4
+#define HU_AFTERMARKET_WITH_GPS_DATE 5
 
 typedef struct __attribute__((__packed__)) {
   uint8_t configVersion;
