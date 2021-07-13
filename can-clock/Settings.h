@@ -12,7 +12,7 @@
 #include "Service.h"
 
 #define CONFIG_START 32
-#define CONFIG_VERSION 7
+#define CONFIG_VERSION 8
 
 #define PRESSURE_OFF 0
 #define PRESSURE_PSI 1
