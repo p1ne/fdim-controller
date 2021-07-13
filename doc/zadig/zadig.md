@@ -3,7 +3,7 @@
 By default Windows locks USB device port and do not allow Chrome to interact with devices from WebUSB-enabled web pages.
 In order to switch USB port to proper mode, one needs to download Zadig software and switch USB device driver to WinUSB
 
-1. Download Zadig from (https://zadig.akeo.ie/)[https://zadig.akeo.ie/] and install it.
+1. Download Zadig from [https://zadig.akeo.ie/](https://zadig.akeo.ie/) and install it.
 
 2. Go to Options and enable List All Devices.
 
@@ -29,5 +29,5 @@ In order to switch USB port to proper mode, one needs to download Zadig software
 
 ![](zadig7.png)
 
-8. You can go back to (Configurator page)[https://p1ne.github.io/fdim-controller/fdim-config/]. You may need to reload it several times, then click Connect, pair device and start configuring
+8. You can go back to [Configurator page](https://p1ne.github.io/fdim-controller/fdim-config/). You may need to reload it several times, then click Connect, pair device and start configuring
  
